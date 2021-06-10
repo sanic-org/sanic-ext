@@ -47,6 +47,10 @@ def add_cors(app: Sanic) -> None:
             _add_max_age_header(request, response)
             _add_methods_header(request, response)
 
+    _setup_cors_settings(app)
+
+
+def _setup_cors_settings(app: Sanic) -> None:
     allowed_origins = _get_allowed_origins(app)
     expose_headers = (
         app.config.CORS_EXPOSE_HEADERS
@@ -66,6 +70,7 @@ def add_cors(app: Sanic) -> None:
     max_age = app.config.CORS_MAX_AGE or ""
     if isinstance(max_age, timedelta):
         max_age = str(int(max_age.total_seconds()))
+
     app.ctx.cors = CORSSettings(
         allowed_origins=tuple(allowed_origins),
         always_send=app.config.CORS_ALWAYS_SEND,
@@ -76,8 +81,6 @@ def add_cors(app: Sanic) -> None:
         allow_headers=frozenset(header.lower() for header in allow_headers),
         max_age=max_age,
     )
-
-    print(app.ctx.cors)
 
 
 def _add_origin_header(request: Request, response: HTTPResponse) -> None:
