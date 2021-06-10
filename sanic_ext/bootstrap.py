@@ -2,6 +2,7 @@ from sanic import Sanic, __version__
 from sanic.exceptions import SanicException
 
 from sanic_ext.config import add_fallback_config
+from sanic_ext.extensions.http.cors import add_cors
 from sanic_ext.extensions.http.methods import (
     add_auto_handlers,
     add_http_methods,
@@ -45,5 +46,8 @@ def apply(
 
     if auto_head or auto_options or auto_trace:
         add_auto_handlers(app, auto_head, auto_options, auto_trace)
+
+    if cors:
+        add_cors(app)
 
     app.blueprint(oa3bp)
