@@ -50,4 +50,11 @@ def apply(
     if cors:
         add_cors(app)
 
+    if app.ctx.cors.automatic_options and not auto_options:
+        raise SanicException(
+            "Configuration mismatch. If CORS_AUTOMATIC_OPTIONS is set to "
+            "True, then you must run SanicExt with "
+            "apply(..., auto_options=True)."
+        )
+
     app.blueprint(oa3bp)
