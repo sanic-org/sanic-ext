@@ -1,12 +1,16 @@
 from functools import partial
-from typing import Sequence
+from inspect import isawaitable
+from typing import Sequence, Union
 
 from sanic import Sanic
+from sanic.constants import HTTPMethod
 from sanic.exceptions import SanicException
 from sanic.response import empty, raw
 
 
-def add_http_methods(app: Sanic, methods: Sequence[str]) -> None:
+def add_http_methods(
+    app: Sanic, methods: Sequence[Union[str, HTTPMethod]]
+) -> None:
     """
     Adds HTTP methods to an app
 
@@ -16,8 +20,8 @@ def add_http_methods(app: Sanic, methods: Sequence[str]) -> None:
     :type methods: Sequence[str]
     """
 
-    app.router.ALLOWED_METHODS = tuple(  # type: ignore
-        [*app.router.ALLOWED_METHODS, *methods]
+    app.router.ALLOWED_METHODS = tuple(
+        [*app.router.ALLOWED_METHODS, *methods]  # type: ignore
     )
 
 
@@ -32,7 +36,10 @@ def add_auto_handlers(
         )
 
     async def head_handler(request, get_handler, *args, **kwargs):
-        return await get_handler(request, *args, **kwargs)
+        retval = get_handler(request, *args, **kwargs)
+        if isawaitable(retval):
+            retval = await retval
+        return retval
 
     async def options_handler(request, methods, *args, **kwargs):
         resp = empty()
