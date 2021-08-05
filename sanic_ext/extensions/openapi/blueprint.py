@@ -3,8 +3,11 @@ from os.path import abspath, dirname, realpath
 
 from sanic.blueprints import Blueprint
 from sanic.response import html, json
+from sanic_ext.extensions.openapi.builders import (
+    OperationStore,
+    SpecificationBuilder,
+)
 
-from . import operations, specification
 from .utils import get_all_routes, get_blueprinted_routes
 
 DEFAULT_SWAGGER_UI_CONFIG = {
@@ -14,22 +17,22 @@ DEFAULT_SWAGGER_UI_CONFIG = {
 
 
 def blueprint_factory():
-    oas3_blueprint = Blueprint("openapi", url_prefix="/swagger")
+    oas3_blueprint = Blueprint("openapi", url_prefix="/docs")
 
     dir_path = dirname(realpath(__file__))
     dir_path = abspath(dir_path + "/ui")
 
     @oas3_blueprint.route("")
     def index(request):
-        with open(dir_path + "/swagger.html", "r") as f:
+        with open(dir_path + "/redoc.html", "r") as f:
             page = f.read()
         return html(page)
 
-    @oas3_blueprint.route("/swagger.json")
+    @oas3_blueprint.route("/openapi.json")
     def spec(request):
-        return json(specification.build().serialize())
+        return json(SpecificationBuilder().build().serialize())
 
-    @oas3_blueprint.route("/swagger-config")
+    @oas3_blueprint.route("/openapi-config")
     def config(request):
         return json(
             getattr(
@@ -41,12 +44,13 @@ def blueprint_factory():
 
     @oas3_blueprint.listener("before_server_start")
     def build_spec(app, loop):
+        specification = SpecificationBuilder()
         # --------------------------------------------------------------- #
         # Blueprint Tags
         # --------------------------------------------------------------- #
 
         for blueprint_name, handler in get_blueprinted_routes(app):
-            operation = operations[handler]
+            operation = OperationStore()[handler]
             if not operation.tags:
                 operation.tag(blueprint_name)
 
@@ -73,7 +77,11 @@ def blueprint_factory():
 
                 if hasattr(_handler, "view_class"):
                     _handler = getattr(_handler.view_class, method.lower())
-                operation = operations[_handler]
+                operation = OperationStore()[_handler]
+
+                if operation._exclude:
+                    continue
+
                 docstring = inspect.getdoc(_handler)
 
                 if docstring:
@@ -104,19 +112,19 @@ def add_static_info_to_spec_from_config(app, specification):
 
     Modifies specification in-place and returns None
     """
-    specification.describe(
+    specification._do_describe(
         getattr(app.config, "API_TITLE", "API"),
         getattr(app.config, "API_VERSION", "1.0.0"),
         getattr(app.config, "API_DESCRIPTION", None),
         getattr(app.config, "API_TERMS_OF_SERVICE", None),
     )
 
-    specification.license(
+    specification._do_license(
         getattr(app.config, "API_LICENSE_NAME", None),
         getattr(app.config, "API_LICENSE_URL", None),
     )
 
-    specification.contact(
+    specification._do_contact(
         getattr(app.config, "API_CONTACT_NAME", None),
         getattr(app.config, "API_CONTACT_URL", None),
         getattr(app.config, "API_CONTACT_EMAIL", None),

@@ -1,18 +1,32 @@
-import itertools
-
 import pytest
 from sanic import Sanic
+from sanic_ext import Apply
+from sanic_ext.extensions.openapi.builders import (
+    OperationStore,
+    SpecificationBuilder,
+)
 
-from sanic_openapi import openapi2_blueprint
 
-app_ID = itertools.count()
+@pytest.fixture(autouse=True)
+def reset_globals():
+    SpecificationBuilder.reset()
+    OperationStore.reset()
 
 
-@pytest.fixture()
+@pytest.fixture
 def app():
-    app = Sanic("test_{}".format(next(app_ID)))
-    app.blueprint(openapi2_blueprint)
+    app = Sanic("ExtTesting")
+    app.ctx.ext = Apply(app)
+
     yield app
 
-    # Clean up
-    openapi2_blueprint.definitions = {}
+
+@pytest.fixture
+def get_docs(app):
+    def fetch():
+        nonlocal app
+
+        _, response = app.test_client.get("/docs/openapi.json")
+        return response.json
+
+    return fetch

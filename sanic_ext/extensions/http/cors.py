@@ -115,7 +115,7 @@ def _add_origin_header(request: Request, response: HTTPResponse) -> None:
 
 def _add_expose_header(request: Request, response: HTTPResponse) -> None:
     with_credentials = _is_request_with_credentials(request)
-
+    expose_headers = None
     # MDN: The value "*" only counts as a special wildcard value for requests
     # without credentials (requests without HTTP cookies or HTTP
     # authentication information). In requests with credentials, it is
@@ -128,7 +128,8 @@ def _add_expose_header(request: Request, response: HTTPResponse) -> None:
     elif request.app.ctx.cors.expose_headers:
         expose_headers = request.app.ctx.cors.expose_headers
 
-    response.headers[EXPOSE_HEADER] = ",".join(expose_headers)
+    if expose_headers:
+        response.headers[EXPOSE_HEADER] = ",".join(expose_headers)
 
 
 def _add_credentials_header(request: Request, response: HTTPResponse) -> None:
