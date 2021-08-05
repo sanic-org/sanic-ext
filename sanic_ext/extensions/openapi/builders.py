@@ -7,6 +7,7 @@ for breaking user experience
 from collections import defaultdict
 from typing import Optional
 
+from ...utils.route import remove_nulls, remove_nulls_from_kwargs
 from .autodoc import YamlStyleParametersParser
 from .definitions import (
     Any,
@@ -26,7 +27,6 @@ from .definitions import (
     Server,
     Tag,
 )
-from .utils import remove_nulls, remove_nulls_from_kwargs
 
 
 class OperationBuilder:

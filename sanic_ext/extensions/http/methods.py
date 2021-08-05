@@ -7,6 +7,7 @@ from sanic.constants import HTTPMethod
 from sanic.exceptions import SanicException
 from sanic.response import empty, raw
 
+from ...utils.route import clean_route_name
 from ..openapi import openapi
 
 
@@ -77,7 +78,7 @@ def add_auto_handlers(
                     name = f"{get_route.name}_head"
                     app.add_route(
                         handler=openapi.definition(
-                            summary=name,
+                            summary=clean_route_name(get_route.name).title(),
                             description="Retrieve HEAD details",
                         )(
                             partial(

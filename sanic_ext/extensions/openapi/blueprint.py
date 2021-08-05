@@ -10,7 +10,11 @@ from sanic_ext.extensions.openapi.builders import (
     SpecificationBuilder,
 )
 
-from .utils import get_all_routes, get_blueprinted_routes
+from ...utils.route import (
+    clean_route_name,
+    get_all_routes,
+    get_blueprinted_routes,
+)
 
 
 def blueprint_factory(config: Config):
@@ -93,6 +97,9 @@ def blueprint_factory(config: Config):
                         method.lower(),
                         route_name,
                     )
+
+                if not hasattr(operation, "summary"):
+                    operation.summary = clean_route_name(route_name)
 
                 for _parameter in route_parameters:
                     operation.parameter(
