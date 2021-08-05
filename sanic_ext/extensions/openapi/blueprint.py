@@ -1,7 +1,9 @@
 import inspect
+from functools import partial
 from os.path import abspath, dirname, realpath
 
 from sanic.blueprints import Blueprint
+from sanic.config import Config
 from sanic.response import html, json
 from sanic_ext.extensions.openapi.builders import (
     OperationStore,
@@ -10,39 +12,38 @@ from sanic_ext.extensions.openapi.builders import (
 
 from .utils import get_all_routes, get_blueprinted_routes
 
-DEFAULT_SWAGGER_UI_CONFIG = {
-    "apisSorter": "alpha",
-    "operationsSorter": "alpha",
-}
 
-
-def blueprint_factory():
-    oas3_blueprint = Blueprint("openapi", url_prefix="/docs")
+def blueprint_factory(config: Config):
+    bp = Blueprint("openapi", url_prefix=config.OAS_URL_PREFIX)
 
     dir_path = dirname(realpath(__file__))
     dir_path = abspath(dir_path + "/ui")
 
-    @oas3_blueprint.route("")
-    def index(request):
-        with open(dir_path + "/redoc.html", "r") as f:
-            page = f.read()
-        return html(page)
+    for ui in ("redoc", "swagger"):
+        if getattr(config, f"OAS_UI_{ui}".upper()):
+            path = getattr(config, f"OAS_PATH_TO_{ui}_HTML".upper())
+            uri = getattr(config, f"OAS_URI_TO_{ui}".upper())
+            html_path = path if path else f"{dir_path}/{ui}.html"
 
-    @oas3_blueprint.route("/openapi.json")
+            with open(html_path, "r") as f:
+                page = f.read()
+
+            def index(request, page):
+                return html(page)
+
+            bp.add_route(partial(index, page=page), uri, name=ui)
+            if config.OAS_UI_DEFAULT == ui:
+                bp.add_route(partial(index, page=page), "", name="index")
+
+    @bp.get(config.OAS_URI_TO_JSON)
     def spec(request):
         return json(SpecificationBuilder().build().serialize())
 
-    @oas3_blueprint.route("/openapi-config")
-    def config(request):
-        return json(
-            getattr(
-                request.app.config,
-                "SWAGGER_UI_CONFIGURATION",
-                DEFAULT_SWAGGER_UI_CONFIG,
-            )
-        )
+    @bp.get(config.OAS_URI_TO_CONFIG)
+    def openapi_config(request):
+        return json(request.app.config.SWAGGER_UI_CONFIGURATION)
 
-    @oas3_blueprint.listener("before_server_start")
+    @bp.before_server_start
     def build_spec(app, loop):
         specification = SpecificationBuilder()
         # --------------------------------------------------------------- #
@@ -62,7 +63,7 @@ def blueprint_factory():
             route_name,
             route_parameters,
             method_handlers,
-        ) in get_all_routes(app, oas3_blueprint.url_prefix):
+        ) in get_all_routes(app, bp.url_prefix):
 
             # --------------------------------------------------------------- #
             # Methods
@@ -102,7 +103,7 @@ def blueprint_factory():
 
         add_static_info_to_spec_from_config(app, specification)
 
-    return oas3_blueprint
+    return bp
 
 
 def add_static_info_to_spec_from_config(app, specification):

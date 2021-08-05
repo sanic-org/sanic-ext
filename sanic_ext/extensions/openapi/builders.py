@@ -102,7 +102,7 @@ class OperationBuilder:
             operation_dict["responses"]["default"] = {"description": "OK"}
 
         if self._autodoc:
-            operation_dict.update(self._autodoc)
+            operation_dict = {**self._autodoc, **operation_dict}
 
         return Operation(**operation_dict)
 

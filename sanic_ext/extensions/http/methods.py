@@ -7,6 +7,8 @@ from sanic.constants import HTTPMethod
 from sanic.exceptions import SanicException
 from sanic.response import empty, raw
 
+from ..openapi import openapi
+
 
 def add_http_methods(
     app: Sanic, methods: Sequence[Union[str, HTTPMethod]]
@@ -72,14 +74,20 @@ def add_auto_handlers(
             for group in app.router.groups.values():
                 if "GET" in group.methods and "HEAD" not in group.methods:
                     get_route = group.methods_index["GET"]
+                    name = f"{get_route.name}_head"
                     app.add_route(
-                        handler=partial(
-                            head_handler, get_handler=get_route.handler
+                        handler=openapi.definition(
+                            summary=name,
+                            description="Retrieve HEAD details",
+                        )(
+                            partial(
+                                head_handler, get_handler=get_route.handler
+                            )
                         ),
                         uri=group.uri,
                         methods=["HEAD"],
                         strict_slashes=group.strict,
-                        name=f"{get_route.name}_head",
+                        name=name,
                     )
             app.router.finalize()
 

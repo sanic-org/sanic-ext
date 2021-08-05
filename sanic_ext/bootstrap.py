@@ -80,6 +80,7 @@ class Apply:
 
         self.app = app
         self._injection_registry: Optional[InjectionRegistry] = None
+        app.ctx.ext = self
 
     def injection(
         self,

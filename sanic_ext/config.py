@@ -12,6 +12,20 @@ FALLBACK_CONFIG = {
     "CORS_SUPPORTS_CREDENTIALS": False,
     "CORS_VARY_HEADER": True,
     "TRACE_EXCLUDED_HEADERS": ("authorization", "cookie"),
+    "OAS_URL_PREFIX": "/docs",
+    "OAS_URI_TO_CONFIG": "/openapi-config",
+    "OAS_URI_TO_REDOC": "/redoc",
+    "OAS_URI_TO_SWAGGER": "/swagger",
+    "OAS_URI_TO_JSON": "/openapi.json",
+    "OAS_PATH_TO_REDOC_HTML": None,
+    "OAS_PATH_TO_SWAGGER_HTML": None,
+    "OAS_UI_REDOC": True,
+    "OAS_UI_SWAGGER": True,
+    "OAS_UI_DEFAULT": "redoc",
+    "SWAGGER_UI_CONFIGURATION": {
+        "apisSorter": "alpha",
+        "operationsSorter": "alpha",
+    },
 }
 
 

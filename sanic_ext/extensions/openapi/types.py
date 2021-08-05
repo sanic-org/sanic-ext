@@ -29,15 +29,15 @@ class Definition:
     def __str__(self):
         return json.dumps(self.serialize())
 
-    def apply(self, func, operations, *args, **kwargs):
-        op = operations[func]
-        method_name = getattr(
-            self.__class__, "__method__", self.__class__.__name__.lower()
-        )
-        method = getattr(op, method_name)
-        if not args and not kwargs:
-            kwargs = self.__dict__
-        method(*args, **kwargs)
+    # def apply(self, func, operations, *args, **kwargs):
+    #     op = operations[func]
+    #     method_name = getattr(
+    #         self.__class__, "__method__", self.__class__.__name__.lower()
+    #     )
+    #     method = getattr(op, method_name)
+    #     if not args and not kwargs:
+    #         kwargs = self.__dict__
+    #     method(*args, **kwargs)
 
 
 class Schema(Definition):

@@ -6,7 +6,7 @@ class OpenAPIExtension(Extension):
     name = "openapi"
 
     def startup(self, _) -> None:
-        self.bp = blueprint_factory()
+        self.bp = blueprint_factory(self.app.config)
         self.app.blueprint(self.bp)
 
     def label(self):
