@@ -5,6 +5,7 @@ from typing import Any, Dict, Type
 
 from sanic.app import Sanic
 from sanic.exceptions import SanicException
+from sanic_ext.config import Config
 from sanic_ext.exceptions import InitError
 
 
@@ -38,9 +39,9 @@ class Extension(ABC):
 
         cls._name_registry[cls.name] = cls
 
-    def __init__(self, app: Sanic, options: Dict[str, Any]) -> None:
+    def __init__(self, app: Sanic, config: Config) -> None:
         self.app = app
-        self.options = options
+        self.config = config
 
     def _startup(self, bootstrap):
         if self._started:

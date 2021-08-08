@@ -4,7 +4,12 @@ Classes defined from the OpenAPI 3.0 specifications.
 I.e., the objects described https://swagger.io/docs/specification
 
 """
-from typing import Any, Dict, List, Optional, Type, Union
+from __future__ import annotations
+
+from inspect import isclass
+from typing import Any, Dict, List, Optional, Type, Union, get_type_hints
+
+from sanic.exceptions import SanicException
 
 from .types import Definition, Schema
 
@@ -309,6 +314,42 @@ class Components(Definition):
     securitySchemes: Dict[str, SecurityScheme]
     links: Dict[str, Schema]  # TODO
     callbacks: Dict[str, Schema]  # TODO
+
+
+def Component(
+    obj: Any, *, name: str = "", field: str = "schemas"
+) -> Reference:
+    hints = get_type_hints(Components)
+
+    if field not in hints:
+        raise AttributeError(
+            f"Unknown field '{field}'. Must be a valid field per OAS3 "
+            "requirements. See "
+            "https://swagger.io/specification/#components-object."
+        )
+
+    if not isclass(obj) and not name:
+        raise SanicException(
+            f"Components {obj} must be created with a declared name"
+        )
+
+    if not name:
+        name = obj.__name__
+
+    from sanic_ext.extensions.openapi.builders import SpecificationBuilder
+
+    spec = SpecificationBuilder()
+    refval = f"#/components/{field}/{name}"
+    ref = Reference(refval)
+
+    if not spec.has_component(field, name):
+        prop_info = hints[field]
+        type_ = prop_info.__args__[1]
+        component = type_.make(obj) if hasattr(type_, "make") else type_(obj)
+
+        spec.add_component(field, name, component)
+
+    return ref
 
 
 class OpenAPI(Definition):

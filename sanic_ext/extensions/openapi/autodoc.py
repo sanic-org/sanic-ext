@@ -44,22 +44,7 @@ class YamlStyleParametersParser(OpenAPIDocstringParser):
         if len(doc) == 0:
             return {}
 
-        lines = doc.split("\n")
-
-        if len(lines) == 1:
-            return {"summary": lines[0]}
-        else:
-            summary = lines.pop(0)
-
-            # remove empty lines at the beginning of the description
-            while len(lines) and lines[0].strip() == "":
-                lines.pop(0)
-
-            if len(lines) == 0:
-                return {"summary": summary}
-            else:
-                # use html tag to preserve linebreaks
-                return {"summary": summary, "description": "<br>".join(lines)}
+        return {"description": doc}
 
     def _parse_yaml(self, doc: str) -> dict:
         """

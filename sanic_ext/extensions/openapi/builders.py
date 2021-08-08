@@ -241,6 +241,9 @@ class SpecificationBuilder:
     def add_component(self, location: str, name: str, obj: Any):
         self._components[location].update({name: obj})
 
+    def has_component(self, location: str, name: str) -> bool:
+        return name in self._components.get(location, {})
+
     def raw(self, data):
         if "info" in data:
             self.describe(

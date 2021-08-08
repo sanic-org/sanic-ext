@@ -1,12 +1,12 @@
 from __future__ import annotations
 
-from typing import Any, Callable, List, Optional, Type
+from typing import Any, Callable, Dict, List, Optional, Type, Union
 
 from sanic import Sanic, __version__
 from sanic.exceptions import SanicException
 from sanic.log import logger
 
-from sanic_ext.config import add_fallback_config
+from sanic_ext.config import Config, add_fallback_config
 from sanic_ext.extensions.base import Extension
 from sanic_ext.extensions.http.extension import HTTPExtension
 from sanic_ext.extensions.injection.extension import InjectionExtension
@@ -16,22 +16,18 @@ from sanic_ext.extensions.openapi.extension import OpenAPIExtension
 MIN_SUPPORT = (21, 3, 2)
 
 
-class Apply:
+class Extend:
     def __init__(
         self,
         app: Sanic,
         *,
         extensions: Optional[List[Type[Extension]]] = None,
         built_in_extensions: bool = True,
-        all_http_methods: bool = True,
-        auto_head: bool = True,
-        auto_options: bool = True,
-        auto_trace: bool = False,
-        cors: bool = True,
+        config: Optional[Union[Config, Dict[str, Any]]] = None,
         **kwargs,
     ) -> None:
         """
-        Ingres for instantiating sanic-ext
+        Ingress for instantiating sanic-ext
 
         :param app: Sanic application
         :type app: Sanic
@@ -50,16 +46,13 @@ class Apply:
                 f"It looks like you are running {__version__}."
             )
 
-        add_fallback_config(app)
-        kwargs.update(
-            {
-                "all_http_methods": all_http_methods,
-                "auto_head": auto_head,
-                "auto_options": auto_options,
-                "auto_trace": auto_trace,
-                "cors": cors,
-            }
-        )
+        self.app = app
+        self._injection_registry: Optional[InjectionRegistry] = None
+        app.ctx.ext = self
+
+        if not isinstance(config, Config):
+            config = Config.from_dict(config or {})
+        self.config = add_fallback_config(app, config, **kwargs)
 
         if not extensions:
             extensions = []
@@ -71,16 +64,13 @@ class Apply:
                     HTTPExtension,
                 ]
             )
-        logger.info("Sanic Extensions:")
+        init_logs = ["Sanic Extensions:"]
         for extclass in extensions[::-1]:
-            extension = extclass(app, kwargs)
+            extension = extclass(app, self.config)
             extension._startup(self)
+            init_logs.append(f"  > {extension.name} {extension.label()}")
 
-            logger.info(f"  > {extension.name} {extension.label()}")
-
-        self.app = app
-        self._injection_registry: Optional[InjectionRegistry] = None
-        app.ctx.ext = self
+        list(map(logger.info, init_logs))
 
     def injection(
         self,

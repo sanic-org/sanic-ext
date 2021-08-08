@@ -3,12 +3,27 @@ This module provides decorators which append
 documentation to OperationStore() and components created in the blueprints.
 
 """
-from typing import Any, Callable, Dict, List, Optional, Sequence, Union
+from functools import wraps
+from inspect import isclass
+from typing import (
+    Any,
+    Callable,
+    Dict,
+    List,
+    Optional,
+    Sequence,
+    TypeVar,
+    Union,
+)
 
 from sanic import Blueprint, Request
 from sanic.exceptions import SanicException
-from sanic_ext.extensions.openapi.builders import OperationStore
-from sanic_openapi.openapi3.definitions import (
+from sanic_ext.extensions.openapi.builders import (
+    OperationStore,
+    SpecificationBuilder,
+)
+from sanic_ext.extensions.openapi.definitions import (
+    Component,
     ExternalDocumentation,
     Parameter,
     RequestBody,
@@ -32,6 +47,14 @@ from .types import Password  # noqa
 from .types import String  # noqa
 from .types import Time  # noqa
 from .validation import validate_body
+
+
+def _content_or_component(content):
+    if isclass(content):
+        spec = SpecificationBuilder()
+        if spec._components["schemas"].get(content.__name__):
+            content = Component(content)
+    return content
 
 
 def exclude(flag: bool = True, *, bp: Optional[Blueprint] = None):
@@ -109,6 +132,7 @@ def body(
     **kwargs,
 ):
     def inner(func):
+        @wraps(func)
         def handler(request, *handler_args, **handler_kwargs):
             nonlocal kwargs
             nonlocal validate
@@ -123,7 +147,8 @@ def body(
 
             return func(request, *handler_args, **handler_kwargs)
 
-        OperationStore()[handler].body(content, **kwargs)
+        body_content = _content_or_component(content)
+        OperationStore()[handler].body(body_content, **kwargs)
         return handler
 
     return inner
@@ -158,6 +183,14 @@ def secured(*args, **kwargs):
     return inner
 
 
+Model = TypeVar("Model")
+
+
+def component(model: Model):
+    Component(model)
+    return model
+
+
 def definition(
     *,
     exclude: Optional[bool] = None,
@@ -185,16 +218,16 @@ def definition(
         glbl = globals()
 
         if exclude is not None:
-            glbl["exclude"](exclude)(func)
+            func = glbl["exclude"](exclude)(func)
 
         if operation:
-            glbl["operation"](operation)(func)
+            func = glbl["operation"](operation)(func)
 
         if summary:
-            glbl["summary"](summary)(func)
+            func = glbl["summary"](summary)(func)
 
         if description:
-            glbl["description"](description)(func)
+            func = glbl["description"](description)(func)
 
         if document:
             kwargs = {}
@@ -204,7 +237,7 @@ def definition(
                 kwargs["url"] = document.fields["url"]
                 kwargs["description"] = document.fields["description"]
 
-            glbl["document"](**kwargs)(func)
+            func = glbl["document"](**kwargs)(func)
 
         if tag:
             taglist = []
@@ -215,7 +248,7 @@ def definition(
             )
 
             getattr(taglist, op)(tag)
-            glbl["tag"](
+            func = glbl["tag"](
                 *[
                     tag.fields["name"] if isinstance(tag, Tag) else tag
                     for tag in taglist
@@ -223,20 +256,22 @@ def definition(
             )(func)
 
         if deprecated:
-            glbl["deprecated"]()(func)
+            func = glbl["deprecated"]()(func)
 
         if body:
             kwargs = {}
-            if isinstance(body, RequestBody):
-                kwargs = body.fields
-            elif isinstance(body, dict):
-                if "content" in body:
-                    kwargs = body
+            content = body
+            if isinstance(content, RequestBody):
+                kwargs = content.fields
+            elif isinstance(content, dict):
+                if "content" in content:
+                    kwargs = content
                 else:
-                    kwargs["content"] = body
+                    kwargs["content"] = content
             else:
-                kwargs["content"] = body
-            glbl["body"](**kwargs)(func)
+                content = _content_or_component(content)
+                kwargs["content"] = content
+            func = glbl["body"](**kwargs)(func)
 
         if parameter:
             paramlist = []
@@ -264,7 +299,7 @@ def definition(
                 if "schema" not in kwargs:
                     kwargs["schema"] = str
 
-                glbl["parameter"](**kwargs)(func)
+                func = glbl["parameter"](**kwargs)(func)
 
         if response:
             resplist = []
@@ -290,7 +325,7 @@ def definition(
                 if "status" not in kwargs:
                     kwargs["status"] = 200
 
-                glbl["response"](**kwargs)(func)
+                func = glbl["response"](**kwargs)(func)
 
         return func
 

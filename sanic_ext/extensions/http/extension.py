@@ -9,11 +9,11 @@ class HTTPExtension(Extension):
 
     def __init__(self, *args) -> None:
         super().__init__(*args)
-        self.all_http_methods: bool = self.options["all_http_methods"]
-        self.auto_head: bool = self.options["auto_head"]
-        self.auto_options: bool = self.options["auto_options"]
-        self.auto_trace: bool = self.options["auto_trace"]
-        self.cors: bool = self.options["cors"]
+        self.all_http_methods: bool = self.config.ALL_HTTP_METHODS
+        self.auto_head: bool = self.config.AUTO_HEAD
+        self.auto_options: bool = self.config.AUTO_OPTIONS
+        self.auto_trace: bool = self.config.AUTO_TRACE
+        self.cors: bool = self.config.CORS
 
     def startup(self, _) -> None:
         if self.all_http_methods:
