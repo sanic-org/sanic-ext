@@ -5,71 +5,75 @@ from typing import Any, Dict, Optional, Sequence
 from sanic import Sanic
 from sanic.config import Config as SanicConfig
 
-FALLBACK_CONFIG = {
-    "ALL_HTTP_METHODS": True,
-    "AUTO_HEAD": True,
-    "AUTO_OPTIONS": True,
-    "AUTO_TRACE": False,
-    "CORS": True,
-    "CORS_ALLOW_HEADERS": "*",
-    "CORS_ALWAYS_SEND": True,
-    "CORS_AUTOMATIC_OPTIONS": True,
-    "CORS_EXPOSE_HEADERS": None,
-    "CORS_MAX_AGE": None,
-    "CORS_METHODS": None,
-    "CORS_ORIGINS": "*",
-    "CORS_SEND_WILDCARD": False,
-    "CORS_SUPPORTS_CREDENTIALS": False,
-    "CORS_VARY_HEADER": True,
-    "TRACE_EXCLUDED_HEADERS": ("authorization", "cookie"),
-    "OAS_URL_PREFIX": "/docs",
-    "OAS_URI_TO_CONFIG": "/openapi-config",
-    "OAS_URI_TO_REDOC": "/redoc",
-    "OAS_URI_TO_SWAGGER": "/swagger",
-    "OAS_URI_TO_JSON": "/openapi.json",
-    "OAS_PATH_TO_REDOC_HTML": None,
-    "OAS_PATH_TO_SWAGGER_HTML": None,
-    "OAS_UI_REDOC": True,
-    "OAS_UI_SWAGGER": True,
-    "OAS_UI_DEFAULT": "redoc",
-    "SWAGGER_UI_CONFIGURATION": {
-        "apisSorter": "alpha",
-        "operationsSorter": "alpha",
-    },
-}
-
 
 class Config(SanicConfig):
-    ALL_HTTP_METHODS: bool
-    AUTO_HEAD: bool
-    AUTO_OPTIONS: bool
-    AUTO_TRACE: bool
-    CORS: bool
-    CORS_ALLOW_HEADERS: str
-    CORS_ALWAYS_SEND: bool
-    CORS_AUTOMATIC_OPTIONS: bool
-    CORS_EXPOSE_HEADERS = None
-    CORS_MAX_AGE = None
-    CORS_METHODS = None
-    CORS_ORIGINS: str
-    CORS_SEND_WILDCARD: bool
-    CORS_SUPPORTS_CREDENTIALS: bool
-    CORS_VARY_HEADER: bool
-    TRACE_EXCLUDED_HEADERS: Sequence[str]
-    OAS_URL_PREFIX: str
-    OAS_URI_TO_CONFIG: str
-    OAS_URI_TO_REDOC: str
-    OAS_URI_TO_SWAGGER: str
-    OAS_URI_TO_JSON: str
-    OAS_PATH_TO_REDOC_HTML: Optional[str]
-    OAS_PATH_TO_SWAGGER_HTML: Optional[str]
-    OAS_UI_REDOC: bool
-    OAS_UI_SWAGGER: bool
-    OAS_UI_DEFAULT: str
-    SWAGGER_UI_CONFIGURATION: Dict[str, Any]
+    def __init__(
+        self,
+        all_http_methods: bool = True,
+        auto_head: bool = True,
+        auto_options: bool = True,
+        auto_trace: bool = False,
+        cors_allow_headers: str = "*",
+        cors_always_send: bool = True,
+        cors_automatic_options: bool = True,
+        cors_expose_headers: str = None,
+        cors_max_age: int = None,
+        cors_methods: str = None,
+        cors_origins: str = "*",
+        cors_send_wildcard: bool = False,
+        cors_supports_credentials: bool = False,
+        cors_vary_header: bool = True,
+        cors: bool = True,
+        oas_path_to_redoc_html: Optional[str] = None,
+        oas_path_to_swagger_html: Optional[str] = None,
+        oas_ui_default: str = "redoc",
+        oas_ui_redoc: bool = True,
+        oas_ui_swagger: bool = True,
+        oas_uri_to_config: str = "/openapi-config",
+        oas_uri_to_json: str = "/openapi.json",
+        oas_uri_to_redoc: str = "/redoc",
+        oas_uri_to_swagger: str = "/swagger",
+        oas_url_prefix: str = "/docs",
+        swagger_ui_configuration: Optional[Dict[str, Any]] = None,
+        trace_excluded_headers: Sequence[str] = ("authorization", "cookie"),
+        **kwargs,
+    ):
+        self.ALL_HTTP_METHODS = all_http_methods
+        self.AUTO_HEAD = auto_head
+        self.AUTO_OPTIONS = auto_options
+        self.AUTO_TRACE = auto_trace
+        self.CORS_ALLOW_HEADERS = cors_allow_headers
+        self.CORS_ALWAYS_SEND = cors_always_send
+        self.CORS_AUTOMATIC_OPTIONS = cors_automatic_options
+        self.CORS_EXPOSE_HEADERS = cors_expose_headers
+        self.CORS_MAX_AGE = cors_max_age
+        self.CORS_METHODS = cors_methods
+        self.CORS_ORIGINS = cors_origins
+        self.CORS_SEND_WILDCARD = cors_send_wildcard
+        self.CORS_SUPPORTS_CREDENTIALS = cors_supports_credentials
+        self.CORS_VARY_HEADER = cors_vary_header
+        self.CORS = cors
+        self.OAS_PATH_TO_REDOC_HTML = oas_path_to_redoc_html
+        self.OAS_PATH_TO_SWAGGER_HTML = oas_path_to_swagger_html
+        self.OAS_UI_DEFAULT = oas_ui_default
+        self.OAS_UI_REDOC = oas_ui_redoc
+        self.OAS_UI_SWAGGER = oas_ui_swagger
+        self.OAS_URI_TO_CONFIG = oas_uri_to_config
+        self.OAS_URI_TO_JSON = oas_uri_to_json
+        self.OAS_URI_TO_REDOC = oas_uri_to_redoc
+        self.OAS_URI_TO_SWAGGER = oas_uri_to_swagger
+        self.OAS_URL_PREFIX = oas_url_prefix
+        self.SWAGGER_UI_CONFIGURATION = swagger_ui_configuration or {
+            "apisSorter": "alpha",
+            "operationsSorter": "alpha",
+        }
+        self.TRACE_EXCLUDED_HEADERS = trace_excluded_headers
 
-    def __init__(self, **kwargs):
-        self.load(FALLBACK_CONFIG)
+        if isinstance(self.TRACE_EXCLUDED_HEADERS, str):
+            self.TRACE_EXCLUDED_HEADERS = tuple(
+                self.TRACE_EXCLUDED_HEADERS.split(",")
+            )
+
         self.load({key.upper(): value for key, value in kwargs.items()})
 
     @classmethod
@@ -81,13 +85,10 @@ def add_fallback_config(
     app: Sanic, config: Optional[Config] = None, **kwargs
 ) -> Config:
     if config is None:
-        config = Config(**FALLBACK_CONFIG)
-    app.config.update(config)
-    app.config.update(kwargs)
+        config = Config(**kwargs)
 
-    if isinstance(app.config.TRACE_EXCLUDED_HEADERS, str):
-        app.config.TRACE_EXCLUDED_HEADERS = tuple(
-            app.config.TRACE_EXCLUDED_HEADERS.split(",")
-        )
+    app.config.update(
+        {key: value for key, value in config.items() if key not in app.config}
+    )
 
     return config

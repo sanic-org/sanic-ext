@@ -186,8 +186,24 @@ def secured(*args, **kwargs):
 Model = TypeVar("Model")
 
 
-def component(model: Model):
-    Component(model)
+def component(
+    model: Optional[Model] = None,
+    *,
+    name: Optional[str] = None,
+    field: Optional[str] = None,
+):
+    def wrap(m):
+        return component(m, name=name, field=field)
+
+    if not model:
+        return wrap
+
+    params = {}
+    if name:
+        params["name"] = name
+    if field:
+        params["field"] = field
+    Component(model, **params)
     return model
 
 

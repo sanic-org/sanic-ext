@@ -59,7 +59,7 @@ class Example(Definition):
 
     @staticmethod
     def make(value: Any, **kwargs):
-        return Example(value, **kwargs)
+        return Example(Schema.make(value), **kwargs)
 
     @staticmethod
     def external(value: Any, **kwargs):
