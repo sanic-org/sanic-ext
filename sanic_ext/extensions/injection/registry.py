@@ -8,6 +8,9 @@ class InjectionRegistry:
     def __getitem__(self, key):
         return self._registry[key]
 
+    def __str__(self) -> str:
+        return str(self._registry)
+
     def register(
         self, _type: Type, constructor: Optional[Callable[..., Any]]
     ) -> None:
@@ -22,6 +25,9 @@ class SignatureRegistry:
 
     def __getitem__(self, key):
         return self._registry[key]
+
+    def __str__(self) -> str:
+        return str(self._registry)
 
     def register(
         self,

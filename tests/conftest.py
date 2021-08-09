@@ -1,10 +1,17 @@
+import re
+
 import pytest
 from sanic import Sanic
-from sanic_ext import Apply
+from sanic_ext import Extend
+from sanic_ext.extensions.http.extension import HTTPExtension
+from sanic_ext.extensions.injection.extension import InjectionExtension
 from sanic_ext.extensions.openapi.builders import (
     OperationStore,
     SpecificationBuilder,
 )
+from sanic_ext.extensions.openapi.extension import OpenAPIExtension
+
+slugify = re.compile(r"[^a-zA-Z0-9_\-]")
 
 
 @pytest.fixture(autouse=True)
@@ -14,11 +21,20 @@ def reset_globals():
 
 
 @pytest.fixture
-def app():
-    app = Sanic("ExtTesting")
-    app.ctx.ext = Apply(app)
+def bare_app(request):
+    app = Sanic(slugify.sub("-", request.node.name))
 
     yield app
+
+
+@pytest.fixture
+def app(bare_app):
+    Extend(bare_app)
+
+    yield bare_app
+
+    for ext in (HTTPExtension, InjectionExtension, OpenAPIExtension):
+        ext._singleton = None
 
 
 @pytest.fixture

@@ -19,7 +19,7 @@ def add_injection(app: Sanic, injection_registry: InjectionRegistry) -> None:
             name: await _do_cast(_type, constructor, request, **kwargs)
             for name, (_type, constructor) in injections.items()
         }
-        kwargs.update(injected_args)
+        request.match_info.update(injected_args)
 
 
 async def _do_cast(_type, constructor, request, **kwargs):
