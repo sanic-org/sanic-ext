@@ -78,7 +78,9 @@ def blueprint_factory(config: Config):
 
             for method, _handler in method_handlers:
 
-                if method == "OPTIONS":
+                if (
+                    method == "OPTIONS" and app.config.OAS_IGNORE_OPTIONS
+                ) or method == "TRACE":
                     continue
 
                 if hasattr(_handler, "view_class"):

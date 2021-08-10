@@ -17,8 +17,16 @@ slugify = re.compile(r"[^a-zA-Z0-9_\-]")
 
 @pytest.fixture(autouse=True)
 def reset_globals():
+    yield
     SpecificationBuilder.reset()
     OperationStore.reset()
+
+
+@pytest.fixture(autouse=True)
+def reset_extensions():
+    yield
+    for ext in (HTTPExtension, InjectionExtension, OpenAPIExtension):
+        ext._singleton = None
 
 
 @pytest.fixture
@@ -33,9 +41,6 @@ def app(bare_app):
     Extend(bare_app)
 
     yield bare_app
-
-    for ext in (HTTPExtension, InjectionExtension, OpenAPIExtension):
-        ext._singleton = None
 
 
 @pytest.fixture

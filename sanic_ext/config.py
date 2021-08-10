@@ -24,6 +24,8 @@ class Config(SanicConfig):
         cors_supports_credentials: bool = False,
         cors_vary_header: bool = True,
         cors: bool = True,
+        oas: bool = True,
+        oas_ignore_options: bool = False,
         oas_path_to_redoc_html: Optional[str] = None,
         oas_path_to_swagger_html: Optional[str] = None,
         oas_ui_default: str = "redoc",
@@ -53,6 +55,8 @@ class Config(SanicConfig):
         self.CORS_SUPPORTS_CREDENTIALS = cors_supports_credentials
         self.CORS_VARY_HEADER = cors_vary_header
         self.CORS = cors
+        self.OAS = oas
+        self.OAS_IGNORE_OPTIONS = oas_ignore_options
         self.OAS_PATH_TO_REDOC_HTML = oas_path_to_redoc_html
         self.OAS_PATH_TO_SWAGGER_HTML = oas_path_to_swagger_html
         self.OAS_UI_DEFAULT = oas_ui_default

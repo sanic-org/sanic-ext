@@ -1,5 +1,6 @@
 from sanic import text
 from sanic.response import json
+
 from sanic_ext import serializer
 
 
