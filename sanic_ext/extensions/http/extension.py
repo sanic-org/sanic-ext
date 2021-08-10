@@ -30,6 +30,5 @@ class HTTPExtension(Extension):
         if self.app.ctx.cors.automatic_options and not self.auto_options:
             raise InitError(
                 "Configuration mismatch. If CORS_AUTOMATIC_OPTIONS is set to "
-                "True, then you must run SanicExt with "
-                "apply(..., auto_options=True)."
+                "True, then you must run SanicExt with auto_options=True"
             )

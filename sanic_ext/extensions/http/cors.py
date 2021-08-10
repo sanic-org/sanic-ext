@@ -67,7 +67,7 @@ def _setup_cors_settings(app: Sanic) -> None:
     allowed_methods = _get_allowed_methods(app)
     allowed_origins = _get_allowed_origins(app)
     expose_headers = _get_expose_headers(app)
-    max_age = app.config.CORS_MAX_AGE or ""
+    max_age = str(app.config.CORS_MAX_AGE or "")
     if isinstance(max_age, timedelta):
         max_age = str(int(max_age.total_seconds()))
 
