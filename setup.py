@@ -8,7 +8,6 @@ import re
 from setuptools import find_packages, setup
 
 install_requires = [
-    "sanic@git+https://github.com/sanic-org/sanic.git#egg=sanic",
     "pyyaml>=3.0.0",
 ]
 
