@@ -18,6 +18,7 @@ from typing import (
 
 from sanic import Blueprint, Request
 from sanic.exceptions import SanicException
+
 from sanic_ext.extensions.openapi.builders import (
     OperationStore,
     SpecificationBuilder,

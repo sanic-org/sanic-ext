@@ -2,7 +2,6 @@ import itertools
 
 import pytest
 from sanic import Sanic
-
 from sanic_openapi import openapi2_blueprint
 
 app_ID = itertools.count()

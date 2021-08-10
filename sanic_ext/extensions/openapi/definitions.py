@@ -176,6 +176,8 @@ class Parameter(Definition):
     deprecated: Optional[bool]
     allowEmptyValue: Optional[bool]
 
+    __nullable__ = None
+
     def __init__(
         self,
         name: str,

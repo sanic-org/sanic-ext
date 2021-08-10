@@ -5,6 +5,7 @@ from typing import Any, Dict, Type
 
 from sanic.app import Sanic
 from sanic.exceptions import SanicException
+
 from sanic_ext.config import Config
 from sanic_ext.exceptions import InitError
 

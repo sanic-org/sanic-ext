@@ -11,19 +11,13 @@ install_requires = ["sanic>=21.3.2", "pyyaml>=3.0.0"]
 
 dev_requires = ["black==19.3b0", "flake8==3.7.7", "isort==4.3.19"]
 
-doc_requires = [
-    "recommonmark==0.5.0",
-    "sphinx==2.1.2",
-    "sphinx-rtd-theme==0.4.3",
-]
-
 test_requires = [
-    "coverage==4.5.3",
-    "pytest==4.6.2",
-    "pytest-cov==2.7.1",
-    "pytest-html==1.20.0",
-    "pytest-runner==5.1",
-    "tox==3.12.1",
+    "coverage",
+    "pytest",
+    "pytest-cov",
+    "pytest-html",
+    "pytest-runn",
+    "tox",
 ]
 
 project_root = os.path.dirname(os.path.abspath(__file__))
@@ -44,23 +38,22 @@ with open(os.path.join(project_root, "README.md"), "r") as f:
 setup(
     name="sanic-ext",
     version=version,
-    url="http://github.com/sanic-org/sanic-openapi/",
+    url="http://github.com/sanic-org/sanic-ext/",
     license="MIT",
     author="Sanic Community",
     description="Extend your Sanic installation with some core functionality.",
     long_description=long_description,
     long_description_content_type="text/markdown",
     packages=find_packages(),
-    # package_data={"sanic_ext": ["ui/*"]},
+    package_data={"sanic_ext": ["extensions/openapi/ui/*"]},
     platforms="any",
     install_requires=install_requires,
     extras_require={
-        "dev": dev_requires + test_requires + doc_requires,
+        "dev": dev_requires + test_requires,
         "test": test_requires,
-        "doc": doc_requires,
     },
     classifiers=[
-        "Development Status :: 4 - Beta",
+        "Development Status :: 3 - Alpha",
         "Environment :: Web Environment",
         "License :: OSI Approved :: MIT License",
         "Programming Language :: Python :: 3.7",

@@ -3,14 +3,16 @@ from dataclasses import dataclass
 import pytest
 from sanic import text
 from sanic.exceptions import SanicException
+
 from sanic_ext import Extend
 
 
 def test_injection_not_allowed_when_ext_disabled(bare_app):
     ext = Extend(bare_app, built_in_extensions=False)
 
-    message = "..."
-    with pytest.raises(SanicException, match=message):
+    with pytest.raises(
+        SanicException, match="Injection extension not enabled"
+    ):
         ext.injection(1, 2)
 
 

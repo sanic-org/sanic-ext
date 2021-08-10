@@ -1,5 +1,6 @@
 from sanic.log import logger
 from sanic.request import Request
+
 from sanic_ext.exceptions import ValidationError
 
 

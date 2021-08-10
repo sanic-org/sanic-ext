@@ -3,18 +3,18 @@ import typing as t
 from datetime import date, datetime, time
 from enum import Enum
 from inspect import isclass
-from typing import Any, Dict, List, Union, get_type_hints
+from typing import Any, Dict, List, Optional, Union, get_type_hints
 
 
 class Definition:
-    __fields: dict
+    __nullable__: Optional[List[str]] = []
 
     def __init__(self, **kwargs):
-        self.__fields = self.guard(kwargs)
+        self._fields: Dict[str, Any] = self.guard(kwargs)
 
     @property
     def fields(self):
-        return self.__fields
+        return self._fields
 
     def guard(self, fields):
         return {
@@ -24,20 +24,20 @@ class Definition:
         }
 
     def serialize(self):
-        return _serialize(self.fields)
+        return {
+            k: v
+            for k, v in _serialize(self.fields).items()
+            if (
+                v
+                or (
+                    isinstance(self.__nullable__, list)
+                    and (not self.__nullable__ or k in self.__nullable__)
+                )
+            )
+        }
 
     def __str__(self):
         return json.dumps(self.serialize())
-
-    # def apply(self, func, operations, *args, **kwargs):
-    #     op = operations[func]
-    #     method_name = getattr(
-    #         self.__class__, "__method__", self.__class__.__name__.lower()
-    #     )
-    #     method = getattr(op, method_name)
-    #     if not args and not kwargs:
-    #         kwargs = self.__dict__
-    #     method(*args, **kwargs)
 
 
 class Schema(Definition):

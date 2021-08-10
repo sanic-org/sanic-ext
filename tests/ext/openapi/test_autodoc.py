@@ -1,4 +1,4 @@
-from sanic_ext.extensions.openapi.autodoc import autodoc
+from sanic_ext.extensions.openapi.autodoc import YamlStyleParametersParser
 
 tests = []
 
@@ -50,6 +50,6 @@ tests.append(
 
 def test_autodoc():
     for t in tests:
-        parser = autodoc.YamlStyleParametersParser(t["doc"])
+        parser = YamlStyleParametersParser(t["doc"])
         assert parser.to_openAPI_2() == t["expects"]
         assert parser.to_openAPI_3() == t["expects"]
