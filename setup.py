@@ -7,16 +7,18 @@ import re
 
 from setuptools import find_packages, setup
 
-install_requires = ["sanic>=21.3.2", "pyyaml>=3.0.0"]
+install_requires = [
+    "sanic@git+https://github.com/sanic-org/sanic.git#egg=sanic",
+    "pyyaml>=3.0.0",
+]
 
 dev_requires = ["black==19.3b0", "flake8==3.7.7", "isort==4.3.19"]
 
 test_requires = [
+    "sanic_testing==0.7.0b2",
     "coverage",
     "pytest",
     "pytest-cov",
-    "pytest-html",
-    "pytest-runn",
     "tox",
 ]
 
