@@ -5,7 +5,6 @@ from os.path import abspath, dirname, realpath
 from sanic.blueprints import Blueprint
 from sanic.config import Config
 from sanic.response import html, json
-
 from sanic_ext.extensions.openapi.builders import (
     OperationStore,
     SpecificationBuilder,
@@ -37,16 +36,18 @@ def blueprint_factory(config: Config):
                 return html(page)
 
             bp.add_route(partial(index, page=page), uri, name=ui)
-            if config.OAS_UI_DEFAULT == ui:
+            if config.OAS_UI_DEFAULT and config.OAS_UI_DEFAULT == ui:
                 bp.add_route(partial(index, page=page), "", name="index")
 
     @bp.get(config.OAS_URI_TO_JSON)
     def spec(request):
         return json(SpecificationBuilder().build().serialize())
 
-    @bp.get(config.OAS_URI_TO_CONFIG)
-    def openapi_config(request):
-        return json(request.app.config.SWAGGER_UI_CONFIGURATION)
+    if config.OAS_UI_SWAGGER:
+
+        @bp.get(config.OAS_URI_TO_CONFIG)
+        def openapi_config(request):
+            return json(request.app.config.SWAGGER_UI_CONFIGURATION)
 
     @bp.before_server_start
     def build_spec(app, loop):
@@ -79,8 +80,10 @@ def blueprint_factory(config: Config):
             for method, _handler in method_handlers:
 
                 if (
-                    method == "OPTIONS" and app.config.OAS_IGNORE_OPTIONS
-                ) or method == "TRACE":
+                    (method == "OPTIONS" and app.config.OAS_IGNORE_OPTIONS)
+                    or (method == "HEAD" and app.config.OAS_IGNORE_HEAD)
+                    or method == "TRACE"
+                ):
                     continue
 
                 if hasattr(_handler, "view_class"):

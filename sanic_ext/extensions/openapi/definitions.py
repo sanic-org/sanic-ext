@@ -89,7 +89,7 @@ class MediaType(Definition):
 class Response(Definition):
     content: Union[Any, Dict[str, Union[Any, MediaType]]]
     description: Optional[str]
-    status: str
+    status: int
 
     def __init__(
         self,
@@ -181,7 +181,7 @@ class Parameter(Definition):
     def __init__(
         self,
         name: str,
-        schema: Union[Type, Schema],
+        schema: Union[Type, Schema] = str,
         location: str = "query",
         description: Optional[str] = None,
         required: Optional[bool] = None,

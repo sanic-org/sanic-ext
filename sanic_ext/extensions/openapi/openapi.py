@@ -12,13 +12,13 @@ from typing import (
     List,
     Optional,
     Sequence,
+    Type,
     TypeVar,
     Union,
 )
 
 from sanic import Blueprint, Request
 from sanic.exceptions import SanicException
-
 from sanic_ext.extensions.openapi.builders import (
     OperationStore,
     SpecificationBuilder,
@@ -95,7 +95,7 @@ def description(text: str):
     return inner
 
 
-def document(url: str, description: str = None):
+def document(url: Union[str, ExternalDocumentation], description: str = None):
     def inner(func):
         OperationStore()[func].document(url, description)
         return func
@@ -103,7 +103,7 @@ def document(url: str, description: str = None):
     return inner
 
 
-def tag(*args: str):
+def tag(*args: Union[str, Tag]):
     def inner(func):
         OperationStore()[func].tag(*args)
         return func
@@ -111,12 +111,12 @@ def tag(*args: str):
     return inner
 
 
-def deprecated():
+def deprecated(maybe_func=None):
     def inner(func):
         OperationStore()[func].deprecate()
         return func
 
-    return inner
+    return inner(maybe_func) if maybe_func else inner
 
 
 def body(
@@ -129,7 +129,7 @@ def body(
             ],
             bool,
         ],
-    ] = True,
+    ] = False,
     **kwargs,
 ):
     def inner(func):
@@ -149,13 +149,36 @@ def body(
             return func(request, *handler_args, **handler_kwargs)
 
         body_content = _content_or_component(content)
-        OperationStore()[handler].body(body_content, **kwargs)
+        params = {**kwargs}
+        if isinstance(body_content, RequestBody):
+            params = {**body_content.fields}
+            body_content = params.pop("content")
+        OperationStore()[handler].body(body_content, **params)
         return handler
 
     return inner
 
 
-def parameter(name: str, schema: Any, location: str = "query", **kwargs):
+def parameter(
+    name: Optional[str] = None,
+    schema: Type = str,
+    location: str = "query",
+    *,
+    parameter: Optional[Parameter] = None,
+    **kwargs,
+):
+    if parameter:
+        if name:
+            raise SanicException(
+                "When using a parameter object, you cannot pass "
+                "other arguments."
+            )
+
+        print(parameter.fields)
+        name = parameter.fields["name"]
+        schema = parameter.fields["schema"]
+        location = parameter.fields["in"]
+
     def inner(func):
         OperationStore()[func].parameter(name, schema, location, **kwargs)
         return func
@@ -163,7 +186,25 @@ def parameter(name: str, schema: Any, location: str = "query", **kwargs):
     return inner
 
 
-def response(status, content: Any = None, description: str = None, **kwargs):
+def response(
+    status: Optional[int] = None,
+    content: Optional[Any] = None,
+    description: Optional[str] = None,
+    *,
+    response: Optional[Response] = None,
+    **kwargs,
+):
+    if response:
+        if any(bool(item) for item in (status, content, description)):
+            raise SanicException(
+                "When using a response object, you cannot pass "
+                "other arguments."
+            )
+
+        status = response.fields["status"]
+        content = response.fields["content"]
+        description = response.fields["description"]
+
     def inner(func):
         OperationStore()[func].response(status, content, description, **kwargs)
         return func
@@ -191,7 +232,7 @@ def component(
     model: Optional[Model] = None,
     *,
     name: Optional[str] = None,
-    field: Optional[str] = None,
+    field: str = "schemas",
 ):
     def wrap(m):
         return component(m, name=name, field=field)
@@ -234,6 +275,21 @@ def definition(
     def inner(func):
         glbl = globals()
 
+        if body:
+            kwargs = {}
+            content = body
+            if isinstance(content, RequestBody):
+                kwargs = content.fields
+            elif isinstance(content, dict):
+                if "content" in content:
+                    kwargs = content
+                else:
+                    kwargs["content"] = content
+            else:
+                content = _content_or_component(content)
+                kwargs["content"] = content
+            func = glbl["body"](**kwargs)(func)
+
         if exclude is not None:
             func = glbl["exclude"](exclude)(func)
 
@@ -274,21 +330,6 @@ def definition(
 
         if deprecated:
             func = glbl["deprecated"]()(func)
-
-        if body:
-            kwargs = {}
-            content = body
-            if isinstance(content, RequestBody):
-                kwargs = content.fields
-            elif isinstance(content, dict):
-                if "content" in content:
-                    kwargs = content
-                else:
-                    kwargs["content"] = content
-            else:
-                content = _content_or_component(content)
-                kwargs["content"] = content
-            func = glbl["body"](**kwargs)(func)
 
         if parameter:
             paramlist = []

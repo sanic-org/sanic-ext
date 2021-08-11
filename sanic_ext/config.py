@@ -25,13 +25,14 @@ class Config(SanicConfig):
         cors_vary_header: bool = True,
         cors: bool = True,
         oas: bool = True,
-        oas_ignore_options: bool = False,
+        oas_ignore_head: bool = True,
+        oas_ignore_options: bool = True,
         oas_path_to_redoc_html: Optional[str] = None,
         oas_path_to_swagger_html: Optional[str] = None,
-        oas_ui_default: str = "redoc",
+        oas_ui_default: Optional[str] = "redoc",
         oas_ui_redoc: bool = True,
         oas_ui_swagger: bool = True,
-        oas_uri_to_config: str = "/openapi-config",
+        oas_uri_to_config: str = "/swagger-config",
         oas_uri_to_json: str = "/openapi.json",
         oas_uri_to_redoc: str = "/redoc",
         oas_uri_to_swagger: str = "/swagger",
@@ -56,6 +57,7 @@ class Config(SanicConfig):
         self.CORS_VARY_HEADER = cors_vary_header
         self.CORS = cors
         self.OAS = oas
+        self.OAS_IGNORE_HEAD = oas_ignore_head
         self.OAS_IGNORE_OPTIONS = oas_ignore_options
         self.OAS_PATH_TO_REDOC_HTML = oas_path_to_redoc_html
         self.OAS_PATH_TO_SWAGGER_HTML = oas_path_to_swagger_html
@@ -70,6 +72,7 @@ class Config(SanicConfig):
         self.SWAGGER_UI_CONFIGURATION = swagger_ui_configuration or {
             "apisSorter": "alpha",
             "operationsSorter": "alpha",
+            "docExpansion": "full",
         }
         self.TRACE_EXCLUDED_HEADERS = trace_excluded_headers
 

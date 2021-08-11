@@ -5,7 +5,7 @@
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <link rel="stylesheet" type="text/css" href="//pagecdn.io/lib/swagger-ui/latest/swagger-ui.css">
-        <title>OpenAPI Petstore</title>
+        <title>OpenAPI Swagger</title>
         <style>
             body {
                 margin: 0;
@@ -16,11 +16,22 @@
     <body>
         <div id="openapi">
             <script src="//pagecdn.io/lib/swagger-ui/latest/swagger-ui-bundle.js"></script>
+            <script src="//pagecdn.io/lib/swagger-ui/latest/swagger-ui-standalone-preset.js"></script>
             <script>
                 window.onload = function () {
                     const ui = SwaggerUIBundle({
                         url: "/docs/openapi.json",
-                        dom_id: "#openapi"
+                        dom_id: "#openapi",
+                        configUrl: "/docs/swagger-config",
+                        deepLinking: true,
+                        presets: [
+                            SwaggerUIBundle.presets.apis,
+                            SwaggerUIStandalonePreset
+                        ],
+                        plugins: [
+                            SwaggerUIBundle.plugins.DownloadUrl
+                        ],
+                        layout: "StandaloneLayout"
                     })
                 }
             </script>
