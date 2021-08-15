@@ -47,8 +47,10 @@ class OperationBuilder:
         self.security = []
         self.parameters = []
         self.responses = {}
+        self._default = {}
         self._autodoc = None
         self._exclude = False
+        self._allow_autodoc = True
 
     def name(self, value: str):
         self.operationId = value
@@ -95,16 +97,30 @@ class OperationBuilder:
 
         self.security.append(gates)
 
-    def build(self):
-        operation_dict = self.__dict__.copy()
-        if not self.responses:
-            # todo -- look into more consistent default response format
-            operation_dict["responses"]["default"] = {"description": "OK"}
+    def disable_autodoc(self):
+        self._allow_autodoc = False
 
-        if self._autodoc:
-            operation_dict = {**self._autodoc, **operation_dict}
+    def build(self):
+        operation_dict = self._build_merged_dict()
+        if "responses" not in operation_dict:
+            # todo -- look into more consistent default response format
+            operation_dict["responses"] = {"default": {"description": "OK"}}
 
         return Operation(**operation_dict)
+
+    def _build_merged_dict(self):
+        defined_dict = self.__dict__.copy()
+        autodoc_dict = self._autodoc or {}
+        default_dict = self._default
+        merged_dict = {}
+
+        for d in (default_dict, autodoc_dict, defined_dict):
+            cleaned = {
+                k: v for k, v in d.items() if v and not k.startswith("_")
+            }
+            merged_dict.update(cleaned)
+
+        return merged_dict
 
     def autodoc(self, docstring: str):
         y = YamlStyleParametersParser(docstring)

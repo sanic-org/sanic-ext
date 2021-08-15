@@ -119,6 +119,14 @@ def deprecated(maybe_func=None):
     return inner(maybe_func) if maybe_func else inner
 
 
+def no_autodoc(maybe_func=None):
+    def inner(func):
+        OperationStore()[func].disable_autodoc()
+        return func
+
+    return inner(maybe_func) if maybe_func else inner
+
+
 def body(
     content: Any,
     validate: Union[
@@ -321,12 +329,7 @@ def definition(
             )
 
             getattr(taglist, op)(tag)
-            func = glbl["tag"](
-                *[
-                    tag.fields["name"] if isinstance(tag, Tag) else tag
-                    for tag in taglist
-                ]
-            )(func)
+            func = glbl["tag"](taglist)(func)
 
         if deprecated:
             func = glbl["deprecated"]()(func)

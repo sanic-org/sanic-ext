@@ -95,22 +95,30 @@ def blueprint_factory(config: Config):
 
                 docstring = inspect.getdoc(_handler)
 
-                if docstring:
+                if (
+                    docstring
+                    and app.config.OAS_AUTODOC
+                    and operation._allow_autodoc
+                ):
                     operation.autodoc(docstring)
 
-                if not hasattr(operation, "operationId"):
-                    operation.operationId = "%s_%s" % (
-                        method.lower(),
-                        route_name,
-                    )
+                operation._default[
+                    "operationId"
+                ] = f"{method.lower()}_route_name"
+                operation._default["summary"] = clean_route_name(route_name)
 
-                if not hasattr(operation, "summary"):
-                    operation.summary = clean_route_name(route_name)
-
-                for _parameter in route_parameters:
-                    operation.parameter(
-                        _parameter.name, _parameter.cast, "path"
-                    )
+                # TODO: solve for this
+                # for _parameter in route_parameters:
+                #     if any(
+                #         (
+                #             param.fields["name"] == _parameter.name
+                #             for param in operation.parameters
+                #         )
+                #     ):
+                #         continue
+                #     operation.parameter(
+                #         _parameter.name, _parameter.cast, "path"
+                #     )
 
                 specification.operation(uri, method, operation)
 

@@ -9,22 +9,23 @@ from sanic.config import Config as SanicConfig
 class Config(SanicConfig):
     def __init__(
         self,
-        all_http_methods: bool = True,
-        auto_head: bool = True,
-        auto_options: bool = True,
-        auto_trace: bool = False,
+        cors: bool = True,
         cors_allow_headers: str = "*",
         cors_always_send: bool = True,
         cors_automatic_options: bool = True,
         cors_expose_headers: str = "",
-        cors_max_age: int = 0,
+        cors_max_age: int = 5,
         cors_methods: str = "",
-        cors_origins: str = "*",
+        cors_origins: str = "",
         cors_send_wildcard: bool = False,
         cors_supports_credentials: bool = False,
         cors_vary_header: bool = True,
-        cors: bool = True,
+        http_all_methods: bool = True,
+        http_auto_head: bool = True,
+        http_auto_options: bool = True,
+        http_auto_trace: bool = False,
         oas: bool = True,
+        oas_autodoc: bool = True,
         oas_ignore_head: bool = True,
         oas_ignore_options: bool = True,
         oas_path_to_redoc_html: Optional[str] = None,
@@ -41,10 +42,7 @@ class Config(SanicConfig):
         trace_excluded_headers: Sequence[str] = ("authorization", "cookie"),
         **kwargs,
     ):
-        self.ALL_HTTP_METHODS = all_http_methods
-        self.AUTO_HEAD = auto_head
-        self.AUTO_OPTIONS = auto_options
-        self.AUTO_TRACE = auto_trace
+        self.CORS = cors
         self.CORS_ALLOW_HEADERS = cors_allow_headers
         self.CORS_ALWAYS_SEND = cors_always_send
         self.CORS_AUTOMATIC_OPTIONS = cors_automatic_options
@@ -55,8 +53,12 @@ class Config(SanicConfig):
         self.CORS_SEND_WILDCARD = cors_send_wildcard
         self.CORS_SUPPORTS_CREDENTIALS = cors_supports_credentials
         self.CORS_VARY_HEADER = cors_vary_header
-        self.CORS = cors
+        self.HTTP_ALL_METHODS = http_all_methods
+        self.HTTP_AUTO_HEAD = http_auto_head
+        self.HTTP_AUTO_OPTIONS = http_auto_options
+        self.HTTP_AUTO_TRACE = http_auto_trace
         self.OAS = oas
+        self.OAS_AUTODOC = oas_autodoc
         self.OAS_IGNORE_HEAD = oas_ignore_head
         self.OAS_IGNORE_OPTIONS = oas_ignore_options
         self.OAS_PATH_TO_REDOC_HTML = oas_path_to_redoc_html
