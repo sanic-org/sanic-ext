@@ -5,6 +5,7 @@ from os.path import abspath, dirname, realpath
 from sanic.blueprints import Blueprint
 from sanic.config import Config
 from sanic.response import html, json
+
 from sanic_ext.extensions.openapi.builders import (
     OperationStore,
     SpecificationBuilder,

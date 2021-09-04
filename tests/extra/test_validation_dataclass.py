@@ -2,6 +2,7 @@ from dataclasses import dataclass
 from typing import List, Optional
 
 import pytest
+
 from sanic_ext.extras.validation.check import check_data
 from sanic_ext.extras.validation.schema import make_schema, parse_hint
 
