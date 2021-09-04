@@ -32,6 +32,7 @@ from sanic_ext.extensions.openapi.definitions import (
     Tag,
 )
 
+from ...extras.validation.validators import validate_body
 from .types import Array  # noqa
 from .types import Binary  # noqa
 from .types import Boolean  # noqa
@@ -47,7 +48,6 @@ from .types import Object  # noqa
 from .types import Password  # noqa
 from .types import String  # noqa
 from .types import Time  # noqa
-from .validation import validate_body
 
 
 def _content_or_component(content):
