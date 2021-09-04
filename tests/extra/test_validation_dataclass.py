@@ -2,9 +2,10 @@ from dataclasses import dataclass
 from typing import List, Optional
 
 import pytest
-
 from sanic_ext.extras.validation.check import check_data
 from sanic_ext.extras.validation.schema import make_schema, parse_hint
+
+from . import __models__ as models
 
 
 def test_schema():
@@ -75,3 +76,24 @@ def test_should_not_hydrate(data):
     schema = make_schema({}, Person)
     with pytest.raises(TypeError):
         check_data(Person, data, schema)
+
+
+@pytest.mark.parametrize(
+    "model,okay,data",
+    (
+        (models.ModelStr, True, {"foo": "bar"}),
+        (models.ModelStr, False, {"foo": 1}),
+        (models.ModelStr, False, {"foo": True}),
+        (models.ModelStr, False, {"foo": ["bar"]}),
+        (models.ModelStr, False, {"bar": "bar"}),
+        (models.ModelStr, False, 123),
+    ),
+)
+def test_modeling(model, okay, data):
+    schema = make_schema({}, model)
+
+    if okay:
+        check_data(model, data, schema)
+    else:
+        with pytest.raises(TypeError):
+            check_data(model, data, schema)

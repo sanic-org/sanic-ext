@@ -33,7 +33,7 @@ class Hint(NamedTuple):
 
 def check_data(model, data, schema):
     if not isinstance(data, dict):
-        raise ValueError(f"Value '{data}' is not a dict")
+        raise TypeError(f"Value '{data}' is not a dict")
     sig = schema[model.__name__]["sig"]
     hints = schema[model.__name__]["hints"]
     bound = sig.bind(**data)
