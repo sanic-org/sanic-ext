@@ -12,26 +12,71 @@ class Hint(NamedTuple):
     origin: Optional[Any]
     allowed: Tuple[Hint, ...]  # type: ignore
 
-    def validate(self, value, schema):
+    def validate(
+        self, value, schema, allow_multiple=False, allow_coerce=False
+    ):
         if not self.typed:
             if self.model:
-                return check_data(self.hint, value, schema)
-            _check_types(value, self.literal, self.hint)
+                return check_data(
+                    self.hint,
+                    value,
+                    schema,
+                    allow_multiple=allow_multiple,
+                    allow_coerce=allow_coerce,
+                )
+            if (
+                allow_multiple
+                and isinstance(value, list)
+                and self.hint is not list
+                and len(value) == 1
+            ):
+                value = value[0]
+            try:
+                _check_types(value, self.literal, self.hint)
+            except ValueError as e:
+                if allow_coerce:
+                    if isinstance(value, list):
+                        value = [self.hint(item) for item in value]
+                    else:
+                        value = self.hint(value)
+                    _check_types(value, self.literal, self.hint)
+                else:
+                    raise e
         else:
             _check_nullability(value, self.nullable, self.allowed, schema)
 
             if not self.nullable:
                 if self.origin in (Union, Literal):
-                    value = _check_inclusion(value, self.allowed, schema)
+                    value = _check_inclusion(
+                        value,
+                        self.allowed,
+                        schema,
+                        allow_multiple,
+                        allow_coerce,
+                    )
                 elif self.origin is list:
-                    value = _check_list(value, self.allowed, self.hint, schema)
+                    value = _check_list(
+                        value,
+                        self.allowed,
+                        self.hint,
+                        schema,
+                        allow_multiple,
+                        allow_coerce,
+                    )
                 elif self.origin is dict:
-                    value = _check_dict(value, self.allowed, self.hint, schema)
+                    value = _check_dict(
+                        value,
+                        self.allowed,
+                        self.hint,
+                        schema,
+                        allow_multiple,
+                        allow_coerce,
+                    )
 
         return value
 
 
-def check_data(model, data, schema):
+def check_data(model, data, schema, allow_multiple=False, allow_coerce=False):
     if not isinstance(data, dict):
         raise TypeError(f"Value '{data}' is not a dict")
     sig = schema[model.__name__]["sig"]
@@ -45,7 +90,12 @@ def check_data(model, data, schema):
     try:
         for key, value in params.items():
             hint = hints.get(key, Any)
-            hydration_values[key] = hint.validate(value, schema)
+            hydration_values[key] = hint.validate(
+                value,
+                schema,
+                allow_multiple=allow_multiple,
+                allow_coerce=allow_coerce,
+            )
     except ValueError as e:
         raise TypeError(e)
 
@@ -70,33 +120,40 @@ def _check_nullability(value, nullable, allowed, schema):
         allowed[0].validate(value, schema)
 
 
-def _check_inclusion(value, allowed, schema):
+def _check_inclusion(value, allowed, schema, allow_multiple, allow_coerce):
     for option in allowed:
         try:
-            return option.validate(value, schema)
-        except ValueError:
+            return option.validate(value, schema, allow_multiple, allow_coerce)
+        except (ValueError, TypeError):
             ...
 
     options = ", ".join([str(option.hint) for option in allowed])
     raise ValueError(f"Value '{value}' must be one of {options}")
 
 
-def _check_list(value, allowed, hint, schema):
+def _check_list(value, allowed, hint, schema, allow_multiple, allow_coerce):
     if isinstance(value, list):
         try:
-            return [_check_inclusion(item, allowed, schema) for item in value]
-        except ValueError:
+            return [
+                _check_inclusion(
+                    item, allowed, schema, allow_multiple, allow_coerce
+                )
+                for item in value
+            ]
+        except (ValueError, TypeError):
             ...
     raise ValueError(f"Value '{value}' must be a {hint}")
 
 
-def _check_dict(value, allowed, hint, schema):
+def _check_dict(value, allowed, hint, schema, allow_multiple, allow_coerce):
     if isinstance(value, dict):
         try:
             return {
-                key: _check_inclusion(item, allowed, schema)
+                key: _check_inclusion(
+                    item, allowed, schema, allow_multiple, allow_coerce
+                )
                 for key, item in value.items()
             }
-        except ValueError:
+        except (ValueError, TypeError):
             ...
     raise ValueError(f"Value '{value}' must be a {hint}")

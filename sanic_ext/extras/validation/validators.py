@@ -22,5 +22,5 @@ def _validate_instance(model, body):
     return model(**body)
 
 
-def _validate_annotations(model, body, schema):
-    return check_data(model, body, schema)
+def _validate_annotations(model, body, schema, allow_multiple, allow_coerce):
+    return check_data(model, body, schema, allow_multiple, allow_coerce)

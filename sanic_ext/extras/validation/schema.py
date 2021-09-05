@@ -1,12 +1,21 @@
 from dataclasses import is_dataclass
 from inspect import isclass, signature
-from typing import _GenericAlias  # type: ignore
-from typing import Dict, Literal, Union, get_args, get_origin, get_type_hints
+from typing import (  # type: ignore
+    Dict,
+    Literal,
+    Union,
+    _GenericAlias,
+    get_args,
+    get_origin,
+    get_type_hints,
+)
 
 from .check import Hint
 
 
 def make_schema(agg, item):
+    if type(item) in (bool, str, int, float):
+        return agg
     if isinstance(item, _GenericAlias) and (args := get_args(item)):
         for arg in args:
             make_schema(agg, arg)
