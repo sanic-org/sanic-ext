@@ -9,6 +9,7 @@ from typing import Any, Dict, List, Optional, Sequence, Type, TypeVar, Union
 
 from sanic import Blueprint
 from sanic.exceptions import InvalidUsage, SanicException
+
 from sanic_ext.extensions.openapi.builders import (
     OperationStore,
     SpecificationBuilder,
