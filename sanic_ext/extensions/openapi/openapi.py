@@ -4,21 +4,12 @@ documentation to OperationStore() and components created in the blueprints.
 
 """
 from functools import wraps
-from inspect import isclass
-from typing import (
-    Any,
-    Callable,
-    Dict,
-    List,
-    Optional,
-    Sequence,
-    Type,
-    TypeVar,
-    Union,
-)
+from inspect import isawaitable, isclass
+from typing import Any, Dict, List, Optional, Sequence, Type, TypeVar, Union
 
-from sanic import Blueprint, Request
-from sanic.exceptions import SanicException
+from sanic import Blueprint
+from sanic.exceptions import InvalidUsage, SanicException
+
 from sanic_ext.extensions.openapi.builders import (
     OperationStore,
     SpecificationBuilder,
@@ -31,6 +22,7 @@ from sanic_ext.extensions.openapi.definitions import (
     Response,
     Tag,
 )
+from sanic_ext.extras.validation.setup import do_validation, generate_schema
 
 from .types import Array  # noqa
 from .types import Binary  # noqa
@@ -47,7 +39,6 @@ from .types import Object  # noqa
 from .types import Password  # noqa
 from .types import String  # noqa
 from .types import Time  # noqa
-from .validation import validate_body
 
 
 def _content_or_component(content):
@@ -129,38 +120,54 @@ def no_autodoc(maybe_func=None):
 
 def body(
     content: Any,
-    validate: Union[
-        bool,
-        Callable[
-            [
-                Request,
-            ],
-            bool,
-        ],
-    ] = False,
+    *,
+    validate: bool = False,
+    body_argument: str = "body",
     **kwargs,
 ):
+    body_content = _content_or_component(content)
+    params = {**kwargs}
+    validation_schema = None
+    if isinstance(body_content, RequestBody):
+        params = {**body_content.fields}
+        body_content = params.pop("content")
+
+    if validate:
+        if callable(validate):
+            model = validate
+        else:
+            model = body_content
+            validation_schema = generate_schema(body_content)
+
     def inner(func):
         @wraps(func)
-        def handler(request, *handler_args, **handler_kwargs):
-            nonlocal kwargs
-            nonlocal validate
-
+        async def handler(request, *handler_args, **handler_kwargs):
             if validate:
-                if isinstance(validate, bool):
-                    validate_body(
-                        request, handler_args, handler_kwargs, content
-                    )
-                else:
-                    validate(request, handler_args, handler_kwargs, content)
+                try:
+                    data = request.json
+                    allow_multiple = False
+                    allow_coerce = False
+                except InvalidUsage:
+                    data = request.form
+                    allow_multiple = True
+                    allow_coerce = True
 
-            return func(request, *handler_args, **handler_kwargs)
+                await do_validation(
+                    model=model,
+                    data=data,
+                    schema=validation_schema,
+                    request=request,
+                    kwargs=handler_kwargs,
+                    body_argument=body_argument,
+                    allow_multiple=allow_multiple,
+                    allow_coerce=allow_coerce,
+                )
 
-        body_content = _content_or_component(content)
-        params = {**kwargs}
-        if isinstance(body_content, RequestBody):
-            params = {**body_content.fields}
-            body_content = params.pop("content")
+            retval = func(request, *handler_args, **handler_kwargs)
+            if isawaitable(retval):
+                retval = await retval
+            return retval
+
         OperationStore()[handler].body(body_content, **params)
         return handler
 
@@ -171,7 +178,6 @@ def parameter(
     name: Optional[str] = None,
     schema: Type = str,
     location: str = "query",
-    *,
     parameter: Optional[Parameter] = None,
     **kwargs,
 ):
@@ -182,7 +188,6 @@ def parameter(
                 "other arguments."
             )
 
-        print(parameter.fields)
         name = parameter.fields["name"]
         schema = parameter.fields["schema"]
         location = parameter.fields["in"]
@@ -279,8 +284,16 @@ def definition(
             List[Union[Dict[str, Any], Response, Any]],
         ]
     ] = None,
+    validate: bool = False,
+    body_argument: str = "body",
 ):
+    validation_schema = None
+    body_content = None
+
     def inner(func):
+        nonlocal validation_schema
+        nonlocal body_content
+
         glbl = globals()
 
         if body:
@@ -296,6 +309,11 @@ def definition(
             else:
                 content = _content_or_component(content)
                 kwargs["content"] = content
+
+            if validate:
+                kwargs["validate"] = validate
+                kwargs["body_argument"] = body_argument
+
             func = glbl["body"](**kwargs)(func)
 
         if exclude is not None:

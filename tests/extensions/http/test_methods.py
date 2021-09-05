@@ -21,13 +21,13 @@ def test_auto_head(app, get_docs):
     async def foo_handler(_):
         return text("...")
 
+    assert app.config.HTTP_AUTO_HEAD
     _, response = app.test_client.head("/foo")
     assert response.status == 200
     assert len(response.body) == 0
     assert int(response.headers["content-length"]) == 3
 
     schema = get_docs()
-    assert "head" in schema["paths"]["/foo"]
     assert "get" in schema["paths"]["/foo"]
 
 
@@ -43,12 +43,11 @@ def test_auto_options(app, get_docs):
     assert "OPTIONS" in response.headers["allow"]
 
     schema = get_docs()
-    assert "options" in schema["paths"]["/foo"]
     assert "post" in schema["paths"]["/foo"]
 
 
 def test_auto_trace(bare_app):
-    Extend(bare_app, config={"auto_trace": True})
+    Extend(bare_app, config={"http_auto_trace": True})
 
     @bare_app.get("/foo")
     async def foo_handler(_):
