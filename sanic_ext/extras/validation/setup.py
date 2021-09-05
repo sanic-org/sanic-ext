@@ -3,6 +3,8 @@ from inspect import isawaitable, isclass
 
 from sanic.log import logger
 
+from sanic_ext.exceptions import ValidationError
+
 from .schema import make_schema
 from .validators import (
     _validate_annotations,
@@ -29,18 +31,21 @@ async def do_validation(
     allow_multiple,
     allow_coerce,
 ):
-    logger.debug(f"Validating {request.path} using {model}")
-    if model is not None:
-        if isclass(model):
-            validator = _get_validator(
-                model, schema, allow_multiple, allow_coerce
-            )
-            validation = validate_body(validator, model, data)
-        else:
-            validation = model(request, kwargs, data)
-            if isawaitable(validation):
-                await validation
-        kwargs[body_argument] = validation
+    try:
+        logger.debug(f"Validating {request.path} using {model}")
+        if model is not None:
+            if isclass(model):
+                validator = _get_validator(
+                    model, schema, allow_multiple, allow_coerce
+                )
+                validation = validate_body(validator, model, data)
+            else:
+                validation = model(request, kwargs, data)
+                if isawaitable(validation):
+                    await validation
+            kwargs[body_argument] = validation
+    except TypeError as e:
+        raise ValidationError(e)
 
 
 def generate_schema(param):

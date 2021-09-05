@@ -3,6 +3,7 @@ from inspect import isawaitable
 from typing import Callable, Optional, Type, Union
 
 from sanic import Request
+
 from sanic_ext.exceptions import InitError
 
 from .setup import do_validation, generate_schema

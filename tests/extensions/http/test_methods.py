@@ -1,4 +1,5 @@
 from sanic.response import empty, text
+
 from sanic_ext.bootstrap import Extend
 
 

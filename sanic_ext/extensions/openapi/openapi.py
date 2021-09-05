@@ -9,6 +9,7 @@ from typing import Any, Dict, List, Optional, Sequence, Type, TypeVar, Union
 
 from sanic import Blueprint
 from sanic.exceptions import InvalidUsage, SanicException
+
 from sanic_ext.extensions.openapi.builders import (
     OperationStore,
     SpecificationBuilder,
@@ -278,8 +279,16 @@ def definition(
             List[Union[Dict[str, Any], Response, Any]],
         ]
     ] = None,
+    validate: bool = False,
+    body_argument: str = "body",
 ):
+    validation_schema = None
+    body_content = None
+
     def inner(func):
+        nonlocal validation_schema
+        nonlocal body_content
+
         glbl = globals()
 
         if body:
@@ -295,6 +304,11 @@ def definition(
             else:
                 content = _content_or_component(content)
                 kwargs["content"] = content
+
+            if validate:
+                kwargs["validate"] = validate
+                kwargs["body_argument"] = body_argument
+
             func = glbl["body"](**kwargs)(func)
 
         if exclude is not None:
