@@ -2,7 +2,6 @@ from functools import partial
 from inspect import isawaitable, isclass
 
 from sanic.log import logger
-
 from sanic_ext.exceptions import ValidationError
 
 from .schema import make_schema
@@ -39,19 +38,25 @@ async def do_validation(
                     model, schema, allow_multiple, allow_coerce
                 )
                 validation = validate_body(validator, model, data)
+                kwargs[body_argument] = validation
             else:
-                validation = model(request, kwargs, data)
+                validation = model(
+                    request=request, data=data, handler_kwargs=kwargs
+                )
                 if isawaitable(validation):
                     await validation
-            kwargs[body_argument] = validation
     except TypeError as e:
         raise ValidationError(e)
 
 
 def generate_schema(param):
-    if param is None or _is_pydantic(param):
-        return None
-    return make_schema({}, param) if isclass(param) else None
+    try:
+        if param is None or _is_pydantic(param):
+            return None
+    except TypeError:
+        ...
+
+    return make_schema({}, param) if isclass(param) else param
 
 
 def _is_pydantic(model):

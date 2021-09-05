@@ -9,7 +9,6 @@ from typing import Any, Dict, List, Optional, Sequence, Type, TypeVar, Union
 
 from sanic import Blueprint
 from sanic.exceptions import InvalidUsage, SanicException
-
 from sanic_ext.extensions.openapi.builders import (
     OperationStore,
     SpecificationBuilder,
@@ -127,12 +126,17 @@ def body(
 ):
     body_content = _content_or_component(content)
     params = {**kwargs}
+    validation_schema = None
     if isinstance(body_content, RequestBody):
         params = {**body_content.fields}
         body_content = params.pop("content")
 
     if validate:
-        validation_schema = generate_schema(body_content)
+        if callable(validate):
+            model = validate
+        else:
+            model = body_content
+            validation_schema = generate_schema(body_content)
 
     def inner(func):
         @wraps(func)
@@ -148,7 +152,7 @@ def body(
                     allow_coerce = True
 
                 await do_validation(
-                    model=body_content,
+                    model=model,
                     data=data,
                     schema=validation_schema,
                     request=request,
