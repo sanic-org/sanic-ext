@@ -2,7 +2,6 @@ from functools import partial
 from inspect import isawaitable, isclass
 
 from sanic.log import logger
-
 from sanic_ext.exceptions import ValidationError
 
 from .schema import make_schema
@@ -53,7 +52,7 @@ async def do_validation(
 def generate_schema(param):
     try:
         if param is None or _is_pydantic(param):
-            return None
+            return param
     except TypeError:
         ...
 

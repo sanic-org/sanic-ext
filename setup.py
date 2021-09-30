@@ -14,7 +14,7 @@ install_requires = [
 dev_requires = ["black==19.3b0", "flake8==3.7.7", "isort==4.3.19"]
 
 test_requires = [
-    "sanic_testing==0.7.0b2",
+    "sanic_testing==0.7.0",
     "coverage",
     "pytest",
     "pytest-cov",
@@ -33,7 +33,7 @@ with codecs.open(
     except IndexError:
         raise RuntimeError("Unable to determine version.")
 
-with open(os.path.join(project_root, "README.md"), "r") as f:
+with open(os.path.join(project_root, "README.rst"), "r") as f:
     long_description = f.read()
 
 setup(
@@ -44,7 +44,6 @@ setup(
     author="Sanic Community",
     description="Extend your Sanic installation with some core functionality.",
     long_description=long_description,
-    long_description_content_type="text/markdown",
     packages=find_packages(),
     package_data={"sanic_ext": ["extensions/openapi/ui/*"]},
     platforms="any",
