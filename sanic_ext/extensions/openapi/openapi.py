@@ -168,6 +168,8 @@ def body(
                 retval = await retval
             return retval
 
+        if func in OperationStore():
+            OperationStore()[handler] = OperationStore().pop(func)
         OperationStore()[handler].body(body_content, **params)
         return handler
 
