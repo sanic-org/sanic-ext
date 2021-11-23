@@ -5,7 +5,6 @@ from os.path import abspath, dirname, realpath
 from sanic.blueprints import Blueprint
 from sanic.config import Config
 from sanic.response import html, json
-
 from sanic_ext.extensions.openapi.builders import (
     OperationStore,
     SpecificationBuilder,
@@ -28,13 +27,14 @@ def blueprint_factory(config: Config):
         if getattr(config, f"OAS_UI_{ui}".upper()):
             path = getattr(config, f"OAS_PATH_TO_{ui}_HTML".upper())
             uri = getattr(config, f"OAS_URI_TO_{ui}".upper())
+            version = getattr(config, f"OAS_UI_{ui}_VERSION".upper(), "")
             html_path = path if path else f"{dir_path}/{ui}.html"
 
             with open(html_path, "r") as f:
                 page = f.read()
 
             def index(request, page):
-                return html(page)
+                return html(page.replace("__VERSION__", version))
 
             bp.add_route(partial(index, page=page), uri, name=ui)
             if config.OAS_UI_DEFAULT and config.OAS_UI_DEFAULT == ui:
