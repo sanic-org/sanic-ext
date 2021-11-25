@@ -4,6 +4,7 @@ import pytest
 from sanic import text
 from sanic.exceptions import SanicException
 from sanic.views import HTTPMethodView
+
 from sanic_ext import Extend
 
 
