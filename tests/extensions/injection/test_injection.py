@@ -3,7 +3,7 @@ from dataclasses import dataclass
 import pytest
 from sanic import text
 from sanic.exceptions import SanicException
-
+from sanic.views import HTTPMethodView
 from sanic_ext import Extend
 
 
@@ -89,3 +89,28 @@ def test_injection_of_object_with_constructor(app):
     assert request.ctx.person.person_id.person_id == 999
     assert request.ctx.person.name == "noname"
     assert request.ctx.person.age == 111
+
+
+def test_injection_on_cbv(app):
+    @dataclass
+    class Name:
+        name: str
+
+    class View(HTTPMethodView, attach=app, uri="/person/<name:str>"):
+        async def get(self, request, name: Name):
+            request.ctx.name = name
+            return text(name.name)
+
+        @staticmethod
+        async def post(request, name: Name):
+            request.ctx.name = name
+            return text(name.name)
+
+    app.ctx.ext.injection(Name)
+
+    for client in (app.test_client.get, app.test_client.post):
+        request, response = client("/person/george")
+
+        assert response.body == b"george"
+        assert isinstance(request.ctx.name, Name)
+        assert request.ctx.name.name == "george"

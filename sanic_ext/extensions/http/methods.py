@@ -6,6 +6,7 @@ from sanic import Sanic
 from sanic.constants import HTTPMethod
 from sanic.exceptions import SanicException
 from sanic.response import empty, raw
+from sanic.views import HTTPMethodView
 
 from ...utils.route import clean_route_name
 from ..openapi import openapi

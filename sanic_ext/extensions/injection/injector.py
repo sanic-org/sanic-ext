@@ -1,7 +1,8 @@
-from inspect import Signature, isawaitable, signature
+from inspect import Signature, getmembers, isawaitable, isfunction, signature
 from typing import Any, Callable, Dict, Optional, Tuple, Type
 
 from sanic import Sanic
+from sanic.constants import HTTP_METHODS
 
 from .registry import InjectionRegistry, SignatureRegistry
 
@@ -13,13 +14,17 @@ def add_injection(app: Sanic, injection_registry: InjectionRegistry) -> None:
     async def inject_kwargs(request, route, kwargs, **_):
         nonlocal signature_registry
 
-        injections = signature_registry[route.name]
+        for name in (route.name, f"{route.name}_{request.method.lower()}"):
+            injections = signature_registry[name]
+            if injections:
+                break
 
-        injected_args = {
-            name: await _do_cast(_type, constructor, request, **kwargs)
-            for name, (_type, constructor) in injections.items()
-        }
-        request.match_info.update(injected_args)
+        if injections:
+            injected_args = {
+                name: await _do_cast(_type, constructor, request, **kwargs)
+                for name, (_type, constructor) in injections.items()
+            }
+            request.match_info.update(injected_args)
 
 
 async def _do_cast(_type, constructor, request, **kwargs):
@@ -29,6 +34,10 @@ async def _do_cast(_type, constructor, request, **kwargs):
     if isawaitable(retval):
         retval = await retval
     return retval
+
+
+def _http_method_predicate(member):
+    return isfunction(member) and member.__name__ in HTTP_METHODS
 
 
 def _setup_signature_registry(
@@ -42,18 +51,28 @@ def _setup_signature_registry(
         nonlocal registry
 
         for route in app.router.routes:
-            sig = signature(route.handler)
-            injections: Dict[
-                str, Tuple[Type, Optional[Callable[..., Any]]]
-            ] = {
-                param.name: (
-                    param.annotation,
-                    injection_registry[param.annotation],
-                )
-                for param in sig.parameters.values()
-                if param.annotation != Signature.empty
-                and param.annotation in injection_registry._registry
-            }
-            registry.register(route.name, injections)
+            handlers = [(route.name, route.handler)]
+            viewclass = getattr(route.handler, "view_class", None)
+            if viewclass:
+                handlers = [
+                    (f"{route.name}_{name}", member)
+                    for name, member in getmembers(
+                        viewclass, _http_method_predicate
+                    )
+                ]
+            for name, handler in handlers:
+                sig = signature(handler)
+                injections: Dict[
+                    str, Tuple[Type, Optional[Callable[..., Any]]]
+                ] = {
+                    param.name: (
+                        param.annotation,
+                        injection_registry[param.annotation],
+                    )
+                    for param in sig.parameters.values()
+                    if param.annotation != Signature.empty
+                    and param.annotation in injection_registry._registry
+                }
+                registry.register(name, injections)
 
     return registry
