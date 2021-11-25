@@ -24,7 +24,7 @@ class SignatureRegistry:
         ] = {}
 
     def __getitem__(self, key):
-        return self._registry[key]
+        return self._registry.get(key)
 
     def __str__(self) -> str:
         return str(self._registry)
