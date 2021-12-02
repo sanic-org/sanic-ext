@@ -280,9 +280,7 @@ def _add_methods_header(request: Request, response: HTTPResponse) -> None:
                 methods = group_methods
 
     if methods:
-        response.headers[ALLOW_METHODS_HEADER] = ",".join(
-            list(map(lambda x: x.upper(), methods))
-        )
+        response.headers[ALLOW_METHODS_HEADER] = ",".join(methods).upper()
 
 
 def _add_vary_header(request: Request, response: HTTPResponse) -> None:
