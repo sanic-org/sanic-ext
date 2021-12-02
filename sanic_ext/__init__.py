@@ -5,7 +5,7 @@ from sanic_ext.extensions.openapi import openapi
 from sanic_ext.extras.serializer.decorator import serializer
 from sanic_ext.extras.validation.decorator import validate
 
-__version__ = "21.9.2"
+__version__ = "21.9.3"
 __all__ = [
     "Config",
     "Extend",

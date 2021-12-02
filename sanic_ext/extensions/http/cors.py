@@ -271,7 +271,7 @@ def _add_methods_header(request: Request, response: HTTPResponse) -> None:
     if not with_credentials and "*" in allow_methods:
         methods = {"*"}
     elif request.route:
-        group = request.app.router.groups.get(request.route.parts)
+        group = request.app.router.groups.get(request.route.segments)
         if group:
             group_methods = {method.lower() for method in group.methods}
             if allow_methods:
@@ -280,7 +280,7 @@ def _add_methods_header(request: Request, response: HTTPResponse) -> None:
                 methods = group_methods
 
     if methods:
-        response.headers[ALLOW_METHODS_HEADER] = ",".join(methods)
+        response.headers[ALLOW_METHODS_HEADER] = ",".join(methods).upper()
 
 
 def _add_vary_header(request: Request, response: HTTPResponse) -> None:
