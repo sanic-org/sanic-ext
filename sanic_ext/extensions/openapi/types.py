@@ -83,7 +83,9 @@ class Schema(Definition):
             and len(args) == 2
             and type(None) in args
         ):
-            value = args[0]
+            value = next(
+                filter(lambda x: x is not type(None), args)  # noqa: E721
+            )
             kwargs["nullable"] = True
 
         if isinstance(value, Schema):
