@@ -65,6 +65,15 @@ class Schema(Definition):
 
     @staticmethod
     def make(value, **kwargs):
+        _type = type(value)
+        if (
+            issubclass(_type, t._GenericAlias)
+            and len(value.__args__) == 2
+            and type(None) in value.__args__
+        ):
+            value = value.__args__[0]
+            kwargs["nullable"] = True
+
         if isinstance(value, Schema):
             return value
         if value == bool:
@@ -85,8 +94,6 @@ class Schema(Definition):
             return Time(**kwargs)
         elif value == datetime:
             return DateTime(**kwargs)
-
-        _type = type(value)
 
         if _type == bool:
             return Boolean(default=value, **kwargs)
