@@ -3,7 +3,16 @@ import typing as t
 from datetime import date, datetime, time
 from enum import Enum
 from inspect import isclass
-from typing import Any, Dict, List, Optional, Union, get_type_hints
+from typing import (
+    Any,
+    Dict,
+    List,
+    Optional,
+    Union,
+    get_args,
+    get_origin,
+    get_type_hints,
+)
 
 
 class Definition:
@@ -65,6 +74,20 @@ class Schema(Definition):
 
     @staticmethod
     def make(value, **kwargs):
+        _type = type(value)
+        origin = get_origin(value)
+        args = get_args(value)
+        if (
+            issubclass(_type, t._GenericAlias)
+            and origin is Union
+            and len(args) == 2
+            and type(None) in args
+        ):
+            value = next(
+                filter(lambda x: x is not type(None), args)  # noqa: E721
+            )
+            kwargs["nullable"] = True
+
         if isinstance(value, Schema):
             return value
         if value == bool:
@@ -85,8 +108,6 @@ class Schema(Definition):
             return Time(**kwargs)
         elif value == datetime:
             return DateTime(**kwargs)
-
-        _type = type(value)
 
         if _type == bool:
             return Boolean(default=value, **kwargs)
@@ -117,7 +138,7 @@ class Schema(Definition):
             return Array(schema, **kwargs)
         elif _type == dict:
             return Object.make(value, **kwargs)
-        elif _type == t._GenericAlias and value.__origin__ == list:
+        elif _type == t._GenericAlias and origin == list:
             return Array(Schema.make(value.__args__[0]), **kwargs)
         else:
             return Object.make(value, **kwargs)
