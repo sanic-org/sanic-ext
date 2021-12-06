@@ -30,6 +30,7 @@ class Constructor:
     ):
         self.func = func
         self.injections: Dict[str, Tuple[Type, Constructor]] = {}
+        self.pass_kwargs = False
 
     def __str__(self) -> str:
         return f"<{self.__class__.__name__}:{self.func.__name__}>"
@@ -43,7 +44,9 @@ class Constructor:
         # them if required.  This should capture route params, etc.
         try:
             args = await gather_args(self.injections, request, **kwargs)
-            retval = self.func(request, **args, **kwargs)
+            if self.pass_kwargs:
+                args.update(kwargs)
+            retval = self.func(request, **args)
             if isawaitable(retval):
                 retval = await retval
             return retval
@@ -61,6 +64,8 @@ class Constructor:
         hints = get_type_hints(self.func)
         missing = []
         for param, annotation in hints.items():
+            if annotation in allowed_types:
+                self.pass_kwargs = True
             if (
                 annotation not in self.EXEMPT_ANNOTATIONS
                 and annotation not in allowed_types
