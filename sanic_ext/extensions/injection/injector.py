@@ -1,8 +1,11 @@
-from inspect import Signature, getmembers, isawaitable, isfunction, signature
-from typing import Any, Callable, Dict, Optional, Tuple, Type
+from __future__ import annotations
+
+from inspect import getmembers, isfunction
+from typing import Any, Callable, Dict, Optional, Tuple, Type, get_type_hints
 
 from sanic import Sanic
 from sanic.constants import HTTP_METHODS
+from sanic_ext.extensions.injection.constructor import gather_args
 
 from .registry import InjectionRegistry, SignatureRegistry
 
@@ -10,30 +13,22 @@ from .registry import InjectionRegistry, SignatureRegistry
 def add_injection(app: Sanic, injection_registry: InjectionRegistry) -> None:
     signature_registry = _setup_signature_registry(app, injection_registry)
 
+    @app.before_server_start
+    async def finalize_injections(*_):
+        injection_registry.finalize()
+
     @app.signal("http.routing.after")
     async def inject_kwargs(request, route, kwargs, **_):
         nonlocal signature_registry
 
         for name in (route.name, f"{route.name}_{request.method.lower()}"):
-            injections = signature_registry[name]
+            injections = signature_registry.get(name)
             if injections:
                 break
 
         if injections:
-            injected_args = {
-                name: await _do_cast(_type, constructor, request, **kwargs)
-                for name, (_type, constructor) in injections.items()
-            }
+            injected_args = await gather_args(injections, request)
             request.match_info.update(injected_args)
-
-
-async def _do_cast(_type, constructor, request, **kwargs):
-    cast = constructor if constructor else _type
-    args = [request] if constructor else []
-    retval = cast(*args, **kwargs)
-    if isawaitable(retval):
-        retval = await retval
-    return retval
 
 
 def _http_method_predicate(member):
@@ -61,17 +56,20 @@ def _setup_signature_registry(
                     )
                 ]
             for name, handler in handlers:
-                sig = signature(handler)
+                try:
+                    hints = get_type_hints(handler)
+                except TypeError:
+                    continue
+
                 injections: Dict[
                     str, Tuple[Type, Optional[Callable[..., Any]]]
                 ] = {
-                    param.name: (
-                        param.annotation,
-                        injection_registry[param.annotation],
+                    param: (
+                        annotation,
+                        injection_registry[annotation],
                     )
-                    for param in sig.parameters.values()
-                    if param.annotation != Signature.empty
-                    and param.annotation in injection_registry._registry
+                    for param, annotation in hints.items()
+                    if annotation in injection_registry._registry
                 }
                 registry.register(name, injections)
 
