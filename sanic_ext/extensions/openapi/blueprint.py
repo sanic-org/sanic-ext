@@ -35,7 +35,10 @@ def blueprint_factory(config: Config):
                 page = f.read()
 
             def index(request, page):
-                return html(page.replace("__VERSION__", version).replace("__URL_PREFIX__", getattr(config, "OAS_URL_PREFIX")))
+                return html(page.replace("__VERSION__", version)
+                                .replace("__URL_PREFIX__", getattr(
+                                    config, "OAS_URL_PREFIX"
+                                )))
 
             bp.add_route(partial(index, page=page), uri, name=ui)
             if config.OAS_UI_DEFAULT and config.OAS_UI_DEFAULT == ui:
