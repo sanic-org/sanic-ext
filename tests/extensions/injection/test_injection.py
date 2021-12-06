@@ -4,7 +4,6 @@ import pytest
 from sanic import text
 from sanic.exceptions import SanicException
 from sanic.views import HTTPMethodView
-
 from sanic_ext import Extend
 
 
@@ -14,7 +13,7 @@ def test_injection_not_allowed_when_ext_disabled(bare_app):
     with pytest.raises(
         SanicException, match="Injection extension not enabled"
     ):
-        ext.injection(1, 2)
+        ext.add_dependency(1, 2)
 
 
 def test_injection_of_matched_object(app):
@@ -27,7 +26,31 @@ def test_injection_of_matched_object(app):
         request.ctx.name = name
         return text(name.name)
 
-    app.ctx.ext.injection(Name)
+    app.ctx.ext.add_dependency(Name)
+
+    request, response = app.test_client.get("/person/george")
+
+    assert response.body == b"george"
+    assert isinstance(request.ctx.name, Name)
+    assert request.ctx.name.name == "george"
+
+
+def test_injection_of_matched_object_as_deprecated_injection(app):
+    @dataclass
+    class Name:
+        name: str
+
+    @app.get("/person/<name:str>")
+    def handler(request, name: Name):
+        request.ctx.name = name
+        return text(name.name)
+
+    message = (
+        "The 'ext.injection' method has been deprecated and will be removed "
+        "in v22.6. Please use 'ext.add_dependency' instead."
+    )
+    with pytest.warns(DeprecationWarning, match=message):
+        app.ctx.ext.injection(Name)
 
     request, response = app.test_client.get("/person/george")
 
@@ -46,7 +69,7 @@ def test_injection_of_simple_object(app):
         request.ctx.person = person
         return text(person.name)
 
-    app.ctx.ext.injection(Person)
+    app.ctx.ext.add_dependency(Person)
 
     request, response = app.test_client.get("/person/george")
 
@@ -78,8 +101,8 @@ def test_injection_of_object_with_constructor(app):
             f"{person.person_id.person_id}\n{person.name}\n{person.age}"
         )
 
-    app.ctx.ext.injection(Person, Person.create)
-    app.ctx.ext.injection(PersonID)
+    app.ctx.ext.add_dependency(Person, Person.create)
+    app.ctx.ext.add_dependency(PersonID)
 
     request, response = app.test_client.get("/person/999")
 
@@ -107,7 +130,7 @@ def test_injection_on_cbv(app):
             request.ctx.name = name
             return text(name.name)
 
-    app.ctx.ext.injection(Name)
+    app.ctx.ext.add_dependency(Name)
 
     for client in (app.test_client.get, app.test_client.post):
         request, response = client("/person/george")
