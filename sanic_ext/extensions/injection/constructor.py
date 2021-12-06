@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from inspect import isawaitable
+from re import L
 from typing import (
     TYPE_CHECKING,
     Any,
@@ -37,9 +38,15 @@ class Constructor:
         return f"<{self.__class__.__name__}(func={self.func.__name__})>"
 
     async def __call__(self, request, **kwargs):
+        # TODO
+        # - need to check if self.func requires kwargs and only pass
+        # them if required.  This should capture route params, etc.
         try:
             args = await gather_args(self.injections, request, **kwargs)
-            return self.func(request, **args)
+            retval = self.func(request, **args, **kwargs)
+            if isawaitable(retval):
+                retval = await retval
+            return retval
         except TypeError as e:
             raise ServerError(
                 "Failure to inject dependencies. Perhaps one of your "
@@ -48,11 +55,16 @@ class Constructor:
                 "registered before it."
             ) from e
 
-    def prepare(self, injection_registry: InjectionRegistry) -> None:
+    def prepare(
+        self, injection_registry: InjectionRegistry, allowed_types: Set[Any]
+    ) -> None:
         hints = get_type_hints(self.func)
         missing = []
         for param, annotation in hints.items():
-            if annotation not in self.EXEMPT_ANNOTATIONS:
+            if (
+                annotation not in self.EXEMPT_ANNOTATIONS
+                and annotation not in allowed_types
+            ):
                 dependency = injection_registry.get(annotation)
                 if not dependency:
                     missing.append((param, annotation))

@@ -23,10 +23,10 @@ class InjectionRegistry:
             constructor = Constructor(constructor)
         self._registry[_type] = constructor
 
-    def finalize(self):
+    def finalize(self, allowed_types):
         for constructor in self._registry.values():
             if isinstance(constructor, Constructor):
-                constructor.prepare(self)
+                constructor.prepare(self, allowed_types)
 
 
 class SignatureRegistry:
