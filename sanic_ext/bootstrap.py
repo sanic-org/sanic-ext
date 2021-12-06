@@ -13,6 +13,7 @@ from sanic_ext.extensions.http.extension import HTTPExtension
 from sanic_ext.extensions.injection.extension import InjectionExtension
 from sanic_ext.extensions.injection.registry import InjectionRegistry
 from sanic_ext.extensions.openapi.extension import OpenAPIExtension
+from sanic_ext.utils.string import camel_to_snake
 
 MIN_SUPPORT = (21, 3, 2)
 
@@ -83,3 +84,13 @@ class Extend:
         if not self._injection_registry:
             raise SanicException("Injection extension not enabled")
         self._injection_registry.register(type, constructor)
+
+    def add_to_ctx(self, obj: Any, name: Optional[str] = None) -> None:
+        if not name:
+            name = camel_to_snake(obj.__class__.__name__)
+        setattr(self.app.ctx, name, obj)
+
+        def getter(*_):
+            return obj
+
+        self.injection(obj.__class__, getter)

@@ -13,7 +13,7 @@ from .registry import InjectionRegistry, SignatureRegistry
 def add_injection(app: Sanic, injection_registry: InjectionRegistry) -> None:
     signature_registry = _setup_signature_registry(app, injection_registry)
 
-    @app.before_server_start
+    @app.after_server_start
     async def finalize_injections(app: Sanic, _):
         router_converters = set(
             allowed[0] for allowed in app.router.regex_types.values()
