@@ -48,9 +48,8 @@ class Constructor:
             return retval
         except TypeError as e:
             raise ServerError(
-                "Failure to inject dependencies. Perhaps one of your "
-                "injection initializations is out of order. Make sure that "
-                f"all dependencies for '{self.func.__name__}' have been "
+                "Failure to inject dependencies. Make sure that all "
+                f"dependencies for '{self.func.__name__}' have been "
                 "registered before it."
             ) from e
 
