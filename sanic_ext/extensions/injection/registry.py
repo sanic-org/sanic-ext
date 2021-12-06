@@ -13,6 +13,9 @@ class InjectionRegistry:
     def __str__(self) -> str:
         return str(self._registry)
 
+    def __contains__(self, other: Any):
+        return other in self._registry
+
     def get(self, key, default=None):
         return self._registry.get(key, default)
 

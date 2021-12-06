@@ -80,7 +80,7 @@ def _setup_signature_registry(
                         injection_registry[annotation],
                     )
                     for param, annotation in hints.items()
-                    if annotation in injection_registry._registry
+                    if annotation in injection_registry
                 }
                 registry.register(name, injections)
 

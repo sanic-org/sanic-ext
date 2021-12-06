@@ -50,11 +50,13 @@ class Constructor:
             raise ServerError(
                 "Failure to inject dependencies. Make sure that all "
                 f"dependencies for '{self.func.__name__}' have been "
-                "registered before it."
+                "registered."
             ) from e
 
     def prepare(
-        self, injection_registry: InjectionRegistry, allowed_types: Set[Any]
+        self,
+        injection_registry: InjectionRegistry,
+        allowed_types: Set[Type[object]],
     ) -> None:
         hints = get_type_hints(self.func)
         missing = []
@@ -87,7 +89,7 @@ class Constructor:
 
     def check_circular(
         self,
-        checked: Set[Any],
+        checked: Set[Type[object]],
     ) -> None:
         dependencies = set(self.injections.values())
         for dependency, constructor in dependencies:
