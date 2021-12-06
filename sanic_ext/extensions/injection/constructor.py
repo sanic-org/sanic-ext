@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from inspect import isawaitable
-from re import L
 from typing import (
     TYPE_CHECKING,
     Any,
@@ -39,9 +38,6 @@ class Constructor:
         return f"<{self.__class__.__name__}(func={self.func.__name__})>"
 
     async def __call__(self, request, **kwargs):
-        # TODO
-        # - need to check if self.func requires kwargs and only pass
-        # them if required.  This should capture route params, etc.
         try:
             args = await gather_args(self.injections, request, **kwargs)
             if self.pass_kwargs:
