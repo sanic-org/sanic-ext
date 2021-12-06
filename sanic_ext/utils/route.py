@@ -94,9 +94,8 @@ def get_all_routes(app, skip_prefix):
             if uri_filter(uri):
                 continue
 
-            if (
-                skip_prefix 
-                and group.raw_path.startswith(skip_prefix.lstrip("/"))
+            if skip_prefix and group.raw_path.startswith(
+                skip_prefix.lstrip("/")
             ):
                 continue
 
