@@ -1,7 +1,8 @@
 from dataclasses import dataclass
+from itertools import count
 
 import pytest
-from sanic import text
+from sanic import Request, json, text
 from sanic.exceptions import SanicException
 from sanic.views import HTTPMethodView
 from sanic_ext import Extend
@@ -138,3 +139,50 @@ def test_injection_on_cbv(app):
         assert response.body == b"george"
         assert isinstance(request.ctx.name, Name)
         assert request.ctx.name.name == "george"
+
+
+def test_nested_dependencies(app):
+    counter = count()
+
+    class A:
+        @classmethod
+        def create(cls, request: Request):
+            next(counter)
+            return cls()
+
+    class B:
+        def __init__(self, a: A):
+            self.a = a
+
+        @classmethod
+        def create(cls, request: Request, a: A):
+            next(counter)
+            return cls(a)
+
+    class C:
+        def __init__(self, b: B):
+            self.b = b
+
+        @classmethod
+        def create(cls, request: Request, b: B):
+            next(counter)
+            return cls(b)
+
+    app.ctx.ext.add_dependency(A, A.create)
+    app.ctx.ext.add_dependency(B, B.create)
+    app.ctx.ext.add_dependency(C, C.create)
+
+    @app.get("/")
+    async def nested(request: Request, c: C):
+        return json(
+            [
+                isinstance(c, C),
+                isinstance(c.b, B),
+                isinstance(c.b.a, A),
+            ]
+        )
+
+    _, response = app.test_client.get("/")
+
+    assert all(response.json)
+    assert next(counter) == 3

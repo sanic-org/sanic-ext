@@ -114,6 +114,7 @@ async def gather_args(injections, request, **kwargs) -> Dict[str, Any]:
 async def do_cast(_type, constructor, request, **kwargs):
     cast = constructor if constructor else _type
     args = [request] if constructor else []
+
     retval = cast(*args, **kwargs)
     if isawaitable(retval):
         retval = await retval
