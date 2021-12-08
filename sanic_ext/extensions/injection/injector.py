@@ -5,6 +5,7 @@ from typing import Any, Callable, Dict, Optional, Tuple, Type, get_type_hints
 
 from sanic import Sanic
 from sanic.constants import HTTP_METHODS
+
 from sanic_ext.extensions.injection.constructor import gather_args
 
 from .registry import InjectionRegistry, SignatureRegistry

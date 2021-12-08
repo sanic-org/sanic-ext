@@ -5,6 +5,7 @@ from unittest.mock import AsyncMock, call
 import pytest
 from sanic import Request
 from sanic.exceptions import ServerError
+
 from sanic_ext.exceptions import InitError
 from sanic_ext.extensions.injection.constructor import Constructor, gather_args
 from sanic_ext.extensions.injection.registry import InjectionRegistry
