@@ -11,7 +11,7 @@ install_requires = [
     "pyyaml>=3.0.0",
 ]
 
-dev_requires = ["black==19.3b0", "flake8==3.7.7", "isort==4.3.19"]
+dev_requires = ["black>=21.4b2", "flake8>=3.7.7", "isort>=5.0.0"]
 
 test_requires = [
     "sanic_testing==0.7.0",
