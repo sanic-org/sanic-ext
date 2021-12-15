@@ -50,15 +50,15 @@ class Extend:
             )
 
         self.app = app
+        self.extensions = []
         self._injection_registry: Optional[InjectionRegistry] = None
-        app.ctx.ext = self
+        app._ext = self
 
         if not isinstance(config, Config):
             config = Config.from_dict(config or {})
         self.config = add_fallback_config(app, config, **kwargs)
 
-        if not extensions:
-            extensions = []
+        extensions = extensions or []
         if built_in_extensions:
             extensions.extend(
                 [
@@ -67,10 +67,14 @@ class Extend:
                     HTTPExtension,
                 ]
             )
-        init_logs = ["Sanic Extensions:"]
         for extclass in extensions[::-1]:
             extension = extclass(app, self.config)
             extension._startup(self)
+            self.extensions.append(extension)
+
+    def _display(self):
+        init_logs = ["Sanic Extensions:"]
+        for extension in self.extensions:
             init_logs.append(f"  > {extension.name} {extension.label()}")
 
         list(map(logger.info, init_logs))

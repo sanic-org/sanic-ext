@@ -12,9 +12,18 @@ class OpenAPIExtension(Extension):
 
     def label(self):
         if self.app.config.OAS:
-            name = f"{self.bp.name}.index"
-
-            if "SERVER_NAME" in self.app.config:
-                return f"[{self.app.url_for(name, _external=True)}]"
+            return self._make_url()
 
         return ""
+
+    def _make_url(self):
+        name = f"{self.bp.name}.index"
+        _server = (
+            None
+            if "SERVER_NAME" in self.app.config
+            else self.app.serve_location
+        ) or None
+        _external = bool(_server) or "SERVER_NAME" in self.app.config
+        return (
+            f"[{self.app.url_for(name, _external=_external, _server=_server)}]"
+        )
