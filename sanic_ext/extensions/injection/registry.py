@@ -31,6 +31,10 @@ class InjectionRegistry:
             if isinstance(constructor, Constructor):
                 constructor.prepare(self, allowed_types)
 
+    @property
+    def length(self):
+        return len(self._registry)
+
 
 class SignatureRegistry:
     def __init__(self):

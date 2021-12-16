@@ -7,6 +7,9 @@ class InjectionExtension(Extension):
     name = "injection"
 
     def startup(self, bootstrap) -> None:
-        registry = InjectionRegistry()
-        add_injection(self.app, registry)
-        bootstrap._injection_registry = registry
+        self.registry = InjectionRegistry()
+        add_injection(self.app, self.registry)
+        bootstrap._injection_registry = self.registry
+
+    def label(self):
+        return f"[{self.registry.length}]"
