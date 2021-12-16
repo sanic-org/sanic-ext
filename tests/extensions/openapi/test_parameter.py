@@ -46,7 +46,6 @@ def test_parameter_docstring(app: Sanic):
     print(paths)
     assert paths
 
-    # Brocken test, only happen with the test client, need to be fixed.
     assert (
         paths["/test1/{val1}"]["get"]["parameters"][0]["description"]
         == DESCRIPTION
