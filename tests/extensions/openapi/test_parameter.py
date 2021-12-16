@@ -43,7 +43,7 @@ def test_parameter_docstring(app: Sanic):
     test_client = app.test_client
     _, response = test_client.get("/docs/openapi.json")
     paths = response.json.get("paths")
-    print(paths)
+
     assert paths
 
     assert (
