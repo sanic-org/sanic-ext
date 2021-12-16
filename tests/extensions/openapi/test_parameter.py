@@ -15,13 +15,13 @@ def test_parameter_docstring(app: Sanic):
         ---
         operationId: get.test1
         parameters:
-        - name: val1
+          - name: val1
             in: path
             description: val1 path param
             required: true
             schema:
-            type: integer
-            format: int32
+                type: integer
+                format: int32
         """
         return text("ok")
 
@@ -48,10 +48,10 @@ def test_parameter_docstring(app: Sanic):
     assert paths
 
     # Brocken test, only happen with the test client, need to be fixed.
-    # assert (
-    #     paths["/test1/{val1}"]["get"]["parameters"][0]["description"]
-    #     == DESCRIPTION
-    # )
+    assert (
+        paths["/test1/{val1}"]["get"]["parameters"][0]["description"]
+        == DESCRIPTION
+    )
 
     assert (
         paths["/test2/{val1}"]["get"]["parameters"][0]["description"]
