@@ -178,24 +178,27 @@ def body(
 
 def parameter(
     name: Optional[str] = None,
-    schema: Type = str,
-    location: str = "query",
+    schema: Optional[Type] = None,
+    location: Optional[str] = None,
     parameter: Optional[Parameter] = None,
     **kwargs,
 ):
     if parameter:
-        if name:
+        if name or schema or location:
             raise SanicException(
                 "When using a parameter object, you cannot pass "
                 "other arguments."
             )
-
-        name = parameter.fields["name"]
-        schema = parameter.fields["schema"]
-        location = parameter.fields["in"]
+    if not schema:
+        schema = str
+    if not location:
+        location = "query"
 
     def inner(func):
-        OperationStore()[func].parameter(name, schema, location, **kwargs)
+        if parameter:
+            OperationStore()[func].parameter(**parameter.fields)
+        else:
+            OperationStore()[func].parameter(name, schema, location, **kwargs)
         return func
 
     return inner
