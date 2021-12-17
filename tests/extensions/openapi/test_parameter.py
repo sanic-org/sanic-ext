@@ -1,4 +1,5 @@
 from sanic import Request, Sanic, text
+from utils import get_spec
 
 from sanic_ext.extensions.openapi import openapi
 from sanic_ext.extensions.openapi.definitions import Parameter
@@ -40,22 +41,18 @@ def test_parameter_docstring(app: Sanic):
     async def handler3(request: Request, val1: int):
         return text("ok")
 
-    test_client = app.test_client
-    _, response = test_client.get("/docs/openapi.json")
-    paths = response.json.get("paths")
-
-    assert paths
+    spec = get_spec(app)
 
     assert (
-        paths["/test1/{val1}"]["get"]["parameters"][0]["description"]
+        spec["paths"]["/test1/{val1}"]["get"]["parameters"][0]["description"]
         == DESCRIPTION
     )
 
     assert (
-        paths["/test2/{val1}"]["get"]["parameters"][0]["description"]
+        spec["paths"]["/test2/{val1}"]["get"]["parameters"][0]["description"]
         == DESCRIPTION
     )
     assert (
-        paths["/test3/{val1}"]["get"]["parameters"][0]["description"]
+        spec["paths"]["/test3/{val1}"]["get"]["parameters"][0]["description"]
         == DESCRIPTION
     )
