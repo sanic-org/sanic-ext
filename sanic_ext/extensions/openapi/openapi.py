@@ -196,7 +196,12 @@ def parameter(
 
     def inner(func):
         if parameter:
-            OperationStore()[func].parameter(**parameter.fields)
+            # Temporary solution convert in to location,
+            # need to be changed later.
+            fields = dict(parameter.fields)
+            if "in" in fields:
+                fields["location"] = fields.pop("in")
+            OperationStore()[func].parameter(**fields)
         else:
             OperationStore()[func].parameter(name, schema, location, **kwargs)
         return func
