@@ -28,7 +28,7 @@ def test_injection_of_matched_object(app):
         request.ctx.name = name
         return text(name.name)
 
-    app.ctx.ext.add_dependency(Name)
+    app.ext.add_dependency(Name)
 
     request, response = app.test_client.get("/person/george")
 
@@ -52,7 +52,7 @@ def test_injection_of_matched_object_as_deprecated_injection(app):
         "in v22.6. Please use 'ext.add_dependency' instead."
     )
     with pytest.warns(DeprecationWarning, match=message):
-        app.ctx.ext.injection(Name)
+        app.ext.injection(Name)
 
     request, response = app.test_client.get("/person/george")
 
@@ -71,7 +71,7 @@ def test_injection_of_simple_object(app):
         request.ctx.person = person
         return text(person.name)
 
-    app.ctx.ext.add_dependency(Person)
+    app.ext.add_dependency(Person)
 
     request, response = app.test_client.get("/person/george")
 
@@ -103,8 +103,8 @@ def test_injection_of_object_with_constructor(app):
             f"{person.person_id.person_id}\n{person.name}\n{person.age}"
         )
 
-    app.ctx.ext.add_dependency(Person, Person.create)
-    app.ctx.ext.add_dependency(PersonID)
+    app.ext.add_dependency(Person, Person.create)
+    app.ext.add_dependency(PersonID)
 
     request, response = app.test_client.get("/person/999")
 
@@ -132,7 +132,7 @@ def test_injection_on_cbv(app):
             request.ctx.name = name
             return text(name.name)
 
-    app.ctx.ext.add_dependency(Name)
+    app.ext.add_dependency(Name)
 
     for client in (app.test_client.get, app.test_client.post):
         request, response = client("/person/george")
@@ -169,9 +169,9 @@ def test_nested_dependencies(app):
             next(counter)
             return cls(b)
 
-    app.ctx.ext.add_dependency(A, A.create)
-    app.ctx.ext.add_dependency(B, B.create)
-    app.ctx.ext.add_dependency(C, C.create)
+    app.ext.add_dependency(A, A.create)
+    app.ext.add_dependency(B, B.create)
+    app.ext.add_dependency(C, C.create)
 
     @app.get("/")
     async def nested(request: Request, c: C):
