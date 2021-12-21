@@ -5,7 +5,18 @@ documentation to OperationStore() and components created in the blueprints.
 """
 from functools import wraps
 from inspect import isawaitable, isclass
-from typing import Any, Dict, List, Optional, Sequence, Type, TypeVar, Union
+from typing import (
+    Any,
+    Callable,
+    Dict,
+    List,
+    Optional,
+    Sequence,
+    Type,
+    TypeVar,
+    Union,
+    overload,
+)
 
 from sanic import Blueprint
 from sanic.exceptions import InvalidUsage, SanicException
@@ -176,6 +187,24 @@ def body(
     return inner
 
 
+@overload
+def parameter(
+    parameter: Optional[Parameter] = None,
+    **kwargs,
+) -> Callable:
+    ...
+
+
+@overload
+def parameter(
+    name: Optional[str] = None,
+    schema: Optional[Type] = None,
+    location: Optional[str] = None,
+    **kwargs,
+) -> Callable:
+    ...
+
+
 def parameter(
     name: Optional[str] = None,
     schema: Optional[Type] = None,
@@ -194,7 +223,7 @@ def parameter(
     if not location:
         location = "query"
 
-    def inner(func):
+    def inner(func: Callable):
         if parameter:
             # Temporary solution convert in to location,
             # need to be changed later.
