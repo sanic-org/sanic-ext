@@ -5,7 +5,18 @@ documentation to OperationStore() and components created in the blueprints.
 """
 from functools import wraps
 from inspect import isawaitable, isclass
-from typing import Any, Dict, List, Optional, Sequence, Type, TypeVar, Union
+from typing import (
+    Any,
+    Callable,
+    Dict,
+    List,
+    Optional,
+    Sequence,
+    Type,
+    TypeVar,
+    Union,
+    overload,
+)
 
 from sanic import Blueprint
 from sanic.exceptions import InvalidUsage, SanicException
@@ -176,26 +187,52 @@ def body(
     return inner
 
 
+@overload
 def parameter(
-    name: Optional[str] = None,
-    schema: Type = str,
-    location: str = "query",
-    parameter: Optional[Parameter] = None,
+    parameter: Parameter,
+    **kwargs,
+) -> Callable:
+    ...
+
+
+@overload
+def parameter(
+    name: Optional[str],
+    schema: Optional[Type],
+    location: Optional[str],
+    **kwargs,
+) -> Callable:
+    ...
+
+
+def parameter(
+    name=None,
+    schema=None,
+    location=None,
+    parameter=None,
     **kwargs,
 ):
     if parameter:
-        if name:
+        if name or schema or location:
             raise SanicException(
                 "When using a parameter object, you cannot pass "
                 "other arguments."
             )
+    if not schema:
+        schema = str
+    if not location:
+        location = "query"
 
-        name = parameter.fields["name"]
-        schema = parameter.fields["schema"]
-        location = parameter.fields["in"]
-
-    def inner(func):
-        OperationStore()[func].parameter(name, schema, location, **kwargs)
+    def inner(func: Callable):
+        if parameter:
+            # Temporary solution convert in to location,
+            # need to be changed later.
+            fields = dict(parameter.fields)
+            if "in" in fields:
+                fields["location"] = fields.pop("in")
+            OperationStore()[func].parameter(**fields)
+        else:
+            OperationStore()[func].parameter(name, schema, location, **kwargs)
         return func
 
     return inner
