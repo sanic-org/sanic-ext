@@ -189,7 +189,7 @@ def body(
 
 @overload
 def parameter(
-    parameter: Optional[Parameter] = None,
+    parameter: Parameter,
     **kwargs,
 ) -> Callable:
     ...
@@ -197,19 +197,19 @@ def parameter(
 
 @overload
 def parameter(
-    name: Optional[str] = None,
-    schema: Optional[Type] = None,
-    location: Optional[str] = None,
+    name: Optional[str],
+    schema: Optional[Type],
+    location: Optional[str],
     **kwargs,
 ) -> Callable:
     ...
 
 
 def parameter(
-    name: Optional[str] = None,
-    schema: Optional[Type] = None,
-    location: Optional[str] = None,
-    parameter: Optional[Parameter] = None,
+    name=None,
+    schema=None,
+    location=None,
+    parameter=None,
     **kwargs,
 ):
     if parameter:
