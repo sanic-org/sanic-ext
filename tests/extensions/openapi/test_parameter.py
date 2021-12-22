@@ -65,8 +65,21 @@ def test_parameter(app: Sanic):
     async def handler4(request: Request, val1: int):
         return text("ok")
 
+    @app.route("/test5/<val1>")
+    @openapi.definition(
+        parameter=Parameter(
+            name="val1",
+            schema=int,
+            location=LOCATION,
+            description=DESCRIPTION,
+            required=True,
+        )
+    )
+    async def handler5(request: Request, val1: int):
+        return text("ok")
+
     spec = get_spec(app)
-    for i in range(1, 5):
+    for i in range(1, 6):
         assert f"/test{i}/{{val1}}" in spec["paths"]
         parameter = spec["paths"][f"/test{i}/{{val1}}"]["get"]["parameters"][0]
         assert parameter["name"] == NAME

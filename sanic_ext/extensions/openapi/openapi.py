@@ -404,6 +404,8 @@ def definition(
                 kwargs = {}
                 if isinstance(param, Parameter):
                     kwargs = param.fields
+                    if "in" in kwargs:
+                        kwargs["location"] = kwargs.pop("in")
                 elif isinstance(param, dict) and "name" in param:
                     kwargs = param
                 elif isinstance(param, str):
