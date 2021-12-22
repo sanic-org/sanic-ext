@@ -5,7 +5,7 @@ from sanic_ext.extensions.openapi import openapi
 from sanic_ext.extensions.openapi.definitions import Parameter
 
 
-def test_parameter_docstring(app: Sanic):
+def test_parameter(app: Sanic):
     DESCRIPTION = "val1 path param"
     NAME = "val1"
     LOCATION = "path"
@@ -52,8 +52,21 @@ def test_parameter_docstring(app: Sanic):
     async def handler3(request: Request, val1: int):
         return text("ok")
 
+    @app.route("/test4/<val1>")
+    @openapi.definition(
+        parameter={
+            "name": "val1",
+            "description": DESCRIPTION,
+            "required": True,
+            "schema": int,
+            "location": LOCATION,
+        }
+    )
+    async def handler4(request: Request, val1: int):
+        return text("ok")
+
     spec = get_spec(app)
-    for i in range(1, 4):
+    for i in range(1, 5):
         assert f"/test{i}/{{val1}}" in spec["paths"]
         parameter = spec["paths"][f"/test{i}/{{val1}}"]["get"]["parameters"][0]
         assert parameter["name"] == NAME
