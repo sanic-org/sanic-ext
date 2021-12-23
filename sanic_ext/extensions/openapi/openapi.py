@@ -386,7 +386,7 @@ def definition(
             )
 
             getattr(taglist, op)(tag)
-            func = glbl["tag"](taglist)(func)
+            func = glbl["tag"](*taglist)(func)
 
         if deprecated:
             func = glbl["deprecated"]()(func)

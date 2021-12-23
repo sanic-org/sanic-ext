@@ -5,7 +5,7 @@ from sanic_ext.extensions.openapi import openapi
 from sanic_ext.extensions.openapi.definitions import Parameter
 
 
-def test_parameter_docstring(app: Sanic):
+def test_parameter(app: Sanic):
     DESCRIPTION = "val1 path param"
     NAME = "val1"
     LOCATION = "path"
