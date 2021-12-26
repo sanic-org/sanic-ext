@@ -14,7 +14,7 @@ install_requires = [
 dev_requires = ["black>=21.4b2", "flake8>=3.7.7", "isort>=5.0.0"]
 
 test_requires = [
-    "sanic_testing==0.7.0",
+    "sanic_testing>=0.8",
     "coverage",
     "pytest",
     "pytest-cov",
