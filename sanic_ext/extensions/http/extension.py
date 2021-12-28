@@ -26,6 +26,8 @@ class HTTPExtension(Extension):
 
         if self.cors:
             add_cors(self.app)
+        else:
+            return
 
         if self.app.ctx.cors.automatic_options and not self.auto_options:
             raise InitError(

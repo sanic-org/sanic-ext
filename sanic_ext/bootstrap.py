@@ -42,7 +42,7 @@ class Extend:
             )
 
         sanic_version = tuple(
-            map(int, __version__.strip(ascii_lowercase).split("."))
+            map(int, __version__.strip(ascii_lowercase).split(".", 3)[:3])
         )
 
         if MIN_SUPPORT > sanic_version:

@@ -60,6 +60,7 @@ class Constructor:
         allowed_types: Set[Type[object]],
     ) -> None:
         hints = get_type_hints(self.func)
+        hints.pop("return", None)
         missing = []
         for param, annotation in hints.items():
             if annotation in allowed_types:
