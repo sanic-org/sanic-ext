@@ -5,7 +5,6 @@ from os.path import abspath, dirname, realpath
 from sanic.blueprints import Blueprint
 from sanic.config import Config
 from sanic.response import html, json
-
 from sanic_ext.extensions.openapi.builders import (
     OperationStore,
     SpecificationBuilder,
@@ -110,7 +109,7 @@ def blueprint_factory(config: Config):
 
                 operation._default[
                     "operationId"
-                ] = f"{method.lower()}_route_name"
+                ] = f"{method.lower()}~{route_name}"
                 operation._default["summary"] = clean_route_name(route_name)
 
                 # TODO: solve for this
