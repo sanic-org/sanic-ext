@@ -110,7 +110,7 @@ def blueprint_factory(config: Config):
 
                 operation._default[
                     "operationId"
-                ] = f"{method.lower()}_route_name"
+                ] = f"{method.lower()}~{route_name}"
                 operation._default["summary"] = clean_route_name(route_name)
 
                 # TODO: solve for this
