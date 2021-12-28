@@ -14,7 +14,6 @@ from typing import (
 
 from sanic import Request
 from sanic.exceptions import ServerError
-
 from sanic_ext.exceptions import InitError
 
 if TYPE_CHECKING:
@@ -60,6 +59,8 @@ class Constructor:
         allowed_types: Set[Type[object]],
     ) -> None:
         hints = get_type_hints(self.func)
+        # hints = get_type_hints(self.func, globalns=globals(), localns=locals())
+        hints.pop("return", None)
         missing = []
         for param, annotation in hints.items():
             if annotation in allowed_types:
