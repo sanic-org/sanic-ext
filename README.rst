@@ -67,7 +67,9 @@ Installation
 
 ::
 
-    pip install sanic-ext
+    pip install sanic[ext]
+    # OR
+    pip install sanic sanic-ext
 
 
 Getting started
@@ -77,10 +79,10 @@ Getting started
 .. code-block:: python
 
     from sanic import Sanic
-    from sanic_ext import Extend
 
     app = Sanic("MyHelloWorldApp")
-    Extend(app)
+    
+Nothing new. Just start using Sanic and it will automatically be extended!
 
 
 Learn more
@@ -91,6 +93,6 @@ Go to the `User Guide <https://sanicframework.org/en/plugins/sanic-ext/getting-s
 
 ____
 
-.. warning:: Sanic Extensions is still in **ALPHA** release. The API will likely change a little as new features are added. The goal is to move it to BETA with a stable API by the December release.
+.. warning:: Sanic Extensions is still in **ALPHA** release. The API is not likely to change. It will move to **BETA** with v22.3.
 
 
