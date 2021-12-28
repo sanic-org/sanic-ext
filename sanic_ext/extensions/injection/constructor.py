@@ -14,6 +14,7 @@ from typing import (
 
 from sanic import Request
 from sanic.exceptions import ServerError
+
 from sanic_ext.exceptions import InitError
 
 if TYPE_CHECKING:
