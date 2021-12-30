@@ -20,7 +20,6 @@ from typing import (
 
 from sanic import Blueprint
 from sanic.exceptions import InvalidUsage, SanicException
-
 from sanic_ext.extensions.openapi.builders import (
     OperationStore,
     SpecificationBuilder,
@@ -264,14 +263,9 @@ def response(
     return inner
 
 
-def secured(*args, **kwargs):
-    raise NotImplementedError(
-        "SecuritySchemas are not yet implemented in sanic-openapi 0.6.3, "
-        "hopefully they should be ready for the next release."
-    )
-
+def secure(*args, **kwargs):
     def inner(func):
-        OperationStore()[func].secured(*args, **kwargs)
+        OperationStore()[func].secure(*args, **kwargs)
         return func
 
     return inner

@@ -1,14 +1,24 @@
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
+from sanic_ext.extensions.openapi.builders import SpecificationBuilder
+
 from ..base import Extension
 from .blueprint import blueprint_factory
+
+if TYPE_CHECKING:
+    from sanic_ext import Extend
 
 
 class OpenAPIExtension(Extension):
     name = "openapi"
 
-    def startup(self, _) -> None:
+    def startup(self, bootstrap: Extend) -> None:
         if self.app.config.OAS:
             self.bp = blueprint_factory(self.app.config)
             self.app.blueprint(self.bp)
+            bootstrap._openapi = SpecificationBuilder()
 
     def label(self):
         if self.app.config.OAS:

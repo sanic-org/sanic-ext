@@ -9,6 +9,7 @@ from __future__ import annotations
 from inspect import isclass
 from typing import Any, Dict, List, Optional, Type, Union, get_type_hints
 
+from click import password_option
 from sanic.exceptions import SanicException
 
 from .types import Definition, Schema
@@ -244,14 +245,36 @@ class PathItem(Definition):
     trace: Operation
 
 
+class Flow(Definition):
+    authorizationUrl: str
+    tokenUrl: str
+    refreshUrl: str
+    scopes: Dict[str, str]
+
+
+class Flows(Definition):
+    implicit: Flow
+    password: Flow
+    clientCredentials: Flow
+    authorizationCode: Flow
+
+
+class SecurityRequirement(Definition):
+    name: str
+    value: List[str]
+
+
 class SecurityScheme(Definition):
     type: str
-    description: str
-    scheme: str
     bearerFormat: str
-    name: str
+    description: str
+    flows: Flows
     location: str
+    name: str
     openIdConnectUrl: str
+    scheme: str
+
+    __nullable__ = None
 
     def __init__(self, type: str, **kwargs):
         super().__init__(type=type, **kwargs)
@@ -365,4 +388,5 @@ class OpenAPI(Definition):
     externalDocs: ExternalDocumentation
 
     def __init__(self, info: Info, paths: Dict[str, PathItem], **kwargs):
-        super().__init__(openapi="3.0.0", info=info, paths=paths, **kwargs)
+        use = {k: v for k, v in kwargs.items() if v is not None}
+        super().__init__(openapi="3.0.0", info=info, paths=paths, **use)
