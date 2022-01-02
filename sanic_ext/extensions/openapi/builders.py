@@ -314,7 +314,6 @@ class SpecificationBuilder:
             location = SecuritySchemeLocation(location)
 
         kwargs = {
-            "ident": ident,
             "type": type,
             "scheme": scheme if type is SecuritySchemeType.HTTP else None,
             "description": description,
