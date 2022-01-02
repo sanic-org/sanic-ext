@@ -96,8 +96,11 @@ class OperationBuilder:
     ):
         self.responses[status] = Response.make(content, description, **kwargs)
 
-    def secure(self, *args, **kwargs):
-        items = {**{v: [] for v in args}, **kwargs}
+    def secured(self, *args, **kwargs):
+        if not kwargs and len(args) == 1 and isinstance(args[0], dict):
+            items = args[0]
+        else:
+            items = {**{v: [] for v in args}, **kwargs}
         gates = {}
 
         for name, params in items.items():
@@ -238,7 +241,7 @@ class SpecificationBuilder:
     def external(self, url: str, description: Optional[str] = None, **kwargs):
         self._external = ExternalDocumentation(url, description=description)
 
-    def secure(
+    def secured(
         self,
         name: str = None,
         value: Optional[Union[str, Sequence[str]]] = None,
@@ -352,10 +355,10 @@ class SpecificationBuilder:
         if "security" in data:
             for security in data["security"]:
                 if not security:
-                    self.secure()
+                    self.secured()
                 else:
                     for key, value in security.items():
-                        self.secure(key, value)
+                        self.secured(key, value)
 
         if "tags" in data:
             for tag in data["tags"]:

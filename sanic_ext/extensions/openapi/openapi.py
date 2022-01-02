@@ -263,9 +263,9 @@ def response(
     return inner
 
 
-def secure(*args, **kwargs):
+def secured(*args, **kwargs):
     def inner(func):
-        OperationStore()[func].secure(*args, **kwargs)
+        OperationStore()[func].secured(*args, **kwargs)
         return func
 
     return inner
@@ -317,6 +317,7 @@ def definition(
             List[Union[Dict[str, Any], Response, Any]],
         ]
     ] = None,
+    secured: Optional[Dict[str, Any]] = None,
     validate: bool = False,
     body_argument: str = "body",
 ):
@@ -440,6 +441,9 @@ def definition(
                     kwargs["status"] = 200
 
                 func = glbl["response"](**kwargs)(func)
+
+        if secured:
+            func = glbl["secured"](secured)(func)
 
         return func
 
