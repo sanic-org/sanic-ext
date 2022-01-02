@@ -1,4 +1,5 @@
 from sanic import Sanic
+
 from sanic_ext import openapi
 from tests.extensions.openapi.utils import get_path, get_spec
 
