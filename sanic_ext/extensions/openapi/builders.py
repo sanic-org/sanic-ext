@@ -326,7 +326,11 @@ class SpecificationBuilder:
         elif type is SecuritySchemeType.OPEN_ID_CONNECT:
             kwargs["openIdConnectUrl"] = openid_connect_url
 
-        self.add_component("securitySchemes", ident, SecurityScheme(**kwargs))  # type: ignore
+        self.add_component(
+            "securitySchemes",
+            ident,
+            SecurityScheme(**kwargs),
+        )  # type: ignore
 
     def raw(self, data):
         if "info" in data:
