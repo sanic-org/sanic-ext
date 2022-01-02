@@ -313,22 +313,19 @@ class SpecificationBuilder:
         if isinstance(location, str):
             location = SecuritySchemeLocation(location)
 
-        kwargs = {
-            "type": type,
-            "scheme": scheme if type is SecuritySchemeType.HTTP else None,
-            "description": description,
-            "location": location
-            if type is SecuritySchemeType.API_KEY
-            else None,
-            "name": name if type is SecuritySchemeType.API_KEY else None,
-            "flows": flows if type is SecuritySchemeType.OAUTH2 else None,
-            "openIdConnectUrl": openid_connect_url
-            if type is SecuritySchemeType.OPEN_ID_CONNECT
-            else None,
-            "bearerFormat": bearer_format
-            if type is SecuritySchemeType.HTTP
-            else None,
-        }
+        kwargs: Dict[str, Any] = {"type": type, "description": description}
+
+        if type is SecuritySchemeType.API_KEY:
+            kwargs["location"] = location
+            kwargs["name"] = name
+        elif type is SecuritySchemeType.HTTP:
+            kwargs["scheme"] = scheme
+            kwargs["bearerFormat"] = bearer_format
+        elif type is SecuritySchemeType.OAUTH2:
+            kwargs["flows"] = flows
+        elif type is SecuritySchemeType.OPEN_ID_CONNECT:
+            kwargs["openIdConnectUrl"] = openid_connect_url
+
         self.add_component("securitySchemes", ident, SecurityScheme(**kwargs))  # type: ignore
 
     def raw(self, data):
