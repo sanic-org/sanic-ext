@@ -9,7 +9,6 @@ from __future__ import annotations
 from inspect import isclass
 from typing import Any, Dict, List, Optional, Type, Union, get_type_hints
 
-from click import password_option
 from sanic.exceptions import SanicException
 
 from .types import Definition, Schema
