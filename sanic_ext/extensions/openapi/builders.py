@@ -5,7 +5,13 @@ These are completely internal, so can be refactored if desired without concern
 for breaking user experience
 """
 from collections import defaultdict
-from typing import Optional
+from typing import Optional, Sequence, Union
+
+from sanic_ext.extensions.openapi.constants import (
+    SecuritySchemeAuthorization,
+    SecuritySchemeLocation,
+    SecuritySchemeType,
+)
 
 from ...utils.route import remove_nulls, remove_nulls_from_kwargs
 from .autodoc import YamlStyleParametersParser
@@ -15,6 +21,7 @@ from .definitions import (
     Contact,
     Dict,
     ExternalDocumentation,
+    Flows,
     Info,
     License,
     List,
@@ -24,6 +31,8 @@ from .definitions import (
     PathItem,
     RequestBody,
     Response,
+    SecurityRequirement,
+    SecurityScheme,
     Server,
     Tag,
 )
@@ -88,7 +97,10 @@ class OperationBuilder:
         self.responses[status] = Response.make(content, description, **kwargs)
 
     def secured(self, *args, **kwargs):
-        items = {**{v: [] for v in args}, **kwargs}
+        if not kwargs and len(args) == 1 and isinstance(args[0], dict):
+            items = args[0]
+        else:
+            items = {**{v: [] for v in args}, **kwargs}
         gates = {}
 
         for name, params in items.items():
@@ -156,6 +168,7 @@ class SpecificationBuilder:
     _license: License
     _paths: Dict[str, Dict[str, OperationBuilder]]
     _tags: Dict[str, Tag]
+    _security: List[SecurityRequirement]
     _components: Dict[str, Any]
     _servers: List[Server]
     # _components: ComponentsBuilder
@@ -178,6 +191,7 @@ class SpecificationBuilder:
         instance._paths = defaultdict(dict)
         instance._servers = []
         instance._tags = {}
+        instance._security = []
         instance._terms = None
         instance._title = None
         instance._urls = []
@@ -190,6 +204,10 @@ class SpecificationBuilder:
     @property
     def tags(self):
         return self._tags
+
+    @property
+    def security(self):
+        return self._security
 
     def url(self, value: str):
         self._urls.append(value)
@@ -222,6 +240,19 @@ class SpecificationBuilder:
 
     def external(self, url: str, description: Optional[str] = None, **kwargs):
         self._external = ExternalDocumentation(url, description=description)
+
+    def secured(
+        self,
+        name: str = None,
+        value: Optional[Union[str, Sequence[str]]] = None,
+    ):
+        if value is None:
+            value = []
+        elif isinstance(value, str):
+            value = [value]
+        else:
+            value = list(value)
+        self._security.append(SecurityRequirement(name=name, value=value))
 
     def contact(self, name: str = None, url: str = None, email: str = None):
         kwargs = remove_nulls_from_kwargs(name=name, url=url, email=email)
@@ -260,6 +291,47 @@ class SpecificationBuilder:
     def has_component(self, location: str, name: str) -> bool:
         return name in self._components.get(location, {})
 
+    def add_security_scheme(
+        self,
+        ident: str,
+        type: Union[str, SecuritySchemeType],
+        *,
+        bearer_format: Optional[str] = None,
+        description: Optional[str] = None,
+        flows: Optional[Union[Flows, Dict[str, Any]]] = None,
+        location: Union[
+            str, SecuritySchemeLocation
+        ] = SecuritySchemeLocation.HEADER,
+        name: str = "authorization",
+        openid_connect_url: Optional[str] = None,
+        scheme: Union[
+            str, SecuritySchemeAuthorization
+        ] = SecuritySchemeAuthorization.BEARER,
+    ):
+        if isinstance(type, str):
+            type = SecuritySchemeType(type)
+        if isinstance(location, str):
+            location = SecuritySchemeLocation(location)
+
+        kwargs: Dict[str, Any] = {"type": type, "description": description}
+
+        if type is SecuritySchemeType.API_KEY:
+            kwargs["location"] = location
+            kwargs["name"] = name
+        elif type is SecuritySchemeType.HTTP:
+            kwargs["scheme"] = scheme
+            kwargs["bearerFormat"] = bearer_format
+        elif type is SecuritySchemeType.OAUTH2:
+            kwargs["flows"] = flows
+        elif type is SecuritySchemeType.OPEN_ID_CONNECT:
+            kwargs["openIdConnectUrl"] = openid_connect_url
+
+        self.add_component(
+            "securitySchemes",
+            ident,
+            SecurityScheme(**kwargs),
+        )  # type: ignore
+
     def raw(self, data):
         if "info" in data:
             self.describe(
@@ -281,7 +353,12 @@ class SpecificationBuilder:
                 self._components[location].update(component)
 
         if "security" in data:
-            ...
+            for security in data["security"]:
+                if not security:
+                    self.secured()
+                else:
+                    for key, value in security.items():
+                        self.secured(key, value)
 
         if "tags" in data:
             for tag in data["tags"]:
@@ -294,6 +371,7 @@ class SpecificationBuilder:
         info = self._build_info()
         paths = self._build_paths()
         tags = self._build_tags()
+        security = self._build_security()
 
         url_servers = getattr(self, "_urls", None)
         servers = self._servers
@@ -310,6 +388,7 @@ class SpecificationBuilder:
             paths,
             tags=tags,
             servers=servers,
+            security=security,
             components=components,
             externalDocs=self._external,
         )
@@ -342,3 +421,11 @@ class SpecificationBuilder:
             )
 
         return paths
+
+    def _build_security(self):
+        return [
+            {sec.fields["name"]: sec.fields["value"]}
+            if sec.fields["name"] is not None
+            else {}
+            for sec in self.security
+        ]

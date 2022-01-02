@@ -14,6 +14,7 @@ from sanic_ext.extensions.base import Extension
 from sanic_ext.extensions.http.extension import HTTPExtension
 from sanic_ext.extensions.injection.extension import InjectionExtension
 from sanic_ext.extensions.injection.registry import InjectionRegistry
+from sanic_ext.extensions.openapi.builders import SpecificationBuilder
 from sanic_ext.extensions.openapi.extension import OpenAPIExtension
 from sanic_ext.utils.string import camel_to_snake
 
@@ -53,6 +54,7 @@ class Extend:
             )
 
         self.app = app
+        self._openapi: Optional[SpecificationBuilder] = None
         self.extensions = []
         self._injection_registry: Optional[InjectionRegistry] = None
         app._ext = self
@@ -113,3 +115,10 @@ class Extend:
             return obj
 
         self.add_dependency(obj.__class__, getter)
+
+    @property
+    def openapi(self) -> SpecificationBuilder:
+        if not self._openapi:
+            self._openapi = SpecificationBuilder()
+
+        return self._openapi

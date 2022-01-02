@@ -34,7 +34,7 @@ class Definition:
 
     def serialize(self):
         return {
-            k: v
+            k: self._value(v)
             for k, v in _serialize(self.fields).items()
             if (
                 v
@@ -47,6 +47,12 @@ class Definition:
 
     def __str__(self):
         return json.dumps(self.serialize())
+
+    @staticmethod
+    def _value(value):
+        if isinstance(value, Enum):
+            return value.value
+        return value
 
 
 class Schema(Definition):

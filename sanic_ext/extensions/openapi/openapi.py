@@ -265,11 +265,6 @@ def response(
 
 
 def secured(*args, **kwargs):
-    raise NotImplementedError(
-        "SecuritySchemas are not yet implemented in sanic-openapi 0.6.3, "
-        "hopefully they should be ready for the next release."
-    )
-
     def inner(func):
         OperationStore()[func].secured(*args, **kwargs)
         return func
@@ -323,6 +318,7 @@ def definition(
             List[Union[Dict[str, Any], Response, Any]],
         ]
     ] = None,
+    secured: Optional[Dict[str, Any]] = None,
     validate: bool = False,
     body_argument: str = "body",
 ):
@@ -446,6 +442,9 @@ def definition(
                     kwargs["status"] = 200
 
                 func = glbl["response"](**kwargs)(func)
+
+        if secured:
+            func = glbl["secured"](secured)(func)
 
         return func
 
