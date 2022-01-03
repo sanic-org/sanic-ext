@@ -109,9 +109,10 @@ def add_auto_handlers(
             for group in app.router.groups.values():
                 if "OPTIONS" not in group.methods:
                     app.add_route(
-                        handler=partial(
-                            options_handler, methods=group.methods
-                        ),
+                        handler=openapi.definition(
+                            summary=clean_route_name(get_route.name).title(),
+                            description="Retrieve OPTIONS details",
+                        )(partial(options_handler, methods=group.methods)),
                         uri=group.uri,
                         methods=["OPTIONS"],
                         strict_slashes=group.strict,
