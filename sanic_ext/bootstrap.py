@@ -55,7 +55,7 @@ class Extend:
 
         self.app = app
         self._openapi: Optional[SpecificationBuilder] = None
-        self.extensions = []
+        self.extensions: List[Extension] = []
         self._injection_registry: Optional[InjectionRegistry] = None
         app._ext = self
         app.ctx._dependencies = SimpleNamespace()
@@ -73,10 +73,15 @@ class Extend:
                     HTTPExtension,
                 ]
             )
+
+        started = set()
         for extclass in extensions[::-1]:
+            if extclass in started:
+                continue
             extension = extclass(app, self.config)
             extension._startup(self)
             self.extensions.append(extension)
+            started.add(extclass)
 
     def _display(self):
         init_logs = ["Sanic Extensions:"]

@@ -5,7 +5,6 @@ from typing import Any, Dict, Type
 
 from sanic.app import Sanic
 from sanic.exceptions import SanicException
-
 from sanic_ext.config import Config
 from sanic_ext.exceptions import InitError
 
@@ -19,14 +18,7 @@ class NoDuplicateDict(dict):  # type: ignore
 
 class Extension(ABC):
     _name_registry: Dict[str, Type[Extension]] = NoDuplicateDict()
-    _singleton = None
     name: str
-
-    def __new__(cls, *args, **kwargs):
-        if cls._singleton is None:
-            cls._singleton = super().__new__(cls)
-            cls._singleton._started = False
-        return cls._singleton
 
     def __init_subclass__(cls):
         if not getattr(cls, "name", None) or not cls.name.isalpha():
@@ -43,6 +35,7 @@ class Extension(ABC):
     def __init__(self, app: Sanic, config: Config) -> None:
         self.app = app
         self.config = config
+        self._started = False
 
     def _startup(self, bootstrap):
         if self._started:
