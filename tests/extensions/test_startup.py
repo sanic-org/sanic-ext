@@ -1,6 +1,7 @@
 from unittest.mock import Mock
 
 from sanic import Sanic
+
 from sanic_ext.extensions.base import Extension
 
 
