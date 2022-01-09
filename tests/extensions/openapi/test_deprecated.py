@@ -17,7 +17,6 @@ def test_deprecated(app: Sanic):
         return text("ok")
 
     @app.route("/test2")
-    @openapi.deprecated
     async def handler2(request: Request):
         """
         openapi:
@@ -27,8 +26,13 @@ def test_deprecated(app: Sanic):
         """
         return text("ok")
 
+    @app.route("/test3")
+    @openapi.definition(deprecated=True)
+    async def handler3(request: Request):
+        return text("ok")
+
     spec = get_spec(app)
     paths = spec["paths"]
-    assert len(paths) == 3
-    for i in range(3):
+    assert len(paths) == 4
+    for i in range(4):
         assert paths[f"/test{i}"]["get"]["deprecated"]
