@@ -38,23 +38,17 @@ def test_external_docs(app: Sanic):
         """
         return text("ok")
 
-    ###### The following test case will fail and need a fix. ######
-    #
-    # @app.route("/test4")
-    # @openapi.document(
-    #     ExternalDocumentation(
-    #         "http://example.com/more", "Find more info here"
-    #     )
-    # )
-    # async def handler4(request: Request):
-    #     return text("ok")
-    #
-    ###############################################################
+    @app.route("/test4")
+    @openapi.document(
+        ExternalDocumentation("http://example.com/more", "Find more info here")
+    )
+    async def handler4(request: Request):
+        return text("ok")
 
     spec = get_spec(app)
     paths = spec["paths"]
-    assert len(paths) == 4
-    for i in range(4):
+    assert len(paths) == 5
+    for i in range(5):
         doc_obj = paths[f"/test{i}"]["get"]["externalDocs"]
         assert doc_obj["url"] == "http://example.com/more"
         if i != 2:

@@ -98,8 +98,14 @@ def description(text: str):
 
 
 def document(url: Union[str, ExternalDocumentation], description: str = None):
+    if isinstance(url, ExternalDocumentation):
+        _url = url.fields["url"]
+        description = url.fields["description"]
+    elif isinstance(url, str):
+        _url = url
+
     def inner(func):
-        OperationStore()[func].document(url, description)
+        OperationStore()[func].document(_url, description)
         return func
 
     return inner

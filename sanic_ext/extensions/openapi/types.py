@@ -25,7 +25,7 @@ class Definition:
     def fields(self):
         return self._fields
 
-    def guard(self, fields):
+    def guard(self, fields: dict):
         return {
             k: v
             for k, v in fields.items()
