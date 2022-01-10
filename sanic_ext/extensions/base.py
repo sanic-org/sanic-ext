@@ -5,7 +5,6 @@ from typing import Any, Dict, Type
 
 from sanic.app import Sanic
 from sanic.exceptions import SanicException
-
 from sanic_ext.config import Config
 from sanic_ext.exceptions import InitError
 
@@ -53,3 +52,9 @@ class Extension(ABC):
 
     def label(self):
         return ""
+
+    def render_label(self):
+        label = self.label()
+        if not label:
+            return ""
+        return f"[{label}]"

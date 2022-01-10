@@ -3,7 +3,12 @@ from __future__ import annotations
 from contextvars import ContextVar
 from typing import TYPE_CHECKING
 
-from jinja2 import Environment, FileSystemLoader, select_autoescape
+from jinja2 import (
+    Environment,
+    FileSystemLoader,
+    __version__,
+    select_autoescape,
+)
 from sanic_ext.extensions.templating.engine import Templating
 
 from ..base import Extension
@@ -36,3 +41,6 @@ class TemplatingExtension(Extension):
         @self.app.on_request
         async def attach_request(request):
             request.app.ctx.__request__.set(request)
+
+    def label(self):
+        return f"jinja2=={__version__}"
