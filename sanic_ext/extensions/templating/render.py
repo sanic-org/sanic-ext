@@ -1,9 +1,10 @@
 from __future__ import annotations
 
 from inspect import isawaitable
-from typing import TYPE_CHECKING, Dict, Optional
+from typing import TYPE_CHECKING, Any, Dict, Optional, Union
 
 from sanic import Sanic
+from sanic.compat import Header
 from sanic.exceptions import SanicException
 from sanic.response import HTTPResponse
 
@@ -11,8 +12,31 @@ if TYPE_CHECKING:
     from jinja2 import Environment
 
 
+class LazyResponse(HTTPResponse):
+    __slots__ = (
+        "body",
+        "status",
+        "content_type",
+        "headers",
+        "_cookies",
+        "context",
+    )
+
+    def __init__(
+        self,
+        context: Dict[str, Any],
+        status: int = 0,
+        headers: Optional[Union[Header, Dict[str, str]]] = None,
+        content_type: Optional[str] = None,
+    ):
+        super().__init__(
+            content_type=content_type, status=status, headers=headers
+        )
+        self.context = context
+
+
 async def render(
-    template_name: str,
+    template_name: str = "",
     status: int = 200,
     headers: Optional[Dict[str, str]] = None,
     content_type: str = "text/html; charset=utf-8",
@@ -32,15 +56,20 @@ async def render(
     if environment is None:
         environment = app.ext.environment
 
-    template = environment.get_template(template_name)
-    render = (
-        template.render_async
-        if app.config.TEMPLATING_ENABLE_ASYNC
-        else template.render
-    )
-    content = render(**kwargs)
-    if isawaitable(content):
-        content = await content  # type: ignore
-    return HTTPResponse(  # type: ignore
-        content, status=status, headers=headers, content_type=content_type
-    )
+    if template_name:
+        template = environment.get_template(template_name)
+        render = (
+            template.render_async
+            if app.config.TEMPLATING_ENABLE_ASYNC
+            else template.render
+        )
+        content = render(**kwargs)
+        if isawaitable(content):
+            content = await content  # type: ignore
+        return HTTPResponse(  # type: ignore
+            content, status=status, headers=headers, content_type=content_type
+        )
+    else:
+        return LazyResponse(
+            kwargs, status=status, headers=headers, content_type=content_type
+        )
