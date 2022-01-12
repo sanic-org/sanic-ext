@@ -1,8 +1,8 @@
 from sanic import Request, Sanic, text
-from utils import get_spec
 
 from sanic_ext.extensions.openapi import openapi
 from sanic_ext.extensions.openapi.definitions import Parameter, Tag
+from utils import get_spec
 
 
 def test_tag(app: Sanic):
