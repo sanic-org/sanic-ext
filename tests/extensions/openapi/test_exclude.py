@@ -1,7 +1,7 @@
 from sanic import Blueprint, Request, Sanic, text
-from utils import get_spec
 
 from sanic_ext.extensions.openapi import openapi
+from utils import get_spec
 
 
 def test_exclude_decorator(app: Sanic):
