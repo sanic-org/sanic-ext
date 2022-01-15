@@ -93,6 +93,7 @@ class Schema(Definition):
                 filter(lambda x: x is not type(None), args)  # noqa: E721
             )
             kwargs["nullable"] = True
+            return Schema.make(value, **kwargs)
 
         if isinstance(value, Schema):
             return value
