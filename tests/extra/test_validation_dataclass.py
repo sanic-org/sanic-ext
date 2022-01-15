@@ -2,7 +2,6 @@ from dataclasses import dataclass
 from typing import List, Optional
 
 import pytest
-
 from sanic_ext.extras.validation.check import check_data
 from sanic_ext.extras.validation.schema import make_schema, parse_hint
 
@@ -211,6 +210,11 @@ def test_should_not_hydrate(data):
         (models.ModelOptionalMultipleLiteral, True, {"foo": None}),
         (models.ModelOptionalMultipleLiteral, False, {"foo": "n"}),
         (models.ModelOptionalMultipleLiteral, False, {"foo": False}),
+        (models.ModelListStrWithDefaultFactory, True, {}),
+        (models.ModelListStrWithDefaultFactory, True, {"foo": ["bar"]}),
+        (models.ModelListStrWithDefaultFactory, True, {"foo": []}),
+        (models.ModelListStrWithDefaultFactory, False, {"foo": [1]}),
+        (models.ModelListStrWithDefaultFactory, False, {"foo": None}),
     ),
 )
 def test_modeling(model, okay, data):

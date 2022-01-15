@@ -2,7 +2,6 @@ from functools import partial
 from inspect import isawaitable, isclass
 
 from sanic.log import logger
-
 from sanic_ext.exceptions import ValidationError
 
 from .schema import make_schema

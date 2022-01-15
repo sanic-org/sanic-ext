@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from dataclasses import _HAS_DEFAULT_FACTORY  # type: ignore
 from typing import Any, Literal, NamedTuple, Optional, Tuple, Union
 
 
@@ -11,6 +12,7 @@ class Hint(NamedTuple):
     nullable: bool
     origin: Optional[Any]
     allowed: Tuple[Hint, ...]  # type: ignore
+    allow_missing: bool
 
     def validate(
         self, value, schema, allow_multiple=False, allow_coerce=False
@@ -90,12 +92,16 @@ def check_data(model, data, schema, allow_multiple=False, allow_coerce=False):
     try:
         for key, value in params.items():
             hint = hints.get(key, Any)
-            hydration_values[key] = hint.validate(
-                value,
-                schema,
-                allow_multiple=allow_multiple,
-                allow_coerce=allow_coerce,
-            )
+            try:
+                hydration_values[key] = hint.validate(
+                    value,
+                    schema,
+                    allow_multiple=allow_multiple,
+                    allow_coerce=allow_coerce,
+                )
+            except ValueError:
+                if not hint.allow_missing or value is not _HAS_DEFAULT_FACTORY:
+                    raise
     except ValueError as e:
         raise TypeError(e)
 
