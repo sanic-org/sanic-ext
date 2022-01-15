@@ -13,10 +13,15 @@ from typing import (  # type: ignore
 from .check import Hint
 
 
+def _is_generic(item):
+    return isinstance(item, _GenericAlias) or hasattr(item, "__origin__")
+
+
 def make_schema(agg, item):
     if type(item) in (bool, str, int, float):
         return agg
-    if isinstance(item, _GenericAlias) and (args := get_args(item)):
+
+    if _is_generic(item) and (args := get_args(item)):
         for arg in args:
             make_schema(agg, arg)
     elif item.__name__ not in agg and is_dataclass(item):
@@ -51,7 +56,7 @@ def parse_hint(hint):
 
     if is_dataclass(hint):
         model = True
-    elif isinstance(hint, _GenericAlias):
+    elif _is_generic(hint):
         typed = True
         literal = False
         origin = get_origin(hint)
