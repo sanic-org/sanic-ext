@@ -1,5 +1,6 @@
 import json
 import typing as t
+import uuid
 from datetime import date, datetime, time
 from enum import Enum
 from inspect import isclass
@@ -114,6 +115,8 @@ class Schema(Definition):
             return Time(**kwargs)
         elif value == datetime:
             return DateTime(**kwargs)
+        elif value == uuid.UUID:
+            return UUID(**kwargs)
 
         if _type == bool:
             return Boolean(default=value, **kwargs)
@@ -133,6 +136,8 @@ class Schema(Definition):
             return Time(**kwargs)
         elif _type == datetime:
             return DateTime(**kwargs)
+        elif _type == uuid.UUID:
+            return UUID(**kwargs)
         elif _type == list:
             if len(value) == 0:
                 schema = Schema(nullable=True)
@@ -213,6 +218,11 @@ class Password(Schema):
 class Email(Schema):
     def __init__(self, **kwargs):
         super().__init__(type="string", format="email", **kwargs)
+
+
+class UUID(Schema):
+    def __init__(self, **kwargs):
+        super().__init__(type="string", format="uuid", **kwargs)
 
 
 class Object(Schema):
