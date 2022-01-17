@@ -375,9 +375,13 @@ class SpecificationBuilder:
 
         url_servers = getattr(self, "_urls", None)
         servers = self._servers
+        existing = [
+            server.fields["url"].strip("/") for server in self._servers
+        ]
         if url_servers is not None:
             for url_server in url_servers:
-                servers.append(Server(url=url_server))
+                if url_server.strip("/") not in existing:
+                    servers.append(Server(url=url_server))
 
         components = (
             Components(**self._components) if self._components else None
