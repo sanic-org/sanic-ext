@@ -158,6 +158,16 @@ class Schema(Definition):
             return Object.make(value, **kwargs)
         elif _type == t._GenericAlias and origin == list:
             return Array(Schema.make(value.__args__[0]), **kwargs)
+        elif _type is type(Enum):
+            available = [item.value for item in value.__members__.values()]
+            available_types = list({type(item) for item in available})
+            schema_type = (
+                available_types[0] if len(available_types) == 1 else "string"
+            )
+            return Schema.make(
+                schema_type,
+                enum=[item.value for item in value.__members__.values()],
+            )
         else:
             return Object.make(value, **kwargs)
 
