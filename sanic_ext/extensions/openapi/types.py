@@ -18,6 +18,7 @@ from typing import (
 
 class Definition:
     __nullable__: Optional[List[str]] = []
+    __ignore__: Optional[List[str]] = []
 
     def __init__(self, **kwargs):
         self._fields: Dict[str, Any] = self.guard(kwargs)
@@ -38,10 +39,13 @@ class Definition:
             k: self._value(v)
             for k, v in _serialize(self.fields).items()
             if (
-                v
-                or (
-                    isinstance(self.__nullable__, list)
-                    and (not self.__nullable__ or k in self.__nullable__)
+                k not in self.__ignore__
+                and (
+                    v
+                    or (
+                        isinstance(self.__nullable__, list)
+                        and (not self.__nullable__ or k in self.__nullable__)
+                    )
                 )
             )
         }
@@ -84,17 +88,17 @@ class Schema(Definition):
         _type = type(value)
         origin = get_origin(value)
         args = get_args(value)
-        if (
-            issubclass(_type, t._GenericAlias)
-            and origin is Union
-            and len(args) == 2
-            and type(None) in args
-        ):
-            value = next(
-                filter(lambda x: x is not type(None), args)  # noqa: E721
+        if origin is Union:
+            if type(None) in args:
+                kwargs["nullable"] = True
+
+            filtered = [arg for arg in args if arg is not type(None)]  # noqa
+
+            if len(filtered) == 1:
+                return Schema.make(filtered[0], **kwargs)
+            return Schema(
+                oneOf=[Schema.make(arg) for arg in filtered], **kwargs
             )
-            kwargs["nullable"] = True
-            return Schema.make(value, **kwargs)
 
         if isinstance(value, Schema):
             return value
@@ -118,6 +122,8 @@ class Schema(Definition):
             return DateTime(**kwargs)
         elif value == uuid.UUID:
             return UUID(**kwargs)
+        elif value == Any:
+            return AnyValue(**kwargs)
 
         if _type == bool:
             return Boolean(default=value, **kwargs)
@@ -226,13 +232,26 @@ class UUID(Schema):
         super().__init__(type="string", format="uuid", **kwargs)
 
 
+class AnyValue(Schema):
+    @classmethod
+    def make(cls, value: Any, **kwargs):
+        return cls(
+            AnyValue={},
+            **kwargs,
+        )
+
+
 class Object(Schema):
     properties: Dict[str, Schema]
     maxProperties: int
     minProperties: int
 
-    def __init__(self, properties: Dict[str, Schema] = None, **kwargs):
-        super().__init__(type="object", properties=properties or {}, **kwargs)
+    def __init__(
+        self, properties: Optional[Dict[str, Schema]] = None, **kwargs
+    ):
+        if properties:
+            kwargs["properties"] = properties
+        super().__init__(type="object", **kwargs)
 
     @classmethod
     def make(cls, value: Any, **kwargs):
