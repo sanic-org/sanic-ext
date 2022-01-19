@@ -1,5 +1,4 @@
 import json
-import typing as t
 import uuid
 from datetime import date, datetime, time
 from enum import Enum
@@ -14,6 +13,8 @@ from typing import (
     get_origin,
     get_type_hints,
 )
+
+from sanic_ext.utils.typing import is_generic
 
 
 class Definition:
@@ -99,6 +100,7 @@ class Schema(Definition):
             return Schema(
                 oneOf=[Schema.make(arg) for arg in filtered], **kwargs
             )
+            # return Schema.make(value, **kwargs)
 
         if isinstance(value, Schema):
             return value
@@ -156,8 +158,8 @@ class Schema(Definition):
             return Array(schema, **kwargs)
         elif _type == dict:
             return Object.make(value, **kwargs)
-        elif _type == t._GenericAlias and origin == list:
-            return Array(Schema.make(value.__args__[0]), **kwargs)
+        elif (is_generic(value) or is_generic(_type)) and origin == list:
+            return Array(Schema.make(args[0]), **kwargs)
         elif _type is type(Enum):
             available = [item.value for item in value.__members__.values()]
             available_types = list({type(item) for item in available})

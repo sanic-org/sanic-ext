@@ -5,8 +5,8 @@ from uuid import UUID
 
 import pytest
 from sanic.exceptions import SanicException
-from sanic_ext import openapi
 
+from sanic_ext import openapi
 from utils import get_path, get_spec
 
 

@@ -21,6 +21,7 @@ from typing import (
 
 from sanic import Blueprint
 from sanic.exceptions import InvalidUsage, SanicException
+
 from sanic_ext.extensions.openapi import definitions
 from sanic_ext.extensions.openapi.builders import (
     OperationStore,

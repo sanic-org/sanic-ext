@@ -1,4 +1,4 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Dict, List, Literal, Optional, Union
 
 
@@ -115,3 +115,8 @@ class ModelOptionalSingleLiteral:
 @dataclass
 class ModelOptionalMultipleLiteral:
     foo: Optional[Literal[True, "y", "Y", 1]]
+
+
+@dataclass
+class ModelListStrWithDefaultFactory:
+    foo: List[str] = field(default_factory=list)
