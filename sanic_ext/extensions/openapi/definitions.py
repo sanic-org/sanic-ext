@@ -308,6 +308,8 @@ class Server(Definition):
     description: str
     variables: Dict[str, ServerVariable]
 
+    __nullable__ = None
+
     def __init__(
         self, url: str, description: str = None, variables: dict = None
     ):
