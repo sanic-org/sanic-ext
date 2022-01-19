@@ -273,17 +273,14 @@ def parameter(
 
 def response(
     status: Union[Literal["default"], int] = "default",
-    content: Optional[Any] = None,
+    content: Any = str,
     description: Optional[str] = None,
     *,
     response: Optional[definitions.Response] = None,
     **kwargs,
 ):
     if response:
-        if (
-            any(bool(item) for item in (content, description))
-            or status != "default"
-        ):
+        if status != "default" or content != str or description is not None:
             raise SanicException(
                 "When using a response object, you cannot pass "
                 "other arguments."
