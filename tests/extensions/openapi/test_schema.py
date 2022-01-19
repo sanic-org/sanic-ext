@@ -10,7 +10,7 @@ class Foo:
 
 def test_schema_list():
     schema = Schema.make(Foo)
-    schema == {
+    schema.serialize() == {
         "type": "object",
         "properties": {
             "list1": {
