@@ -113,18 +113,17 @@ def blueprint_factory(config: Config):
                 ] = f"{method.lower()}~{route_name}"
                 operation._default["summary"] = clean_route_name(route_name)
 
-                # TODO: solve for this
-                # for _parameter in route_parameters:
-                #     if any(
-                #         (
-                #             param.fields["name"] == _parameter.name
-                #             for param in operation.parameters
-                #         )
-                #     ):
-                #         continue
-                #     operation.parameter(
-                #         _parameter.name, _parameter.cast, "path"
-                #     )
+                for _parameter in route_parameters:
+                    if any(
+                        (
+                            param.fields["name"] == _parameter.name
+                            for param in operation.parameters
+                        )
+                    ):
+                        continue
+                    operation.parameter(
+                        _parameter.name, _parameter.cast, "path"
+                    )
 
                 specification.operation(uri, method, operation)
 
