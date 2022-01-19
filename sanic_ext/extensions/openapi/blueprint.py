@@ -121,8 +121,21 @@ def blueprint_factory(config: Config):
                         )
                     ):
                         continue
+
+                    kwargs = {}
+                    if operation._autodoc and (
+                        parameters := operation._autodoc.get("parameters")
+                    ):
+                        description = None
+                        for param in parameters:
+                            if param["name"] == _parameter.name:
+                                description = param["description"]
+                                break
+                        if description:
+                            kwargs["description"] = description
+
                     operation.parameter(
-                        _parameter.name, _parameter.cast, "path"
+                        _parameter.name, _parameter.cast, "path", **kwargs
                     )
 
                 specification.operation(uri, method, operation)
