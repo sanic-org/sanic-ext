@@ -373,5 +373,22 @@ def test_summary_decorator(app):
     assert spec["summary"] == "foo"
 
 
+@pytest.mark.parametrize(
+    "decorator,tags",
+    (
+        (openapi.tag("foo"), ("foo",)),
+        (openapi.tag("foo", openapi.definitions.Tag("bar")), ("foo", "bar")),
+    ),
+)
+def test_tag_decorator(app, decorator, tags):
+    @app.route("/")
+    @decorator
+    def handler_one(_):
+        ...
+
+    spec = get_spec(app)
+    raise Exception(json.dumps(spec, indent=4))
+
+
 # @openapi.definition(body=Foo)
 # @openapi.definition(body={"application/json": Foo})
