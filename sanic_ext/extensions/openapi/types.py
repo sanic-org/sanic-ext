@@ -14,6 +14,8 @@ from typing import (
     get_type_hints,
 )
 
+from sanic_ext.utils.typing import is_generic
+
 
 class Definition:
     __nullable__: Optional[List[str]] = []
@@ -145,8 +147,8 @@ class Schema(Definition):
             return Array(schema, **kwargs)
         elif _type == dict:
             return Object.make(value, **kwargs)
-        elif _type == t._GenericAlias and origin == list:
-            return Array(Schema.make(value.__args__[0]), **kwargs)
+        elif (is_generic(value) or is_generic(_type)) and origin == list:
+            return Array(Schema.make(args[0]), **kwargs)
         else:
             return Object.make(value, **kwargs)
 

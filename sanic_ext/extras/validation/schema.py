@@ -1,17 +1,18 @@
 from dataclasses import MISSING, Field, is_dataclass
 from inspect import isclass, signature
-from typing import (  # type: ignore
+from typing import (
     Any,
     Dict,
     Literal,
     Optional,
     Tuple,
     Union,
-    _GenericAlias,
     get_args,
     get_origin,
     get_type_hints,
 )
+
+from sanic_ext.utils.typing import is_generic
 
 from .check import Hint
 
@@ -19,7 +20,8 @@ from .check import Hint
 def make_schema(agg, item):
     if type(item) in (bool, str, int, float):
         return agg
-    if isinstance(item, _GenericAlias) and (args := get_args(item)):
+
+    if is_generic(item) and (args := get_args(item)):
         for arg in args:
             make_schema(agg, arg)
     elif item.__name__ not in agg and is_dataclass(item):
@@ -63,7 +65,7 @@ def parse_hint(hint, field: Optional[Field] = None):
 
     if is_dataclass(hint):
         model = True
-    elif isinstance(hint, _GenericAlias):
+    elif is_generic(hint):
         typed = True
         literal = False
         origin = get_origin(hint)
