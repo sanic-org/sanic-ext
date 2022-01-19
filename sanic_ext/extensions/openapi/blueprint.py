@@ -129,7 +129,7 @@ def blueprint_factory(config: Config):
                         description = None
                         for param in parameters:
                             if param["name"] == _parameter.name:
-                                description = param["description"]
+                                description = param.get("description")
                                 break
                         if description:
                             kwargs["description"] = description
