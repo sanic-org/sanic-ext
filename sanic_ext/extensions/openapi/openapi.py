@@ -352,7 +352,7 @@ def definition(
     response: Optional[
         Union[
             Union[Dict[str, Any], definitions.Response, Any],
-            List[Union[Dict[str, Any], definitions.Response, Any]],
+            List[Union[Dict[str, Any], definitions.Response]],
         ]
     ] = None,
     secured: Optional[Dict[str, Any]] = None,
