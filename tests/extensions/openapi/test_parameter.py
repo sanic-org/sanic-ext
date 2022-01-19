@@ -1,8 +1,8 @@
 from sanic import Request, Sanic, text
-from utils import get_spec
 
 from sanic_ext.extensions.openapi import openapi
 from sanic_ext.extensions.openapi.definitions import Parameter
+from utils import get_spec
 
 
 def test_parameter(app: Sanic):

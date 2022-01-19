@@ -124,10 +124,8 @@ def description(text: str):
     return inner
 
 
-def document(
-    url: Union[str, definitions.ExternalDocumentation], description: str = None
-):
-    if isinstance(url, definitions.ExternalDocumentation):
+def document(url: Union[str, ExternalDocumentation], description: str = None):
+    if isinstance(url, ExternalDocumentation):
         description = url.fields["description"]
         url = url.fields["url"]
 
