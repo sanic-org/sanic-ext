@@ -4,10 +4,10 @@ from typing import Callable
 import pytest
 from sanic import Request, Sanic
 from sanic.response import text
-from utils import get_spec
 
 from sanic_ext import openapi
 from sanic_ext.extensions.openapi.definitions import RequestBody
+from utils import get_spec
 
 
 @dataclass

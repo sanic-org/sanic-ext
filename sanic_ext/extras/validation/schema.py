@@ -1,8 +1,11 @@
-from dataclasses import is_dataclass
+from dataclasses import MISSING, Field, is_dataclass
 from inspect import isclass, signature
 from typing import (  # type: ignore
+    Any,
     Dict,
     Literal,
+    Optional,
+    Tuple,
     Union,
     _GenericAlias,
     get_args,
@@ -26,7 +29,7 @@ def make_schema(agg, item):
             make_schema(agg, arg)
     elif item.__name__ not in agg and is_dataclass(item):
         sig = signature(item)
-        hints = parse_hints(get_type_hints(item))
+        hints = parse_hints(get_type_hints(item), item.__dataclass_fields__)
 
         agg[item.__name__] = {
             "sig": sig,
@@ -39,20 +42,29 @@ def make_schema(agg, item):
     return agg
 
 
-def parse_hints(hints) -> Dict[str, Hint]:
+def parse_hints(hints, fields: Dict[str, Field]) -> Dict[str, Hint]:
     output: Dict[str, Hint] = {
-        name: parse_hint(hint) for name, hint in hints.items()
+        name: parse_hint(hint, fields.get(name))
+        for name, hint in hints.items()
     }
     return output
 
 
-def parse_hint(hint):
+def parse_hint(hint, field: Optional[Field] = None):
     origin = None
     literal = not isclass(hint)
     nullable = False
     typed = False
     model = False
-    allowed = tuple()
+    allowed: Tuple[Any, ...] = tuple()
+    allow_missing = False
+
+    if (
+        field
+        and field.default_factory  # type: ignore
+        and field.default_factory is not MISSING  # type: ignore
+    ):
+        allow_missing = True
 
     if is_dataclass(hint):
         model = True
@@ -77,5 +89,6 @@ def parse_hint(hint):
         typed,
         nullable,
         origin,
-        tuple([parse_hint(item) for item in allowed]),
+        tuple([parse_hint(item, None) for item in allowed]),
+        allow_missing,
     )
