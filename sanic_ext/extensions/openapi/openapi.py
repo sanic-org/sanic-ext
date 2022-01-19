@@ -463,6 +463,20 @@ def definition(
             )
             getattr(resplist, op)(response)
 
+            if len(resplist) > 1 and any(
+                not isinstance(item, definitions.Response)
+                and not isinstance(item, dict)
+                for item in resplist
+            ):
+                raise SanicException(
+                    "Cannot use multiple bare custom models to define "
+                    "multiple responses like openapi.definition(response=["
+                    "MyModel1, MyModel2]). Instead, you should wrap them in a "
+                    "dict or a Response object. See "
+                    "https://sanic.dev/en/plugins/sanic-ext/openapi/decorators"
+                    ".html#response for more details."
+                )
+
             for resp in resplist:
                 kwargs = {}
                 if isinstance(resp, definitions.Response):

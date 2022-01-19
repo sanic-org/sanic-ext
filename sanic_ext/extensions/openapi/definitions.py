@@ -163,6 +163,8 @@ class ExternalDocumentation(Definition):
     url: str
     description: str
 
+    __nullable__ = None
+
     def __init__(self, url: str, description=None):
         super().__init__(url=url, description=description)
 

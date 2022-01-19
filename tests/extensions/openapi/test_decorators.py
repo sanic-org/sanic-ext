@@ -1,10 +1,10 @@
-import json
 from datetime import date, datetime
 from enum import Enum
 from typing import Any, Dict, Optional, Union
 from uuid import UUID
 
 import pytest
+from sanic.exceptions import SanicException
 from sanic_ext import openapi
 
 from utils import get_path, get_spec
@@ -387,8 +387,421 @@ def test_tag_decorator(app, decorator, tags):
         ...
 
     spec = get_spec(app)
-    raise Exception(json.dumps(spec, indent=4))
+    for tag in tags:
+        assert {"name": tag} in spec["tags"]
+
+    tagged = get_path(app, "/")["tags"]
+    assert list(tagged) == list(tags)
 
 
-# @openapi.definition(body=Foo)
-# @openapi.definition(body={"application/json": Foo})
+def test_definition_decorator_body_dict(app):
+    @app.route("/")
+    @openapi.definition(body={"application/json": Bar})
+    async def handler(_):
+        ...
+
+    body = get_path(app, "/")["requestBody"]
+    assert body == {
+        "content": {
+            "application/json": {
+                "schema": {
+                    "type": "object",
+                    "properties": {"name": {"type": "string"}},
+                }
+            }
+        }
+    }
+
+
+def test_definition_decorator_body_dict_multi(app):
+    @app.route("/")
+    @openapi.definition(body={"application/json": Bar, "text/plain": str})
+    async def handler(_):
+        ...
+
+    body = get_path(app, "/")["requestBody"]
+    assert body == {
+        "content": {
+            "application/json": {
+                "schema": {
+                    "type": "object",
+                    "properties": {"name": {"type": "string"}},
+                }
+            },
+            "text/plain": {"schema": {"type": "string"}},
+        }
+    }
+
+
+def test_definition_decorator_body_request_body(app):
+    @app.route("/")
+    @openapi.definition(
+        body=openapi.definitions.RequestBody(str, required=True)
+    )
+    async def handler(_):
+        ...
+
+    body = get_path(app, "/")["requestBody"]
+    assert body == {
+        "content": {"*/*": {"schema": {"type": "string"}}},
+        "required": True,
+    }
+
+
+def test_definition_decorator_body_model(app):
+    @app.route("/")
+    @openapi.definition(body=Bar)
+    async def handler(_):
+        ...
+
+    body = get_path(app, "/")["requestBody"]
+    assert body == {
+        "content": {
+            "*/*": {
+                "schema": {
+                    "type": "object",
+                    "properties": {"name": {"type": "string"}},
+                }
+            }
+        }
+    }
+
+
+def test_definition_decorator_deprecated(app):
+    @app.route("/")
+    @openapi.definition(deprecated=True)
+    async def handler(_):
+        ...
+
+    assert get_path(app, "/")["deprecated"]
+
+
+def test_definition_decorator_description(app):
+    @app.route("/")
+    @openapi.definition(description="foo")
+    async def handler(_):
+        ...
+
+    assert get_path(app, "/")["description"] == "foo"
+
+
+def test_definition_decorator_document_string(app):
+    @app.route("/")
+    @openapi.definition(document="foo")
+    async def handler(_):
+        ...
+
+    assert get_path(app, "/")["externalDocs"] == {"url": "foo"}
+
+
+def test_definition_decorator_document_obj(app):
+    @app.route("/")
+    @openapi.definition(
+        document=openapi.definitions.ExternalDocumentation("foo", "bar")
+    )
+    async def handler(_):
+        ...
+
+    assert get_path(app, "/")["externalDocs"] == {
+        "url": "foo",
+        "description": "bar",
+    }
+
+
+def test_definition_decorator_operation(app):
+    @app.route("/")
+    @openapi.definition(operation="foo")
+    async def handler(_):
+        ...
+
+    assert get_path(app, "/")["operationId"] == "foo"
+
+
+def test_definition_decorator_parameter_string(app):
+    @app.route("/")
+    @openapi.definition(parameter="foo")
+    async def handler(_):
+        ...
+
+    parameters = get_path(app, "/")["parameters"]
+    assert {
+        "name": "foo",
+        "schema": {"type": "string"},
+        "in": "query",
+    } in parameters
+
+
+def test_definition_decorator_parameter_dict(app):
+    @app.route("/")
+    @openapi.definition(parameter={"name": "foo"})
+    async def handler(_):
+        ...
+
+    parameters = get_path(app, "/")["parameters"]
+    assert {
+        "name": "foo",
+        "schema": {"type": "string"},
+        "in": "query",
+    } in parameters
+
+
+def test_definition_decorator_parameter_obj(app):
+    @app.route("/")
+    @openapi.definition(
+        parameter=openapi.definitions.Parameter("foo", description="bar")
+    )
+    async def handler(_):
+        ...
+
+    parameters = get_path(app, "/")["parameters"]
+    assert {
+        "name": "foo",
+        "schema": {"type": "string"},
+        "in": "query",
+        "description": "bar",
+    } in parameters
+
+
+def test_definition_decorator_parameter_string_multi(app):
+    @app.route("/")
+    @openapi.definition(parameter=["foo", "bar"])
+    async def handler(_):
+        ...
+
+    parameters = get_path(app, "/")["parameters"]
+    assert {
+        "name": "foo",
+        "schema": {"type": "string"},
+        "in": "query",
+    } in parameters
+    assert {
+        "name": "bar",
+        "schema": {"type": "string"},
+        "in": "query",
+    } in parameters
+
+
+def test_definition_decorator_parameter_dict_multi(app):
+    @app.route("/")
+    @openapi.definition(
+        parameter=[{"name": "foo"}, {"name": "bar", "location": "header"}]
+    )
+    async def handler(_):
+        ...
+
+    parameters = get_path(app, "/")["parameters"]
+    assert {
+        "name": "foo",
+        "schema": {"type": "string"},
+        "in": "query",
+    } in parameters
+    assert {
+        "name": "bar",
+        "schema": {"type": "string"},
+        "in": "header",
+    } in parameters
+
+
+def test_definition_decorator_parameter_obj_multi(app):
+    @app.route("/")
+    @openapi.definition(
+        parameter=[
+            openapi.definitions.Parameter("foo"),
+            openapi.definitions.Parameter("bar"),
+        ]
+    )
+    async def handler(_):
+        ...
+
+    parameters = get_path(app, "/")["parameters"]
+    assert {
+        "name": "foo",
+        "schema": {"type": "string"},
+        "in": "query",
+    } in parameters
+    assert {
+        "name": "bar",
+        "schema": {"type": "string"},
+        "in": "query",
+    } in parameters
+
+
+def test_definition_decorator_response_dict(app):
+    @app.route("/")
+    @openapi.definition(response={"application/json": Bar})
+    async def handler(_):
+        ...
+
+    responses = get_path(app, "/")["responses"]
+    assert responses["default"] == {
+        "content": {
+            "application/json": {
+                "schema": {
+                    "type": "object",
+                    "properties": {"name": {"type": "string"}},
+                }
+            }
+        },
+        "description": "Default Response",
+    }
+
+
+def test_definition_decorator_response_obj(app):
+    @app.route("/")
+    @openapi.definition(
+        response=openapi.definitions.Response(
+            {"application/json": Bar}, status=201
+        )
+    )
+    async def handler(_):
+        ...
+
+    responses = get_path(app, "/")["responses"]
+    assert responses["201"] == {
+        "content": {
+            "application/json": {
+                "schema": {
+                    "type": "object",
+                    "properties": {"name": {"type": "string"}},
+                }
+            }
+        },
+        "description": "Default Response",
+    }
+
+
+def test_definition_decorator_response_model(app):
+    @app.route("/")
+    @openapi.definition(response=Bar)
+    async def handler(_):
+        ...
+
+    responses = get_path(app, "/")["responses"]
+    assert responses["default"] == {
+        "content": {
+            "*/*": {
+                "schema": {
+                    "type": "object",
+                    "properties": {"name": {"type": "string"}},
+                }
+            }
+        },
+        "description": "Default Response",
+    }
+
+
+def test_definition_decorator_response_dict_multi(app):
+    @app.route("/")
+    @openapi.definition(
+        response=[
+            {"application/json": Bar, "text/plain": str},
+            {"text/html": str},
+        ]
+    )
+    async def handler(_):
+        ...
+
+    responses = get_path(app, "/")["responses"]
+
+    assert responses["default"] == {
+        "content": {
+            "application/json": {
+                "schema": {
+                    "type": "object",
+                    "properties": {"name": {"type": "string"}},
+                }
+            },
+            "text/plain": {"schema": {"type": "string"}},
+            "text/html": {"schema": {"type": "string"}},
+        },
+        "description": "Default Response",
+    }
+
+
+def test_definition_decorator_response_obj_multi(app):
+    @app.route("/")
+    @openapi.definition(
+        response=[
+            openapi.definitions.Response(
+                {"application/json": Bar}, status=201
+            ),
+            openapi.definitions.Response(
+                {"*/*": str}, status=400, description="Something bad"
+            ),
+        ]
+    )
+    async def handler(_):
+        ...
+
+    responses = get_path(app, "/")["responses"]
+    assert responses["201"] == {
+        "content": {
+            "application/json": {
+                "schema": {
+                    "type": "object",
+                    "properties": {"name": {"type": "string"}},
+                }
+            }
+        },
+        "description": "Default Response",
+    }
+    assert responses["400"] == {
+        "content": {"*/*": {"schema": {"type": "string"}}},
+        "description": "Something bad",
+    }
+
+
+def test_definition_decorator_response_model_multi(app):
+    with pytest.raises(SanicException):
+
+        @app.route("/")
+        @openapi.definition(response=[Bar, LittleFoo])
+        async def handler(_):
+            ...
+
+
+def test_definition_decorator_summary(app):
+    @app.route("/")
+    @openapi.definition(summary="foo")
+    async def handler(_):
+        ...
+
+    assert get_path(app, "/")["summary"] == "foo"
+
+
+def test_definition_decorator_tag_string(app):
+    @app.route("/")
+    @openapi.definition(tag="foo")
+    async def handler(_):
+        ...
+
+    assert list(get_path(app, "/")["tags"]) == ["foo"]
+
+
+def test_definition_decorator_tag_obj(app):
+    @app.route("/")
+    @openapi.definition(tag=openapi.definitions.Tag("foo"))
+    async def handler(_):
+        ...
+
+    assert list(get_path(app, "/")["tags"]) == ["foo"]
+
+
+def test_definition_decorator_tag_string_multi(app):
+    @app.route("/")
+    @openapi.definition(tag=["foo", "bar"])
+    async def handler(_):
+        ...
+
+    assert list(get_path(app, "/")["tags"]) == ["foo", "bar"]
+
+
+def test_definition_decorator_tag_obj_multi(app):
+    @app.route("/")
+    @openapi.definition(
+        tag=[openapi.definitions.Tag("foo"), openapi.definitions.Tag("bar")]
+    )
+    async def handler(_):
+        ...
+
+    assert list(get_path(app, "/")["tags"]) == ["foo", "bar"]
