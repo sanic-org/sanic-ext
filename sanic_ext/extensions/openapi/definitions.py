@@ -6,7 +6,6 @@ I.e., the objects described https://swagger.io/docs/specification
 """
 from __future__ import annotations
 
-from enum import Enum
 from inspect import isclass
 from typing import (
     Any,

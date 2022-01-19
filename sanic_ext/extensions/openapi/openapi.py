@@ -127,6 +127,10 @@ def description(text: str):
 def document(
     url: Union[str, definitions.ExternalDocumentation], description: str = None
 ):
+    if isinstance(url, definitions.ExternalDocumentation):
+        description = url.fields["description"]
+        url = url.fields["url"]
+
     def inner(func):
         OperationStore()[func].document(url, description)
         return func
@@ -169,7 +173,7 @@ def body(
     params = {**kwargs}
     validation_schema = None
     if isinstance(body_content, definitions.RequestBody):
-        params = {**body_content.fields}
+        params = {**body_content.fields, **params}
         body_content = params.pop("content")
 
     if validate:
