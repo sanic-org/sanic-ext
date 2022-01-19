@@ -1,14 +1,17 @@
+from sys import version_info
 from typing import List
+
+import pytest
 
 from sanic_ext.extensions.openapi.types import Schema
 
 
-class Foo:
-    list1: List[int]
-    list2: list[int]
-
-
+@pytest.mark.skipif(version_info < (3, 9))
 def test_schema_list():
+    class Foo:
+        list1: List[int]
+        list2: list[int]
+
     schema = Schema.make(Foo)
     schema.serialize() == {
         "type": "object",
