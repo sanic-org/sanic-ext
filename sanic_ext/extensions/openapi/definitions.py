@@ -7,7 +7,16 @@ I.e., the objects described https://swagger.io/docs/specification
 from __future__ import annotations
 
 from inspect import isclass
-from typing import Any, Dict, List, Optional, Type, Union, get_type_hints
+from typing import (
+    Any,
+    Dict,
+    List,
+    Literal,
+    Optional,
+    Type,
+    Union,
+    get_type_hints,
+)
 
 from sanic.exceptions import SanicException
 
@@ -89,17 +98,23 @@ class MediaType(Definition):
 class Response(Definition):
     content: Union[Any, Dict[str, Union[Any, MediaType]]]
     description: Optional[str]
-    status: int
+    status: Union[Literal["default"], int]
+
+    __nullable__ = None
+    __ignore__ = ["status"]
 
     def __init__(
         self,
         content: Optional[Union[Any, Dict[str, Union[Any, MediaType]]]] = None,
-        status: int = 200,
+        status: Union[Literal["default"], int] = "default",
         description: Optional[str] = None,
         **kwargs,
     ):
         super().__init__(
-            content=content, status=status, description=description, **kwargs
+            content=content,
+            status=status,
+            description=description,
+            **kwargs,
         )
 
     @staticmethod
@@ -116,6 +131,8 @@ class RequestBody(Definition):
     description: Optional[str]
     required: Optional[bool]
     content: Union[Any, Dict[str, Union[Any, MediaType]]]
+
+    __nullable__ = None
 
     def __init__(
         self,
@@ -145,6 +162,8 @@ class RequestBody(Definition):
 class ExternalDocumentation(Definition):
     url: str
     description: str
+
+    __nullable__ = None
 
     def __init__(self, url: str, description=None):
         super().__init__(url=url, description=description)
