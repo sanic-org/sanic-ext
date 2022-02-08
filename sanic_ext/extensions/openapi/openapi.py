@@ -88,6 +88,16 @@ def _content_or_component(content):
     return content
 
 
+@overload
+def exclude(flag: bool = True, *, bp: Blueprint) -> None:
+    ...
+
+
+@overload
+def exclude(flag: bool = True) -> Callable:
+    ...
+
+
 def exclude(flag: bool = True, *, bp: Optional[Blueprint] = None):
     if bp:
         for route in bp.routes:
@@ -223,6 +233,7 @@ def body(
 
 @overload
 def parameter(
+    *,
     parameter: definitions.Parameter,
     **kwargs,
 ) -> Callable:
@@ -231,19 +242,31 @@ def parameter(
 
 @overload
 def parameter(
-    name: Optional[str],
-    schema: Optional[Type],
-    location: Optional[str],
+    name: None,
+    schema: None,
+    location: None,
+    parameter: definitions.Parameter,
+    **kwargs,
+) -> Callable:
+    ...
+
+
+@overload
+def parameter(
+    name: str,
+    schema: Optional[Type] = None,
+    location: Optional[str] = None,
+    parameter: None = None,
     **kwargs,
 ) -> Callable:
     ...
 
 
 def parameter(
-    name=None,
-    schema=None,
-    location=None,
-    parameter=None,
+    name: Optional[str] = None,
+    schema: Optional[Type] = None,
+    location: Optional[str] = None,
+    parameter: Optional[definitions.Parameter] = None,
     **kwargs,
 ):
     if parameter:
