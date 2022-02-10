@@ -409,4 +409,4 @@ class OpenAPI(Definition):
 
     def __init__(self, info: Info, paths: Dict[str, PathItem], **kwargs):
         use = {k: v for k, v in kwargs.items() if v is not None}
-        super().__init__(openapi="3.0.0", info=info, paths=paths, **use)
+        super().__init__(openapi="3.0.3", info=info, paths=paths, **use)
