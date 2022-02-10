@@ -74,6 +74,7 @@ class Schema(Definition):
     anyOf: List[Definition]
     allOf: List[Definition]
 
+    additionalProperties: Dict[str, str]
     multipleOf: int
     maximum: int
     exclusiveMaximum: bool
@@ -158,6 +159,13 @@ class Schema(Definition):
             return Array(schema, **kwargs)
         elif _type == dict:
             return Object.make(value, **kwargs)
+        elif (
+            (is_generic(value) or is_generic(_type))
+            and origin == dict
+            and len(args) == 2
+        ):
+            kwargs["additionalProperties"] = Schema.make(args[1])
+            return Object(**kwargs)
         elif (is_generic(value) or is_generic(_type)) and origin == list:
             return Array(Schema.make(args[0]), **kwargs)
         elif _type is type(Enum):
