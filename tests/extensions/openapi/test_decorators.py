@@ -34,6 +34,7 @@ class BigFoo:
     nullable_multi: Optional[Union[str, int]]
     bar: Bar
     adict: Dict[str, Any]
+    bdict: Dict[str, bool]
     anything: Any
     choice: Choice
 
@@ -336,7 +337,16 @@ def test_parameter_decorator(app, decorator, expected):
                                             "name": {"type": "string"}
                                         },
                                     },
-                                    "adict": {"type": "object"},
+                                    "adict": {
+                                        "type": "object",
+                                        "additionalProperties": {},
+                                    },
+                                    "bdict": {
+                                        "type": "object",
+                                        "additionalProperties": {
+                                            "type": "boolean"
+                                        },
+                                    },
                                     "anything": {},
                                     "choice": {
                                         "type": "integer",
