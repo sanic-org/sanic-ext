@@ -118,6 +118,7 @@ class OperationBuilder:
             # todo -- look into more consistent default response format
             operation_dict["responses"] = {"default": {"description": "OK"}}
 
+        print(operation_dict)
         return Operation(**operation_dict)
 
     def _build_merged_dict(self):

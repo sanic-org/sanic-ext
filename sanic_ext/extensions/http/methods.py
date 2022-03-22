@@ -75,33 +75,27 @@ def add_auto_handlers(
             app.router.reset()
             for group in app.router.groups.values():
                 if "GET" in group.methods and "HEAD" not in group.methods:
-                    if not group.requirements:
-                        hosts = [None]
-                    else:
-                        hosts = set(
-                            map(itemgetter("host"), group.requirements)
-                        )
-
-                    get_route = group.methods_index["GET"]
-                    for host in hosts:
-                        name = f"{get_route.name}_head"
-                        app.add_route(
-                            handler=openapi.definition(
-                                summary=clean_route_name(
-                                    get_route.name
-                                ).title(),
-                                description="Retrieve HEAD details",
-                            )(
-                                partial(
-                                    head_handler, get_handler=get_route.handler
-                                )
-                            ),
-                            uri=group.uri,
-                            methods=["HEAD"],
-                            strict_slashes=group.strict,
-                            name=name,
-                            host=host,
-                        )
+                    for route in group:
+                        if "GET" in route.methods:
+                            host = route.requirements.get("host")
+                            name = f"{route.name}_head"
+                            app.add_route(
+                                handler=openapi.definition(
+                                    summary=clean_route_name(
+                                        route.name
+                                    ).title(),
+                                    description="Retrieve HEAD details",
+                                )(
+                                    partial(
+                                        head_handler, get_handler=route.handler
+                                    )
+                                ),
+                                uri=group.uri,
+                                methods=["HEAD"],
+                                strict_slashes=group.strict,
+                                name=name,
+                                host=host,
+                            )
             app.router.finalize()
 
         if auto_trace:

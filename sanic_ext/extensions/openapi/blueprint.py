@@ -5,7 +5,6 @@ from os.path import abspath, dirname, realpath
 from sanic.blueprints import Blueprint
 from sanic.config import Config
 from sanic.response import html, json
-
 from sanic_ext.extensions.openapi.builders import (
     OperationStore,
     SpecificationBuilder,
@@ -75,6 +74,7 @@ def blueprint_factory(config: Config):
             route_name,
             route_parameters,
             method_handlers,
+            host,
         ) in get_all_routes(app, bp.url_prefix):
 
             # --------------------------------------------------------------- #
@@ -112,6 +112,13 @@ def blueprint_factory(config: Config):
                     "operationId"
                 ] = f"{method.lower()}~{route_name}"
                 operation._default["summary"] = clean_route_name(route_name)
+
+                print(host)
+                if host:
+                    if "servers" not in operation._default:
+                        operation._default["servers"] = []
+                    operation._default["servers"].append({"url": f"//{host}"})
+                print(operation._default)
 
                 # TODO: solve for this
                 # for _parameter in route_parameters:
