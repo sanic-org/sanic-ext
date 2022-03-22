@@ -115,4 +115,10 @@ def get_all_routes(app, skip_prefix):
                 ]
 
                 _, name = route.name.split(".", 1)
-                yield (uri, name, route.params.values(), method_handlers)
+                yield (
+                    uri,
+                    name,
+                    route.params.values(),
+                    method_handlers,
+                    route.requirements.get("host"),
+                )

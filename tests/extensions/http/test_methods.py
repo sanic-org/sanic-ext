@@ -1,9 +1,10 @@
+from sanic import Sanic
 from sanic.response import empty, text
 
 from sanic_ext.bootstrap import Extend
 
 
-def test_trace_and_connect_available(app):
+def test_trace_and_connect_available(app: Sanic):
     @app.route("/", methods=["trace", "connect"])
     async def handler(_):
         return empty()
@@ -16,7 +17,7 @@ def test_trace_and_connect_available(app):
     assert response.status == 405
 
 
-def test_auto_head(app, get_docs):
+def test_auto_head(app: Sanic, get_docs):
     @app.get("/foo")
     async def foo_handler(_):
         return text("...")
@@ -31,7 +32,7 @@ def test_auto_head(app, get_docs):
     assert "get" in schema["paths"]["/foo"]
 
 
-def test_auto_options(app, get_docs):
+def test_auto_options(app: Sanic, get_docs):
     @app.post("/foo")
     async def foo_handler(_):
         return text("...")
@@ -46,7 +47,7 @@ def test_auto_options(app, get_docs):
     assert "post" in schema["paths"]["/foo"]
 
 
-def test_auto_trace(bare_app):
+def test_auto_trace(bare_app: Sanic):
     Extend(bare_app, config={"http_auto_trace": True})
 
     @bare_app.get("/foo")
@@ -58,3 +59,27 @@ def test_auto_trace(bare_app):
     )
     assert response.status == 200
     assert response.body.startswith(request.head)
+
+
+def test_auto_head_with_vhosts(app: Sanic, get_docs):
+    @app.get("/foo", host="one.com")
+    async def foo_handler_one(_):
+        return text(".")
+
+    @app.get("/foo", host="two.com")
+    async def foo_handler_two(_):
+        return text("..")
+
+    assert app.config.HTTP_AUTO_HEAD
+    _, response = app.test_client.head("/foo", headers={"host": "one.com"})
+    assert response.status == 200
+    assert len(response.body) == 0
+    assert int(response.headers["content-length"]) == 1
+
+    _, response = app.test_client.head("/foo", headers={"host": "two.com"})
+    assert response.status == 200
+    assert len(response.body) == 0
+    assert int(response.headers["content-length"]) == 2
+
+    schema = get_docs()
+    assert "get" in schema["paths"]["/foo"]

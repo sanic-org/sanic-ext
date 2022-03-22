@@ -75,6 +75,7 @@ def blueprint_factory(config: Config):
             route_name,
             route_parameters,
             method_handlers,
+            host,
         ) in get_all_routes(app, bp.url_prefix):
 
             # --------------------------------------------------------------- #
@@ -113,18 +114,35 @@ def blueprint_factory(config: Config):
                 ] = f"{method.lower()}~{route_name}"
                 operation._default["summary"] = clean_route_name(route_name)
 
-                # TODO: solve for this
-                # for _parameter in route_parameters:
-                #     if any(
-                #         (
-                #             param.fields["name"] == _parameter.name
-                #             for param in operation.parameters
-                #         )
-                #     ):
-                #         continue
-                #     operation.parameter(
-                #         _parameter.name, _parameter.cast, "path"
-                #     )
+                if host:
+                    if "servers" not in operation._default:
+                        operation._default["servers"] = []
+                    operation._default["servers"].append({"url": f"//{host}"})
+
+                for _parameter in route_parameters:
+                    if any(
+                        (
+                            param.fields["name"] == _parameter.name
+                            for param in operation.parameters
+                        )
+                    ):
+                        continue
+
+                    kwargs = {}
+                    if operation._autodoc and (
+                        parameters := operation._autodoc.get("parameters")
+                    ):
+                        description = None
+                        for param in parameters:
+                            if param["name"] == _parameter.name:
+                                description = param.get("description")
+                                break
+                        if description:
+                            kwargs["description"] = description
+
+                    operation.parameter(
+                        _parameter.name, _parameter.cast, "path", **kwargs
+                    )
 
                 specification.operation(uri, method, operation)
 

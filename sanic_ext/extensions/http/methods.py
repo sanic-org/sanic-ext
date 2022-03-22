@@ -1,5 +1,6 @@
 from functools import partial
 from inspect import isawaitable
+from operator import itemgetter
 from typing import Sequence, Union
 
 from sanic import Sanic
@@ -74,22 +75,27 @@ def add_auto_handlers(
             app.router.reset()
             for group in app.router.groups.values():
                 if "GET" in group.methods and "HEAD" not in group.methods:
-                    get_route = group.methods_index["GET"]
-                    name = f"{get_route.name}_head"
-                    app.add_route(
-                        handler=openapi.definition(
-                            summary=clean_route_name(get_route.name).title(),
-                            description="Retrieve HEAD details",
-                        )(
-                            partial(
-                                head_handler, get_handler=get_route.handler
+                    for route in group:
+                        if "GET" in route.methods:
+                            host = route.requirements.get("host")
+                            name = f"{route.name}_head"
+                            app.add_route(
+                                handler=openapi.definition(
+                                    summary=clean_route_name(
+                                        route.name
+                                    ).title(),
+                                    description="Retrieve HEAD details",
+                                )(
+                                    partial(
+                                        head_handler, get_handler=route.handler
+                                    )
+                                ),
+                                uri=group.uri,
+                                methods=["HEAD"],
+                                strict_slashes=group.strict,
+                                name=name,
+                                host=host,
                             )
-                        ),
-                        uri=group.uri,
-                        methods=["HEAD"],
-                        strict_slashes=group.strict,
-                        name=name,
-                    )
             app.router.finalize()
 
         if auto_trace:
@@ -108,14 +114,27 @@ def add_auto_handlers(
             app.router.reset()
             for group in app.router.groups.values():
                 if "OPTIONS" not in group.methods:
-                    app.add_route(
-                        handler=openapi.definition(
-                            summary=clean_route_name(get_route.name).title(),
-                            description="Retrieve OPTIONS details",
-                        )(partial(options_handler, methods=group.methods)),
-                        uri=group.uri,
-                        methods=["OPTIONS"],
-                        strict_slashes=group.strict,
-                        name="_options",
-                    )
+                    if not group.requirements:
+                        hosts = [None]
+                    else:
+                        hosts = set(
+                            map(itemgetter("host"), group.requirements)
+                        )
+
+                    base_route = group[0]
+                    for host in hosts:
+                        name = f"{base_route.name}_options"
+                        app.add_route(
+                            handler=openapi.definition(
+                                summary=clean_route_name(
+                                    base_route.name
+                                ).title(),
+                                description="Retrieve OPTIONS details",
+                            )(partial(options_handler, methods=group.methods)),
+                            uri=group.uri,
+                            methods=["OPTIONS"],
+                            strict_slashes=group.strict,
+                            name=name,
+                            host=host,
+                        )
             app.router.finalize()

@@ -76,6 +76,8 @@ class OperationBuilder:
 
     def tag(self, *args: str):
         for arg in args:
+            if isinstance(arg, Tag):
+                arg = arg.fields["name"]
             self.tags.append(arg)
 
     def deprecate(self):
@@ -94,7 +96,13 @@ class OperationBuilder:
     def response(
         self, status, content: Any = None, description: str = None, **kwargs
     ):
-        self.responses[status] = Response.make(content, description, **kwargs)
+        response = Response.make(content, description, **kwargs)
+        if status in self.responses:
+            self.responses[status]._fields["content"].update(
+                response.fields["content"]
+            )
+        else:
+            self.responses[status] = response
 
     def secured(self, *args, **kwargs):
         if not kwargs and len(args) == 1 and isinstance(args[0], dict):
@@ -375,9 +383,13 @@ class SpecificationBuilder:
 
         url_servers = getattr(self, "_urls", None)
         servers = self._servers
+        existing = [
+            server.fields["url"].strip("/") for server in self._servers
+        ]
         if url_servers is not None:
             for url_server in url_servers:
-                servers.append(Server(url=url_server))
+                if url_server.strip("/") not in existing:
+                    servers.append(Server(url=url_server))
 
         components = (
             Components(**self._components) if self._components else None
