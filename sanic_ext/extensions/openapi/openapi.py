@@ -10,6 +10,7 @@ from typing import (
     Callable,
     Dict,
     List,
+    Literal,
     Optional,
     Sequence,
     Type,
@@ -21,43 +22,80 @@ from typing import (
 from sanic import Blueprint
 from sanic.exceptions import InvalidUsage, SanicException
 
+from sanic_ext.extensions.openapi import definitions
 from sanic_ext.extensions.openapi.builders import (
     OperationStore,
     SpecificationBuilder,
 )
-from sanic_ext.extensions.openapi.definitions import (
-    Component,
-    ExternalDocumentation,
-    Parameter,
-    RequestBody,
-    Response,
-    Tag,
+from sanic_ext.extensions.openapi.types import (
+    Array,
+    Binary,
+    Boolean,
+    Byte,
+    Date,
+    DateTime,
+    Double,
+    Email,
+    Float,
+    Integer,
+    Long,
+    Object,
+    Password,
+    String,
+    Time,
 )
 from sanic_ext.extras.validation.setup import do_validation, generate_schema
 
-from .types import Array  # noqa
-from .types import Binary  # noqa
-from .types import Boolean  # noqa
-from .types import Byte  # noqa
-from .types import Date  # noqa
-from .types import DateTime  # noqa
-from .types import Double  # noqa
-from .types import Email  # noqa
-from .types import Float  # noqa
-from .types import Integer  # noqa
-from .types import Long  # noqa
-from .types import Object  # noqa
-from .types import Password  # noqa
-from .types import String  # noqa
-from .types import Time  # noqa
+__all__ = (
+    "definitions",
+    "body",
+    "component",
+    "definition",
+    "deprecated",
+    "description",
+    "document",
+    "exclude",
+    "no_autodoc",
+    "operation",
+    "parameter",
+    "response",
+    "secured",
+    "summary",
+    "tag",
+    "Array",
+    "Binary",
+    "Boolean",
+    "Byte",
+    "Date",
+    "DateTime",
+    "Double",
+    "Email",
+    "Float",
+    "Integer",
+    "Long",
+    "Object",
+    "Password",
+    "String",
+    "Time",
+)
 
 
 def _content_or_component(content):
     if isclass(content):
         spec = SpecificationBuilder()
         if spec._components["schemas"].get(content.__name__):
-            content = Component(content)
+            content = definitions.Component(content)
     return content
+
+
+@overload
+def exclude(flag: bool = True, *, bp: Blueprint) -> None:
+    ...
+
+
+@overload
+def exclude(flag: bool = True) -> Callable:
+    ...
 
 
 def exclude(flag: bool = True, *, bp: Optional[Blueprint] = None):
@@ -97,7 +135,13 @@ def description(text: str):
     return inner
 
 
-def document(url: Union[str, ExternalDocumentation], description: str = None):
+def document(
+    url: Union[str, definitions.ExternalDocumentation], description: str = None
+):
+    if isinstance(url, definitions.ExternalDocumentation):
+        description = url.fields["description"]
+        url = url.fields["url"]
+
     def inner(func):
         OperationStore()[func].document(url, description)
         return func
@@ -105,7 +149,7 @@ def document(url: Union[str, ExternalDocumentation], description: str = None):
     return inner
 
 
-def tag(*args: Union[str, Tag]):
+def tag(*args: Union[str, definitions.Tag]):
     def inner(func):
         OperationStore()[func].tag(*args)
         return func
@@ -139,8 +183,8 @@ def body(
     body_content = _content_or_component(content)
     params = {**kwargs}
     validation_schema = None
-    if isinstance(body_content, RequestBody):
-        params = {**body_content.fields}
+    if isinstance(body_content, definitions.RequestBody):
+        params = {**body_content.fields, **params}
         body_content = params.pop("content")
 
     if validate:
@@ -189,7 +233,8 @@ def body(
 
 @overload
 def parameter(
-    parameter: Parameter,
+    *,
+    parameter: definitions.Parameter,
     **kwargs,
 ) -> Callable:
     ...
@@ -197,19 +242,31 @@ def parameter(
 
 @overload
 def parameter(
-    name: Optional[str],
-    schema: Optional[Type],
-    location: Optional[str],
+    name: None,
+    schema: None,
+    location: None,
+    parameter: definitions.Parameter,
+    **kwargs,
+) -> Callable:
+    ...
+
+
+@overload
+def parameter(
+    name: str,
+    schema: Optional[Type] = None,
+    location: Optional[str] = None,
+    parameter: None = None,
     **kwargs,
 ) -> Callable:
     ...
 
 
 def parameter(
-    name=None,
-    schema=None,
-    location=None,
-    parameter=None,
+    name: Optional[str] = None,
+    schema: Optional[Type] = None,
+    location: Optional[str] = None,
+    parameter: Optional[definitions.Parameter] = None,
     **kwargs,
 ):
     if parameter:
@@ -239,15 +296,15 @@ def parameter(
 
 
 def response(
-    status: Optional[int] = None,
-    content: Optional[Any] = None,
+    status: Union[Literal["default"], int] = "default",
+    content: Any = str,
     description: Optional[str] = None,
     *,
-    response: Optional[Response] = None,
+    response: Optional[definitions.Response] = None,
     **kwargs,
 ):
     if response:
-        if any(bool(item) for item in (status, content, description)):
+        if status != "default" or content != str or description is not None:
             raise SanicException(
                 "When using a response object, you cannot pass "
                 "other arguments."
@@ -292,7 +349,7 @@ def component(
         params["name"] = name
     if field:
         params["field"] = field
-    Component(model, **params)
+    definitions.Component(model, **params)
     return model
 
 
@@ -302,20 +359,24 @@ def definition(
     operation: Optional[str] = None,
     summary: Optional[str] = None,
     description: Optional[str] = None,
-    document: Optional[Union[str, ExternalDocumentation]] = None,
-    tag: Optional[Union[Union[str, Tag], Sequence[Union[str, Tag]]]] = None,
+    document: Optional[Union[str, definitions.ExternalDocumentation]] = None,
+    tag: Optional[
+        Union[
+            Union[str, definitions.Tag], Sequence[Union[str, definitions.Tag]]
+        ]
+    ] = None,
     deprecated: bool = False,
-    body: Optional[Union[Dict[str, Any], RequestBody, Any]] = None,
+    body: Optional[Union[Dict[str, Any], definitions.RequestBody, Any]] = None,
     parameter: Optional[
         Union[
-            Union[Dict[str, Any], Parameter, str],
-            List[Union[Dict[str, Any], Parameter, str]],
+            Union[Dict[str, Any], definitions.Parameter, str],
+            List[Union[Dict[str, Any], definitions.Parameter, str]],
         ]
     ] = None,
     response: Optional[
         Union[
-            Union[Dict[str, Any], Response, Any],
-            List[Union[Dict[str, Any], Response, Any]],
+            Union[Dict[str, Any], definitions.Response, Any],
+            List[Union[Dict[str, Any], definitions.Response]],
         ]
     ] = None,
     secured: Optional[Dict[str, Any]] = None,
@@ -334,7 +395,7 @@ def definition(
         if body:
             kwargs = {}
             content = body
-            if isinstance(content, RequestBody):
+            if isinstance(content, definitions.RequestBody):
                 kwargs = content.fields
             elif isinstance(content, dict):
                 if "content" in content:
@@ -398,7 +459,7 @@ def definition(
 
             for param in paramlist:
                 kwargs = {}
-                if isinstance(param, Parameter):
+                if isinstance(param, definitions.Parameter):
                     kwargs = param.fields
                     if "in" in kwargs:
                         kwargs["location"] = kwargs.pop("in")
@@ -426,9 +487,23 @@ def definition(
             )
             getattr(resplist, op)(response)
 
+            if len(resplist) > 1 and any(
+                not isinstance(item, definitions.Response)
+                and not isinstance(item, dict)
+                for item in resplist
+            ):
+                raise SanicException(
+                    "Cannot use multiple bare custom models to define "
+                    "multiple responses like openapi.definition(response=["
+                    "MyModel1, MyModel2]). Instead, you should wrap them in a "
+                    "dict or a Response object. See "
+                    "https://sanic.dev/en/plugins/sanic-ext/openapi/decorators"
+                    ".html#response for more details."
+                )
+
             for resp in resplist:
                 kwargs = {}
-                if isinstance(resp, Response):
+                if isinstance(resp, definitions.Response):
                     kwargs = resp.fields
                 elif isinstance(resp, dict):
                     if "content" in resp:
@@ -439,7 +514,7 @@ def definition(
                     kwargs["content"] = resp
 
                 if "status" not in kwargs:
-                    kwargs["status"] = 200
+                    kwargs["status"] = "default"
 
                 func = glbl["response"](**kwargs)(func)
 

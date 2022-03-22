@@ -5,6 +5,7 @@ from os.path import abspath, dirname, realpath
 from sanic.blueprints import Blueprint
 from sanic.config import Config
 from sanic.response import html, json
+
 from sanic_ext.extensions.openapi.builders import (
     OperationStore,
     SpecificationBuilder,
@@ -118,18 +119,30 @@ def blueprint_factory(config: Config):
                         operation._default["servers"] = []
                     operation._default["servers"].append({"url": f"//{host}"})
 
-                # TODO: solve for this
-                # for _parameter in route_parameters:
-                #     if any(
-                #         (
-                #             param.fields["name"] == _parameter.name
-                #             for param in operation.parameters
-                #         )
-                #     ):
-                #         continue
-                #     operation.parameter(
-                #         _parameter.name, _parameter.cast, "path"
-                #     )
+                for _parameter in route_parameters:
+                    if any(
+                        (
+                            param.fields["name"] == _parameter.name
+                            for param in operation.parameters
+                        )
+                    ):
+                        continue
+
+                    kwargs = {}
+                    if operation._autodoc and (
+                        parameters := operation._autodoc.get("parameters")
+                    ):
+                        description = None
+                        for param in parameters:
+                            if param["name"] == _parameter.name:
+                                description = param.get("description")
+                                break
+                        if description:
+                            kwargs["description"] = description
+
+                    operation.parameter(
+                        _parameter.name, _parameter.cast, "path", **kwargs
+                    )
 
                 specification.operation(uri, method, operation)
 
