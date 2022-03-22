@@ -248,6 +248,7 @@ class Operation(Definition):
     security: Dict[str, List[str]]
     callbacks: List[str]  # TODO
     deprecated: bool
+    servers: List[Dict[str, str]]
 
 
 class PathItem(Definition):

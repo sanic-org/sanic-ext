@@ -75,6 +75,7 @@ def blueprint_factory(config: Config):
             route_name,
             route_parameters,
             method_handlers,
+            host,
         ) in get_all_routes(app, bp.url_prefix):
 
             # --------------------------------------------------------------- #
@@ -112,6 +113,11 @@ def blueprint_factory(config: Config):
                     "operationId"
                 ] = f"{method.lower()}~{route_name}"
                 operation._default["summary"] = clean_route_name(route_name)
+
+                if host:
+                    if "servers" not in operation._default:
+                        operation._default["servers"] = []
+                    operation._default["servers"].append({"url": f"//{host}"})
 
                 for _parameter in route_parameters:
                     if any(
