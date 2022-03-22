@@ -113,12 +113,10 @@ def blueprint_factory(config: Config):
                 ] = f"{method.lower()}~{route_name}"
                 operation._default["summary"] = clean_route_name(route_name)
 
-                print(host)
                 if host:
                     if "servers" not in operation._default:
                         operation._default["servers"] = []
                     operation._default["servers"].append({"url": f"//{host}"})
-                print(operation._default)
 
                 # TODO: solve for this
                 # for _parameter in route_parameters:
