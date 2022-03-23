@@ -7,6 +7,7 @@ from typing import TYPE_CHECKING, Dict, Optional, Union
 from jinja2 import Environment
 from sanic.compat import Header
 from sanic.response import HTTPResponse
+
 from sanic_ext.extensions.templating.render import LazyResponse
 
 if TYPE_CHECKING:
@@ -24,7 +25,7 @@ class Templating:
         status: int = 200,
         headers: Optional[Union[Header, Dict[str, str]]] = None,
         content_type: str = "text/html; charset=utf-8",
-        **kwargs
+        **kwargs,
     ):
         template = self.environment.get_template(file_name)
         render = (
