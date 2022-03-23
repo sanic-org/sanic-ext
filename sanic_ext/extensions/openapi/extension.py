@@ -35,5 +35,5 @@ class OpenAPIExtension(Extension):
         ) or None
         _external = bool(_server) or "SERVER_NAME" in self.app.config
         return (
-            f"[{self.app.url_for(name, _external=_external, _server=_server)}]"
+            f"{self.app.url_for(name, _external=_external, _server=_server)}"
         )

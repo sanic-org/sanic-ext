@@ -53,3 +53,9 @@ class Extension(ABC):
 
     def label(self):
         return ""
+
+    def render_label(self):
+        label = self.label()
+        if not label:
+            return ""
+        return f"[{label}]"

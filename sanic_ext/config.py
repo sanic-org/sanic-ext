@@ -1,6 +1,7 @@
 from __future__ import annotations
 
-from typing import Any, Dict, Optional, Sequence
+import os
+from typing import Any, Dict, Optional, Sequence, Union
 
 from sanic import Sanic
 from sanic.config import Config as SanicConfig
@@ -40,6 +41,10 @@ class Config(SanicConfig):
         oas_uri_to_swagger: str = "/swagger",
         oas_url_prefix: str = "/docs",
         swagger_ui_configuration: Optional[Dict[str, Any]] = None,
+        templating_path_to_templates: Union[
+            str, os.PathLike, Sequence[Union[str, os.PathLike]]
+        ] = "templates",
+        templating_enable_async: bool = True,
         trace_excluded_headers: Sequence[str] = ("authorization", "cookie"),
         **kwargs,
     ):
@@ -78,6 +83,8 @@ class Config(SanicConfig):
             "operationsSorter": "alpha",
             "docExpansion": "full",
         }
+        self.TEMPLATING_PATH_TO_TEMPLATES = templating_path_to_templates
+        self.TEMPLATING_ENABLE_ASYNC = templating_enable_async
         self.TRACE_EXCLUDED_HEADERS = trace_excluded_headers
 
         if isinstance(self.TRACE_EXCLUDED_HEADERS, str):

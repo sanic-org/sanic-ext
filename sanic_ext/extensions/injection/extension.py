@@ -12,4 +12,4 @@ class InjectionExtension(Extension):
         bootstrap._injection_registry = self.registry
 
     def label(self):
-        return f"[{self.registry.length}]"
+        return f"{self.registry.length} added"

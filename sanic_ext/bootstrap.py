@@ -16,12 +16,26 @@ from sanic_ext.extensions.injection.extension import InjectionExtension
 from sanic_ext.extensions.injection.registry import InjectionRegistry
 from sanic_ext.extensions.openapi.builders import SpecificationBuilder
 from sanic_ext.extensions.openapi.extension import OpenAPIExtension
+from sanic_ext.extensions.templating.engine import Templating
 from sanic_ext.utils.string import camel_to_snake
+
+try:
+    from jinja2 import Environment
+
+    from sanic_ext.extensions.templating.extension import TemplatingExtension
+
+    TEMPLATING_ENABLED = True
+except ImportError:
+    TEMPLATING_ENABLED = False
 
 MIN_SUPPORT = (21, 3, 2)
 
 
 class Extend:
+    if TEMPLATING_ENABLED:
+        environment: Environment
+        templating: Templating
+
     def __init__(
         self,
         app: Sanic,
@@ -74,6 +88,9 @@ class Extend:
                 ]
             )
 
+            if TEMPLATING_ENABLED:
+                extensions.append(TemplatingExtension)
+
         started = set()
         for extclass in extensions[::-1]:
             if extclass in started:
@@ -86,7 +103,9 @@ class Extend:
     def _display(self):
         init_logs = ["Sanic Extensions:"]
         for extension in self.extensions:
-            init_logs.append(f"  > {extension.name} {extension.label()}")
+            init_logs.append(
+                f"  > {extension.name} {extension.render_label()}"
+            )
 
         list(map(logger.info, init_logs))
 
@@ -127,3 +146,6 @@ class Extend:
             self._openapi = SpecificationBuilder()
 
         return self._openapi
+
+    def template(self, template_name: str, **kwargs):
+        return self.templating.template(template_name, **kwargs)
