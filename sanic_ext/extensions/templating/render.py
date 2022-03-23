@@ -42,7 +42,7 @@ async def render(
     content_type: str = "text/html; charset=utf-8",
     app: Optional[Sanic] = None,
     environment: Optional[Environment] = None,
-    **kwargs
+    context: Optional[Dict[str, Any]] = None,
 ) -> HTTPResponse:
     if app is None:
         try:
@@ -56,6 +56,7 @@ async def render(
     if environment is None:
         environment = app.ext.environment
 
+    kwargs = context if context else {}
     if template_name:
         template = environment.get_template(template_name)
         render = (
