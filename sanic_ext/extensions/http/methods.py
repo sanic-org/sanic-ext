@@ -79,17 +79,13 @@ def add_auto_handlers(
                         if "GET" in route.methods:
                             host = route.requirements.get("host")
                             name = f"{route.name}_head"
+                            handler = openapi.definition(
+                                summary=clean_route_name(route.name).title(),
+                                description="Retrieve HEAD details",
+                            )(partial(head_handler, get_handler=route.handler))
+                            handler.__auto_handler__ = True
                             app.add_route(
-                                handler=openapi.definition(
-                                    summary=clean_route_name(
-                                        route.name
-                                    ).title(),
-                                    description="Retrieve HEAD details",
-                                )(
-                                    partial(
-                                        head_handler, get_handler=route.handler
-                                    )
-                                ),
+                                handler=handler,
                                 uri=group.uri,
                                 methods=["HEAD"],
                                 strict_slashes=group.strict,
@@ -121,16 +117,21 @@ def add_auto_handlers(
                             map(itemgetter("host"), group.requirements)
                         )
 
-                    base_route = group[0]
+                    try:
+                        base_route = next(
+                            r for r in group if not r.name.endswith("_head")
+                        )
+                    except StopIteration:
+                        base_route = group[0]
                     for host in hosts:
                         name = f"{base_route.name}_options"
+                        handler = openapi.definition(
+                            summary=clean_route_name(base_route.name).title(),
+                            description="Retrieve OPTIONS details",
+                        )(partial(options_handler, methods=group.methods))
+                        handler.__auto_handler__ = True
                         app.add_route(
-                            handler=openapi.definition(
-                                summary=clean_route_name(
-                                    base_route.name
-                                ).title(),
-                                description="Retrieve OPTIONS details",
-                            )(partial(options_handler, methods=group.methods)),
+                            handler=handler,
                             uri=group.uri,
                             methods=["OPTIONS"],
                             strict_slashes=group.strict,

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import asyncio
 from dataclasses import dataclass
 from itertools import count
 
@@ -189,3 +190,18 @@ def test_nested_dependencies(app):
 
     assert all(response.json)
     assert next(counter) == 3
+
+
+def test_injection_on_websocket(app):
+    ev = asyncio.Event()
+
+    app.ext.dependency(A())
+
+    @app.websocket("/foo")
+    async def handler(request, ws, foo: A):
+        assert isinstance(foo, A)
+        if isinstance(foo, A):
+            ev.set()
+
+    request, response = app.test_client.websocket("/foo")
+    assert ev.is_set()
