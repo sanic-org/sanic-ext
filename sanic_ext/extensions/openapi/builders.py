@@ -433,9 +433,9 @@ class SpecificationBuilder:
         for path, operations in self._paths.items():
             paths[path] = PathItem(
                 **{
-                    k: v.build()
+                    k: v if isinstance(v, dict) else v.build()
                     for k, v in operations.items()
-                    if v._app is app
+                    if isinstance(v, dict) or v._app is app
                 }
             )
 
