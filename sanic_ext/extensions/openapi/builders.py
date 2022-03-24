@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 """
 Builders for the oas3 object types
 
@@ -5,7 +7,7 @@ These are completely internal, so can be refactored if desired without concern
 for breaking user experience
 """
 from collections import defaultdict
-from typing import Optional, Sequence, Union
+from typing import TYPE_CHECKING, Optional, Sequence, Union
 
 from sanic_ext.extensions.openapi.constants import (
     SecuritySchemeAuthorization,
@@ -37,6 +39,9 @@ from .definitions import (
     Tag,
 )
 
+if TYPE_CHECKING:
+    from sanic import Sanic
+
 
 class OperationBuilder:
     summary: str
@@ -60,6 +65,7 @@ class OperationBuilder:
         self._autodoc = None
         self._exclude = False
         self._allow_autodoc = True
+        self._app: Optional[Sanic] = None
 
     def name(self, value: str):
         self.operationId = value
@@ -375,9 +381,9 @@ class SpecificationBuilder:
         if "externalDocs" in data:
             self.external(**data["externalDocs"])
 
-    def build(self) -> OpenAPI:
+    def build(self, app: Sanic) -> OpenAPI:
         info = self._build_info()
-        paths = self._build_paths()
+        paths = self._build_paths(app)
         tags = self._build_tags()
         security = self._build_security()
 
@@ -421,7 +427,7 @@ class SpecificationBuilder:
     def _build_tags(self):
         return [self._tags[k] for k in self._tags]
 
-    def _build_paths(self) -> Dict:
+    def _build_paths(self, app: Sanic) -> Dict:
         paths = {}
 
         for path, operations in self._paths.items():
@@ -429,6 +435,7 @@ class SpecificationBuilder:
                 **{
                     k: v if isinstance(v, dict) else v.build()
                     for k, v in operations.items()
+                    if isinstance(v, dict) or v._app is app
                 }
             )
 
