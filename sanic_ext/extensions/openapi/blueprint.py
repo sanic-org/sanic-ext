@@ -47,7 +47,7 @@ def blueprint_factory(config: Config):
 
     @bp.get(config.OAS_URI_TO_JSON)
     def spec(request):
-        return json(SpecificationBuilder().build().serialize())
+        return json(SpecificationBuilder().build(request.app).serialize())
 
     if config.OAS_UI_SWAGGER:
 
@@ -77,7 +77,6 @@ def blueprint_factory(config: Config):
             method_handlers,
             host,
         ) in get_all_routes(app, bp.url_prefix):
-
             # --------------------------------------------------------------- #
             # Methods
             # --------------------------------------------------------------- #
@@ -144,6 +143,7 @@ def blueprint_factory(config: Config):
                         _parameter.name, _parameter.cast, "path", **kwargs
                     )
 
+                operation._app = app
                 specification.operation(uri, method, operation)
 
         add_static_info_to_spec_from_config(app, specification)
