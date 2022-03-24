@@ -121,7 +121,12 @@ def add_auto_handlers(
                             map(itemgetter("host"), group.requirements)
                         )
 
-                    base_route = group[0]
+                    try:
+                        base_route = next(
+                            r for r in group if not r.name.endswith("_head")
+                        )
+                    except StopIteration:
+                        base_route = group[0]
                     for host in hosts:
                         name = f"{base_route.name}_options"
                         app.add_route(

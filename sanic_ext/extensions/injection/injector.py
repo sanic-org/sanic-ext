@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from functools import partial
 from inspect import getmembers, isclass, isfunction
 from typing import Any, Callable, Dict, Optional, Tuple, Type, get_type_hints
 
@@ -68,6 +69,11 @@ def _setup_signature_registry(
                     )
                 ]
             for name, handler in handlers:
+                if isinstance(handler, partial):
+                    if handler.func == app._websocket_handler:
+                        handler = handler.args[0]
+                    else:
+                        handler = handler.func
                 try:
                     hints = get_type_hints(handler)
                 except TypeError:
