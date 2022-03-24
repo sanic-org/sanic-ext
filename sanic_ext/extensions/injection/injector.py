@@ -29,7 +29,6 @@ def add_injection(app: Sanic, injection_registry: InjectionRegistry) -> None:
                 if return_type := hints.get("return"):
                     router_types.add(return_type)
         injection_registry.finalize(router_types)
-        print(signature_registry)
 
     @app.signal("http.routing.after")
     async def inject_kwargs(request, route, kwargs, **_):

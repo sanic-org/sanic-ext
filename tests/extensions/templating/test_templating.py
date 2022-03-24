@@ -1,0 +1,48 @@
+from pathlib import Path
+
+from sanic import Sanic
+
+from sanic_ext import render
+
+
+def test_default_templates():
+    app = Sanic("templating")
+    app.extend(
+        config={
+            "templating_path_to_templates": Path(__file__).parent / "templates"
+        }
+    )
+
+    @app.get("/1")
+    @app.ext.template("foo.html")
+    async def handler(_):
+        return {"seq": ["one", "two"]}
+
+    @app.get("/2")
+    async def handler2(_):
+        return await render(
+            "foo.html", context={"seq": ["three", "four"]}, app=app
+        )
+
+    @app.get("/3")
+    @app.ext.template("foo.html")
+    async def handler3(_):
+        return await render(
+            context={"seq": ["five", "six"]}, status=201, app=app
+        )
+
+    _, response = app.test_client.get("/1")
+    assert response.content_type == "text/html; charset=utf-8"
+    assert "<li>one</li>" in response.text
+    assert "<li>two</li>" in response.text
+
+    _, response = app.test_client.get("/2")
+    assert response.content_type == "text/html; charset=utf-8"
+    assert "<li>three</li>" in response.text
+    assert "<li>four</li>" in response.text
+
+    _, response = app.test_client.get("/3")
+    assert response.content_type == "text/html; charset=utf-8"
+    assert "<li>five</li>" in response.text
+    assert "<li>six</li>" in response.text
+    assert response.status == 201
