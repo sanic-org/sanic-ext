@@ -1,3 +1,4 @@
+import sys
 from dataclasses import dataclass, field
 from typing import Dict, List, Literal, Optional, Union
 
@@ -120,3 +121,10 @@ class ModelOptionalMultipleLiteral:
 @dataclass
 class ModelListStrWithDefaultFactory:
     foo: List[str] = field(default_factory=list)
+
+
+if sys.version_info > (3, 10):
+
+    @dataclass
+    class ModelUnionTypeStrNone:
+        foo: str | None

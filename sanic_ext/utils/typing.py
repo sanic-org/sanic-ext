@@ -1,5 +1,15 @@
-from typing import _GenericAlias  # type: ignore
+import types
+import typing
+
+try:
+    UnionType = types.UnionType  # type: ignore
+except AttributeError:
+    UnionType = type("UnionType", (), {})
 
 
 def is_generic(item):
-    return isinstance(item, _GenericAlias) or hasattr(item, "__origin__")
+    return (
+        isinstance(item, typing._GenericAlias)
+        or isinstance(item, UnionType)
+        or hasattr(item, "__origin__")
+    )

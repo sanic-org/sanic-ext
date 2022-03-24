@@ -1,3 +1,4 @@
+import sys
 from dataclasses import dataclass
 from typing import List, Optional
 
@@ -226,3 +227,15 @@ def test_modeling(model, okay, data):
     else:
         with pytest.raises(TypeError):
             check_data(model, data, schema)
+
+
+@pytest.mark.skipif(
+    sys.version_info < (3, 10), reason="UnionType added in 3.10"
+)
+def test_modeling_union_type():
+    schema = make_schema({}, models.ModelUnionTypeStrNone)
+
+    check_data(models.ModelUnionTypeStrNone, {"foo": "bar"}, schema)
+    check_data(models.ModelUnionTypeStrNone, {"foo": None}, schema)
+    with pytest.raises(TypeError):
+        check_data(models.ModelUnionTypeStrNone, {"foo": 0}, schema)
