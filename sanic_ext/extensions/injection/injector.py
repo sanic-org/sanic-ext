@@ -29,6 +29,7 @@ def add_injection(app: Sanic, injection_registry: InjectionRegistry) -> None:
                 if return_type := hints.get("return"):
                     router_types.add(return_type)
         injection_registry.finalize(router_types)
+        print(signature_registry)
 
     @app.signal("http.routing.after")
     async def inject_kwargs(request, route, kwargs, **_):
@@ -59,6 +60,8 @@ def _setup_signature_registry(
         nonlocal registry
 
         for route in app.router.routes:
+            if ".openapi." in route.name:
+                continue
             handlers = [(route.name, route.handler)]
             viewclass = getattr(route.handler, "view_class", None)
             if viewclass:
@@ -69,6 +72,8 @@ def _setup_signature_registry(
                     )
                 ]
             for name, handler in handlers:
+                if hasattr(handler, "__auto_handler__"):
+                    continue
                 if isinstance(handler, partial):
                     if handler.func == app._websocket_handler:
                         handler = handler.args[0]
