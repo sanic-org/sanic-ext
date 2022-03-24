@@ -17,6 +17,11 @@ from sanic_ext.utils.typing import is_generic
 
 from .check import Hint
 
+try:
+    UnionType = types.UnionType  # type: ignore
+except AttributeError:
+    UnionType = type("UnionType", (), {})
+
 
 def make_schema(agg, item):
     if type(item) in (bool, str, int, float):
@@ -71,10 +76,7 @@ def parse_hint(hint, field: Optional[Field] = None):
         literal = False
         origin = get_origin(hint)
         args = get_args(hint)
-        nullable = (
-            origin in (Union, types.UnionType)  # type: ignore
-            and type(None) in args
-        )
+        nullable = origin in (Union, UnionType) and type(None) in args
 
         if nullable:
             allowed = (args[0],)
