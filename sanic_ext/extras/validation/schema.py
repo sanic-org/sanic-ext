@@ -1,3 +1,4 @@
+import types
 from dataclasses import MISSING, Field, is_dataclass
 from inspect import isclass, signature
 from typing import (
@@ -70,7 +71,10 @@ def parse_hint(hint, field: Optional[Field] = None):
         literal = False
         origin = get_origin(hint)
         args = get_args(hint)
-        nullable = origin == Union and type(None) in args
+        nullable = (
+            origin in (Union, types.UnionType)  # type: ignore
+            and type(None) in args
+        )
 
         if nullable:
             allowed = (args[0],)

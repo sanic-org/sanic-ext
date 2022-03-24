@@ -1,5 +1,10 @@
-from typing import _GenericAlias  # type: ignore
+import types
+import typing
 
 
 def is_generic(item):
-    return isinstance(item, _GenericAlias) or hasattr(item, "__origin__")
+    return (
+        isinstance(item, typing._GenericAlias)
+        or isinstance(item, types.UnionType)
+        or hasattr(item, "__origin__")
+    )
