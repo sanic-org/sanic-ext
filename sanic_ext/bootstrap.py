@@ -16,16 +16,16 @@ from sanic_ext.extensions.injection.extension import InjectionExtension
 from sanic_ext.extensions.injection.registry import InjectionRegistry
 from sanic_ext.extensions.openapi.builders import SpecificationBuilder
 from sanic_ext.extensions.openapi.extension import OpenAPIExtension
-from sanic_ext.extensions.templating.engine import Templating
 from sanic_ext.utils.string import camel_to_snake
 
 try:
     from jinja2 import Environment
 
+    from sanic_ext.extensions.templating.engine import Templating
     from sanic_ext.extensions.templating.extension import TemplatingExtension
 
     TEMPLATING_ENABLED = True
-except ImportError:
+except (ImportError, ModuleNotFoundError):
     TEMPLATING_ENABLED = False
 
 MIN_SUPPORT = (21, 3, 2)
