@@ -9,7 +9,7 @@ def serializer(func, *, status: int = 200):
             retval = f(*args, **kwargs)
             if isawaitable(retval):
                 retval = await retval
-            return func(retval, status=status)
+            return func(retval, status=status, *args, **kwargs)
 
         return decorated_function
 
