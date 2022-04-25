@@ -57,7 +57,7 @@ async def render(
 
     if template_name and template_source:
         raise SanicException(
-                "You must provide template_name OR template_source."
+                "You must provide template_name OR template_source, not both."
         )
 
     if environment is None:
