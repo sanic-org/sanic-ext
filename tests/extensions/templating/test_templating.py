@@ -47,11 +47,12 @@ def test_default_templates():
     assert "<li>six</li>" in response.text
     assert response.status == 201
 
+
 def test_render_from_string():
     app = Sanic("templating-from-string")
     app.extend()
 
-    template = '''
+    template = """
     <!DOCTYPE html>
 <html lang="en">
 
@@ -70,12 +71,14 @@ def test_render_from_string():
 
 </html>
 
-    '''
+    """
 
     @app.get("/2")
     async def handler2(_):
         return await render(
-                template_source=template, context={"seq": ["three", "four"]}, app=app
+            template_source=template,
+            context={"seq": ["three", "four"]},
+            app=app,
         )
 
     _, response = app.test_client.get("/2")

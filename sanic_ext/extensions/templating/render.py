@@ -44,20 +44,20 @@ async def render(
     environment: Optional[Environment] = None,
     context: Optional[Dict[str, Any]] = None,
     *,
-    template_source: str = ""
+    template_source: str = "",
 ) -> HTTPResponse:
     if app is None:
         try:
             app = Sanic.get_app()
         except SanicException as e:
             raise SanicException(
-                    "Cannot render template beause locating the Sanic application "
-                    "was ambiguous. Please return  render(..., app=some_app)."
+                "Cannot render template beause locating the Sanic application "
+                "was ambiguous. Please return  render(..., app=some_app)."
             ) from e
 
     if template_name and template_source:
         raise SanicException(
-                "You must provide template_name OR template_source, not both."
+            "You must provide template_name OR template_source, not both."
         )
 
     if environment is None:
@@ -65,7 +65,11 @@ async def render(
 
     kwargs = context if context else {}
     if template_name or template_source:
-        template = environment.get_template(template_name) if template_name else environment.from_string(template_source)
+        template = (
+            environment.get_template(template_name)
+            if template_name
+            else environment.from_string(template_source)
+        )
 
         render = (
             template.render_async
@@ -77,9 +81,9 @@ async def render(
             content = await content  # type: ignore
 
         return HTTPResponse(  # type: ignore
-                content, status=status, headers=headers, content_type=content_type
+            content, status=status, headers=headers, content_type=content_type
         )
     else:
         return LazyResponse(
-                kwargs, status=status, headers=headers, content_type=content_type
+            kwargs, status=status, headers=headers, content_type=content_type
         )
