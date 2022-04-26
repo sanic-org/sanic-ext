@@ -46,3 +46,42 @@ def test_default_templates():
     assert "<li>five</li>" in response.text
     assert "<li>six</li>" in response.text
     assert response.status == 201
+
+
+def test_render_from_string():
+    app = Sanic("templating-from-string")
+    app.extend()
+
+    template = """
+    <!DOCTYPE html>
+<html lang="en">
+
+    <head>
+        <title>My Webpage</title>
+    </head>
+
+    <body>
+        <h1>Hello, world!!!!</h1>
+        <ul>
+            {% for item in seq %}
+            <li>{{ item }}</li>
+            {% endfor %}
+        </ul>
+    </body>
+
+</html>
+
+    """
+
+    @app.get("/2")
+    async def handler2(_):
+        return await render(
+            template_source=template,
+            context={"seq": ["three", "four"]},
+            app=app,
+        )
+
+    _, response = app.test_client.get("/2")
+    assert response.content_type == "text/html; charset=utf-8"
+    assert "<li>three</li>" in response.text
+    assert "<li>four</li>" in response.text
