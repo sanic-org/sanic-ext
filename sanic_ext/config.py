@@ -34,12 +34,13 @@ class Config(SanicConfig):
         oas_ui_default: Optional[str] = "redoc",
         oas_ui_redoc: bool = True,
         oas_ui_swagger: bool = True,
-        oas_ui_swagger_version: str = "4.1.0",
+        oas_ui_swagger_version: str = "4.10.3",
         oas_uri_to_config: str = "/swagger-config",
         oas_uri_to_json: str = "/openapi.json",
         oas_uri_to_redoc: str = "/redoc",
         oas_uri_to_swagger: str = "/swagger",
         oas_url_prefix: str = "/docs",
+        swagger_ui_cdn_name: str = "cdnjs",
         swagger_ui_configuration: Optional[Dict[str, Any]] = None,
         templating_path_to_templates: Union[
             str, os.PathLike, Sequence[Union[str, os.PathLike]]
@@ -83,6 +84,7 @@ class Config(SanicConfig):
             "operationsSorter": "alpha",
             "docExpansion": "full",
         }
+        self.CUSTOM_CDN = swagger_ui_cdn_name
         self.TEMPLATING_PATH_TO_TEMPLATES = templating_path_to_templates
         self.TEMPLATING_ENABLE_ASYNC = templating_enable_async
         self.TRACE_EXCLUDED_HEADERS = trace_excluded_headers

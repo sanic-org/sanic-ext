@@ -4,12 +4,14 @@ from os.path import abspath, dirname, realpath
 
 from sanic.blueprints import Blueprint
 from sanic.config import Config
+from sanic.request import Request
 from sanic.response import html, json
 
 from sanic_ext.extensions.openapi.builders import (
     OperationStore,
     SpecificationBuilder,
 )
+from sanic_ext.utils.cdn import apply_cdn_to_swagger_ui, get_swagger_cdn_url
 
 from ...utils.route import (
     clean_route_name,
@@ -34,7 +36,13 @@ def blueprint_factory(config: Config):
             with open(html_path, "r") as f:
                 page = f.read()
 
-            def index(request, page):
+            def index(request: Request, page: str):
+                swagger_cdn_name = config.get("CUSTOM_CDN")
+                page = apply_cdn_to_swagger_ui(page, swagger_cdn_name, version)
+                page = page.replace("__VERSION__", version)
+                page = page.replace(
+                    "__URL_PREFIX__", getattr(config, "OAS_URL_PREFIX")
+                )
                 return html(
                     page.replace("__VERSION__", version).replace(
                         "__URL_PREFIX__", getattr(config, "OAS_URL_PREFIX")
