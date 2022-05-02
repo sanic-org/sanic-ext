@@ -1,7 +1,8 @@
 SWAGGER_CDN_URLS = {
     "cdnjs": "https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/<VERSION>/<FILENAME>",
     "unpkg": "https://unpkg.com/swagger-ui@<VERSION>/<FILENAME>",
-    "staticfile": "https://cdn.jsdelivr.net/npm/swagger-ui@<VERSION>/dist/<FILENAME>",
+    "staticfile": "https://cdn.staticfile.org/swagger-ui/<VERSION>/<FILENAME>",
+    "jsdelivr": "https://cdn.jsdelivr.net/npm/swagger-ui@<VERSION>/dist/<FILENAME>",
 }
 
 
