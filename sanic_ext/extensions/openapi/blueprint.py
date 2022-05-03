@@ -2,6 +2,7 @@ import inspect
 from functools import partial
 from os.path import abspath, dirname, realpath
 
+from sanic import Request
 from sanic.blueprints import Blueprint
 from sanic.config import Config
 from sanic.response import html, json
@@ -34,7 +35,7 @@ def blueprint_factory(config: Config):
             with open(html_path, "r") as f:
                 page = f.read()
 
-            def index(request, page):
+            def index(request: Request, page: str):
                 return html(
                     page.replace("__VERSION__", version).replace(
                         "__URL_PREFIX__", getattr(config, "OAS_URL_PREFIX")
