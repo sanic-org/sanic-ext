@@ -47,13 +47,13 @@ def blueprint_factory(config: Config):
                 bp.add_route(partial(index, page=page), "", name="index")
 
     @bp.get(config.OAS_URI_TO_JSON)
-    def spec(request):
+    def spec(request: Request):
         return json(SpecificationBuilder().build(request.app).serialize())
 
     if config.OAS_UI_SWAGGER:
 
         @bp.get(config.OAS_URI_TO_CONFIG)
-        def openapi_config(request):
+        def openapi_config(request: Request):
             return json(request.app.config.SWAGGER_UI_CONFIGURATION)
 
     @bp.before_server_start
