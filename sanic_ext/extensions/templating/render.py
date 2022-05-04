@@ -43,6 +43,8 @@ async def render(
     app: Optional[Sanic] = None,
     environment: Optional[Environment] = None,
     context: Optional[Dict[str, Any]] = None,
+    *,
+    template_source: str = "",
 ) -> HTTPResponse:
     if app is None:
         try:
@@ -53,12 +55,22 @@ async def render(
                 "was ambiguous. Please return  render(..., app=some_app)."
             ) from e
 
+    if template_name and template_source:
+        raise SanicException(
+            "You must provide template_name OR template_source, not both."
+        )
+
     if environment is None:
         environment = app.ext.environment
 
     kwargs = context if context else {}
-    if template_name:
-        template = environment.get_template(template_name)
+    if template_name or template_source:
+        template = (
+            environment.get_template(template_name)
+            if template_name
+            else environment.from_string(template_source)
+        )
+
         render = (
             template.render_async
             if app.config.TEMPLATING_ENABLE_ASYNC
@@ -67,6 +79,7 @@ async def render(
         content = render(**kwargs)
         if isawaitable(content):
             content = await content  # type: ignore
+
         return HTTPResponse(  # type: ignore
             content, status=status, headers=headers, content_type=content_type
         )

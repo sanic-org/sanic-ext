@@ -2,7 +2,6 @@ import json
 import uuid
 from datetime import date, datetime, time
 from enum import Enum
-from inspect import isclass
 from typing import (
     Any,
     Dict,
