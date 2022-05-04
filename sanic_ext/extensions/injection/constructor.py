@@ -87,23 +87,40 @@ class Constructor:
                 "html#injecting-services for more details."
             )
 
-        self.check_circular(set())
+        checked: Set[Type[object]] = set()
+        current: Set[Type[object]] = set()
+        self.check_circular(checked, current)
 
     def check_circular(
         self,
         checked: Set[Type[object]],
+        current: Set[Type[object]],
     ) -> None:
         dependencies = set(self.injections.values())
         for dependency, constructor in dependencies:
-            if dependency in checked:
-                raise InitError(
-                    "Circular dependency injection detected on "
-                    f"'{self.func.__name__}'. Check dependencies of "
-                    f"'{constructor.func.__name__}' which may contain "
-                    f"circular dependency chain with {dependency}."
-                )
-            checked.add(dependency)
-            constructor.check_circular(checked)
+            self._visit(dependency, constructor, checked, current)
+
+    def _visit(
+        self,
+        dependency: Type[object],
+        constructor: Constructor,
+        checked: Set[Type[object]],
+        current: Set[Type[object]],
+    ):
+        if dependency in checked:
+            return
+        elif dependency in current:
+            raise InitError(
+                "Circular dependency injection detected on "
+                f"'{self.func.__name__}'. Check dependencies of "
+                f"'{constructor.func.__name__}' which may contain "
+                f"circular dependency chain with {dependency}."
+            )
+
+        current.add(dependency)
+        constructor.check_circular(checked, current)
+        current.remove(dependency)
+        checked.add(dependency)
 
 
 async def gather_args(injections, request, **kwargs) -> Dict[str, Any]:

@@ -68,6 +68,27 @@ class C:
         return cls(b)
 
 
+class D:
+    def __init__(self, a: A):
+        self.a = a
+
+    @classmethod
+    def create(cls, request: Request, a: A):
+        next(counter)
+        return cls(a)
+
+
+class E:
+    def __init__(self, c: C, d: D):
+        self.c = c
+        self.d = d
+
+    @classmethod
+    def create(cls, request: Request, c: C, d: D):
+        next(counter)
+        return cls(c, d)
+
+
 def test_injection_not_allowed_when_ext_disabled(bare_app):
     ext = Extend(bare_app, built_in_extensions=False)
 
@@ -175,21 +196,30 @@ def test_nested_dependencies(app):
     app.ext.add_dependency(A, A.create)
     app.ext.add_dependency(B, B.create)
     app.ext.add_dependency(C, C.create)
+    app.ext.add_dependency(D, D.create)
+    app.ext.add_dependency(E, E.create)
 
     @app.get("/")
-    async def nested(request: Request, c: C):
+    async def nested(request: Request, c: C, e: E):
         return json(
             [
                 isinstance(c, C),
                 isinstance(c.b, B),
                 isinstance(c.b.a, A),
+                isinstance(e, E),
+                isinstance(e.c, C),
+                isinstance(e.d, D),
+                isinstance(e.d.a, A),
             ]
         )
 
     _, response = app.test_client.get("/")
 
     assert all(response.json)
-    assert next(counter) == 3
+    # TODO:
+    # - After implementing https://github.com/sanic-org/sanic-ext/issues/77
+    #   this should be == 5
+    assert next(counter) == 9
 
 
 def test_injection_on_websocket(app):
