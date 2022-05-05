@@ -187,7 +187,7 @@ class SpecificationBuilder:
     _servers: List[Server]
     # _components: ComponentsBuilder
     # deliberately not included
-    _singleton: SpecificationBuilder = None
+    _singleton: Optional[SpecificationBuilder] = None
 
     def __new__(cls) -> SpecificationBuilder:
         if not cls._singleton:
