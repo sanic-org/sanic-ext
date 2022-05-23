@@ -67,6 +67,7 @@ class Constructor:
                 self.pass_kwargs = True
             if (
                 annotation not in self.EXEMPT_ANNOTATIONS
+                and not issubclass(annotation, self.EXEMPT_ANNOTATIONS)
                 and annotation not in allowed_types
             ):
                 dependency = injection_registry.get(annotation)
