@@ -44,6 +44,16 @@ class Egg:
         return cls()
 
 
+class InheritedRequest(Request):
+    ...
+
+
+class Baz:
+    @classmethod
+    async def create(cls, request: InheritedRequest):
+        return cls()
+
+
 @pytest.mark.asyncio
 async def test_gather_args():
     func = AsyncMock()
@@ -151,3 +161,17 @@ async def test_constructor_failure_nested():
     )
     with pytest.raises(ServerError, match=message):
         await constructor(request)
+
+
+async def test_constructor_with_inherited_request():
+    injections = InjectionRegistry()
+    injections.register(Baz, Baz.create)
+    injections.finalize([])
+
+    request = object()
+    constructor_baz = injections[Baz]
+
+    baz = await constructor_baz(request)
+
+    assert isinstance(baz, Baz)
+    assert not constructor_baz.pass_kwargs
