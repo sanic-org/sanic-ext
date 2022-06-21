@@ -31,7 +31,9 @@ def validate(
 
     def decorator(f):
         @wraps(f)
-        async def decorated_function(request: Request, *args, **kwargs):
+        async def decorated_function(*args, **kwargs):
+            
+            request: Request = args[0] if args and type(args[0]) == Request else args[1]
 
             if schemas["json"]:
                 await do_validation(
@@ -66,7 +68,7 @@ def validate(
                     allow_multiple=True,
                     allow_coerce=True,
                 )
-            retval = f(request, *args, **kwargs)
+            retval = f(*args, **kwargs)
             if isawaitable(retval):
                 retval = await retval
             return retval
