@@ -34,7 +34,7 @@ def validate(
         @wraps(f)
         async def decorated_function(*args, **kwargs):
             
-            if args and type(args[0]) == Request:
+            if args and isinstance(args[0], Request):
                 request: Request = args[0]
             elif len(args) > 1:
                 request: Request = args[1]
