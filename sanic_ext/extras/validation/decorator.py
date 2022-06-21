@@ -37,7 +37,7 @@ def validate(
             if args and type(args[0]) == Request:
                 request: Request = args[0]
             elif len(args) > 1:
-                request: Request = [1]
+                request: Request = args[1]
             else:
                 raise SanicException('Request could not be found')
 
