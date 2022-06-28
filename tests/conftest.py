@@ -3,7 +3,7 @@ import re
 import pytest
 from sanic import Sanic
 
-from sanic_ext import Extend
+from sanic_ext import Extend, Extension
 from sanic_ext.extensions.http.extension import HTTPExtension
 from sanic_ext.extensions.injection.extension import InjectionExtension
 from sanic_ext.extensions.openapi.builders import (
@@ -20,6 +20,8 @@ def reset_globals():
     yield
     SpecificationBuilder.reset()
     OperationStore.reset()
+    Extend.reset()
+    Extension.reset()
 
 
 @pytest.fixture(autouse=True)

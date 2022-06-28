@@ -2,7 +2,8 @@ from sanic import Request, Sanic, text
 
 from sanic_ext.extensions.openapi import openapi
 from sanic_ext.extensions.openapi.definitions import Parameter
-from utils import get_spec
+
+from .utils import get_spec
 
 
 def test_parameter(app: Sanic):
@@ -84,6 +85,6 @@ def test_parameter(app: Sanic):
         parameter = spec["paths"][f"/test{i}/{{val1}}"]["get"]["parameters"][0]
         assert parameter["name"] == NAME
         assert parameter["in"] == LOCATION
-        assert parameter["required"] == True
+        assert parameter["required"] is True
         assert parameter["schema"]["type"] == TYPE
         assert parameter["description"] == DESCRIPTION

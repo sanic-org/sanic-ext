@@ -32,6 +32,8 @@ MIN_SUPPORT = (21, 3, 2)
 
 
 class Extend:
+    _pre_registry: List[Extension] = []
+
     if TEMPLATING_ENABLED:
         environment: Environment
         templating: Templating
@@ -40,7 +42,7 @@ class Extend:
         self,
         app: Sanic,
         *,
-        extensions: Optional[List[Type[Extension]]] = None,
+        extensions: Optional[List[Union[Type[Extension], Extension]]] = None,
         built_in_extensions: bool = True,
         config: Optional[Union[Config, Dict[str, Any]]] = None,
         **kwargs,
@@ -79,6 +81,7 @@ class Extend:
         self.config = add_fallback_config(app, config, **kwargs)
 
         extensions = extensions or []
+        extensions.extend(Extend._pre_registry)
         if built_in_extensions:
             extensions.extend(
                 [
@@ -92,13 +95,13 @@ class Extend:
                 extensions.append(TemplatingExtension)
 
         started = set()
-        for extclass in extensions[::-1]:
-            if extclass in started:
+        for ext in extensions[::-1]:
+            if ext in started:
                 continue
-            extension = extclass(app, self.config)
+            extension = Extension.create(ext, app, self.config)
             extension._startup(self)
             self.extensions.append(extension)
-            started.add(extclass)
+            started.add(ext)
 
     def _display(self):
         init_logs = ["Sanic Extensions:"]
@@ -149,3 +152,11 @@ class Extend:
 
     def template(self, template_name: str, **kwargs):
         return self.templating.template(template_name, **kwargs)
+
+    @classmethod
+    def register(cls, extension: Extension) -> None:
+        cls._pre_registry.append(extension)
+
+    @classmethod
+    def reset(cls) -> None:
+        cls._pre_registry.clear()
