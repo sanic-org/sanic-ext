@@ -3,7 +3,6 @@ from pathlib import Path
 from sanic import Sanic
 
 from sanic_ext import render
-from sanic_ext.extensions.templating.extension import TemplatingExtension
 
 
 def test_default_templates():
