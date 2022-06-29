@@ -7,15 +7,13 @@ from .methods import add_auto_handlers, add_http_methods
 class HTTPExtension(Extension):
     name = "http"
 
-    def __init__(self, *args) -> None:
-        super().__init__(*args)
+    def startup(self, _) -> None:
         self.all_methods: bool = self.config.HTTP_ALL_METHODS
         self.auto_head: bool = self.config.HTTP_AUTO_HEAD
         self.auto_options: bool = self.config.HTTP_AUTO_OPTIONS
         self.auto_trace: bool = self.config.HTTP_AUTO_TRACE
         self.cors: bool = self.config.CORS
 
-    def startup(self, _) -> None:
         if self.all_methods:
             add_http_methods(self.app, ["CONNECT", "TRACE"])
 

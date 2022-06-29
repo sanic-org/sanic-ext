@@ -1,7 +1,8 @@
 from sanic import Blueprint, Request, Sanic, text
 
 from sanic_ext.extensions.openapi import openapi
-from utils import get_spec
+
+from .utils import get_spec
 
 
 def test_exclude_decorator(app: Sanic):
@@ -47,5 +48,5 @@ def test_exclude_bp(app: Sanic):
     paths = spec["paths"]
     assert len(paths) == 1
     assert "/op2" in paths
-    assert not "/op1" in paths
+    assert "/op1" not in paths
     assert paths["/op2"]["get"]["summary"] == "handler 2"
