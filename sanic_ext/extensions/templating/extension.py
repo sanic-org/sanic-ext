@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import os
 from collections import abc
-from contextvars import ContextVar
 from pathlib import Path
 from typing import TYPE_CHECKING, Sequence, Union
 
@@ -40,14 +39,6 @@ class TemplatingExtension(Extension):
             bootstrap.templating = Templating(
                 environment=bootstrap.environment, config=self.config
             )
-
-        @self.app.after_server_start
-        async def setup_request_context(app, _):
-            app.ctx.__request__ = ContextVar("request")
-
-        @self.app.on_request
-        async def attach_request(request):
-            request.app.ctx.__request__.set(request)
 
     def label(self):
         return f"jinja2=={__version__}"
