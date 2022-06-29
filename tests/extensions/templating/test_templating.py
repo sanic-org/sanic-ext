@@ -3,6 +3,7 @@ from pathlib import Path
 from sanic import Sanic
 
 from sanic_ext import render
+from sanic_ext.extensions.templating.extension import TemplatingExtension
 
 
 def test_default_templates():
@@ -85,3 +86,14 @@ def test_render_from_string():
     assert response.content_type == "text/html; charset=utf-8"
     assert "<li>three</li>" in response.text
     assert "<li>four</li>" in response.text
+
+
+def test_config_templating_dir():
+    app = Sanic("templating")
+    app.config.TEMPLATING_PATH_TO_TEMPLATES = (
+        Path(__file__).parent / "templates"
+    )
+
+    assert app.ext.templating.environment.get_template(
+        "foo.html"
+    ).filename == str(Path(__file__).parent / "templates" / "foo.html")
