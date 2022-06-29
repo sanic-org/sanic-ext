@@ -3,7 +3,10 @@ from dataclasses import dataclass
 from typing import List, Optional
 
 import pytest
+from sanic import json
+from sanic.views import HTTPMethodView
 
+from sanic_ext import validate
 from sanic_ext.extras.validation.check import check_data
 from sanic_ext.extras.validation.schema import make_schema, parse_hint
 
@@ -239,3 +242,28 @@ def test_modeling_union_type():
     check_data(models.ModelUnionTypeStrNone, {"foo": None}, schema)
     with pytest.raises(TypeError):
         check_data(models.ModelUnionTypeStrNone, {"foo": 0}, schema)
+
+
+def test_validate_decorator(app):
+    @dataclass
+    class Pet:
+        name: str
+
+    @app.post("/function")
+    @validate(json=Pet)
+    async def handler(_, body: Pet):
+        return json({"is_pet": isinstance(body, Pet)})
+
+    class MethodView(HTTPMethodView, attach=app, uri="/method"):
+        decorators = [validate(json=Pet)]
+
+        async def post(self, _, body: Pet):
+            return json({"is_pet": isinstance(body, Pet)})
+
+    _, response = app.test_client.post("/function", json={"name": "Snoopy"})
+    assert response.status == 200
+    assert response.json["is_pet"]
+
+    _, response = app.test_client.post("/method", json={"name": "Snoopy"})
+    assert response.status == 200
+    assert response.json["is_pet"]
