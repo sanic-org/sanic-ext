@@ -2,6 +2,7 @@ import json
 import uuid
 from datetime import date, datetime, time
 from enum import Enum
+from inspect import getmembers, isfunction
 from typing import (
     Any,
     Dict,
@@ -308,7 +309,11 @@ def _serialize(value) -> Any:
 
 def _properties(value: object) -> Dict:
     try:
-        fields = {x: v for x, v in value.__dict__.items()}
+        fields = {
+            x: val
+            for x, v in getmembers(value, _is_property)
+            if (val := _extract(v))
+        }
     except AttributeError:
         fields = {}
 
@@ -318,3 +323,14 @@ def _properties(value: object) -> Dict:
         for k, v in {**get_type_hints(cls), **fields}.items()
         if not k.startswith("_")
     }
+
+
+def _extract(item):
+    if isinstance(item, property):
+        hints = get_type_hints(item.fget)
+        return hints.get("return")
+    return item
+
+
+def _is_property(item):
+    return not isfunction(item)

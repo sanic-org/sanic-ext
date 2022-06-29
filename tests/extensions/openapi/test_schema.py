@@ -12,8 +12,17 @@ def test_schema_list():
         list1: List[int]
         list2: list[int]
 
+        def no_show(self) -> None:
+            ...
+
+        @property
+        def show(self) -> bool:
+            return True
+
     schema = Schema.make(Foo)
-    schema.serialize() == {
+    serialized = schema.serialize()
+    assert "no_show" not in serialized
+    assert serialized == {
         "type": "object",
         "properties": {
             "list1": {
@@ -24,5 +33,6 @@ def test_schema_list():
                 "type": "array",
                 "items": {"type": "integer", "format": "int32"},
             },
+            "show": {"type": "boolean"},
         },
     }
