@@ -108,5 +108,12 @@ def add_fallback_config(
     app.config.update(
         {key: value for key, value in config.items() if key not in app.config}
     )
+    config.update(
+        {
+            key: value
+            for key, value in app.config.items()
+            if key in config and value != config.get(key)
+        }
+    )
 
     return config
