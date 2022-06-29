@@ -3,7 +3,8 @@ from sanic.response import text
 
 from sanic_ext import openapi
 from sanic_ext.extensions.openapi.definitions import ExternalDocumentation
-from utils import get_spec
+
+from .utils import get_spec
 
 
 def test_external_docs(app: Sanic):

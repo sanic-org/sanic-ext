@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from typing import Any, Dict, Type
+from typing import Any, Dict, Type, Union
 
 from sanic.app import Sanic
 from sanic.exceptions import SanicException
@@ -19,7 +19,10 @@ class NoDuplicateDict(dict):  # type: ignore
 
 class Extension(ABC):
     _name_registry: Dict[str, Type[Extension]] = NoDuplicateDict()
+    _started: bool
     name: str
+    app: Sanic
+    config: Config
 
     def __init_subclass__(cls):
         if not getattr(cls, "name", None) or not cls.name.isalpha():
@@ -32,11 +35,6 @@ class Extension(ABC):
             raise InitError(f'Extension "{cls.name}" already exists')
 
         cls._name_registry[cls.name] = cls
-
-    def __init__(self, app: Sanic, config: Config) -> None:
-        self.app = app
-        self.config = config
-        self._started = False
 
     def _startup(self, bootstrap):
         if self._started:
@@ -59,3 +57,22 @@ class Extension(ABC):
         if not label:
             return ""
         return f"[{label}]"
+
+    @classmethod
+    def create(
+        cls,
+        extension: Union[Type[Extension], Extension],
+        app: Sanic,
+        config: Config,
+    ) -> Extension:
+        instance = (
+            extension if isinstance(extension, Extension) else extension()
+        )
+        instance.app = app
+        instance.config = config
+        instance._started = False
+        return instance
+
+    @classmethod
+    def reset(cls) -> None:
+        cls._name_registry.clear()
