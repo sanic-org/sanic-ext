@@ -32,7 +32,7 @@ MIN_SUPPORT = (21, 3, 2)
 
 
 class Extend:
-    _pre_registry: List[Extension] = []
+    _pre_registry: List[Union[Type[Extension], Extension]] = []
 
     if TEMPLATING_ENABLED:
         environment: Environment
@@ -154,7 +154,7 @@ class Extend:
         return self.templating.template(template_name, **kwargs)
 
     @classmethod
-    def register(cls, extension: Extension) -> None:
+    def register(cls, extension: Union[Type[Extension], Extension]) -> None:
         cls._pre_registry.append(extension)
 
     @classmethod
