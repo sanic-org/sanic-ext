@@ -3,9 +3,9 @@ from inspect import isawaitable
 from typing import Callable, Optional, Type, Union
 
 from sanic import Request
+from sanic.exceptions import SanicException
 
 from sanic_ext.exceptions import InitError
-from sanic.exceptions import SanicException
 
 from .setup import do_validation, generate_schema
 
@@ -33,13 +33,13 @@ def validate(
     def decorator(f):
         @wraps(f)
         async def decorated_function(*args, **kwargs):
-            
+
             if args and isinstance(args[0], Request):
                 request: Request = args[0]
             elif len(args) > 1:
                 request: Request = args[1]
             else:
-                raise SanicException('Request could not be found')
+                raise SanicException("Request could not be found")
 
             if schemas["json"]:
                 await do_validation(
