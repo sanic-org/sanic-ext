@@ -47,3 +47,24 @@ def test_serializer_with_custom(app):
     _, response = app.test_client.get("/201")
     assert response.status_code == 201
     assert response.content_type == "application/json"
+
+
+def test_serializer_with_params(app):
+    def message(retval, request, action, status):
+        return json(
+            {
+                "request_id": str(request.id),
+                "action": action,
+                "message": retval,
+            },
+            status=status,
+        )
+
+    @app.get("/<action>")
+    @serializer(message)
+    async def do_action(request, action: str):
+        return "This is a message"
+
+    _, response = app.test_client.get("/this")
+    assert response.status_code == 200
+    assert response.json["action"] == "this"

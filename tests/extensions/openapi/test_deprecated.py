@@ -2,7 +2,8 @@ from sanic import Request, Sanic
 from sanic.response import text
 
 from sanic_ext import openapi
-from utils import get_spec
+
+from .utils import get_spec
 
 
 def test_deprecated(app: Sanic):
