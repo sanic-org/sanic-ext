@@ -177,7 +177,10 @@ def add_static_info_to_spec_from_config(app, specification):
         getattr(app.config, "API_CONTACT_EMAIL", None),
     )
 
-    for scheme in getattr(app.config, "API_SCHEMES", ["http"]):
+    schemes = getattr(app.config, "API_SCHEMES", ["http"]) or ["http"]
+    if isinstance(schemes, str):
+        schemes = [s.strip() for s in schemes.split(",")]
+    for scheme in schemes:
         host = getattr(app.config, "API_HOST", None)
         basePath = getattr(app.config, "API_BASEPATH", "")
         if host is None or basePath is None:
