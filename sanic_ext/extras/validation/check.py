@@ -3,7 +3,7 @@ from __future__ import annotations
 from dataclasses import _HAS_DEFAULT_FACTORY  # type: ignore
 from typing import Any, Literal, NamedTuple, Optional, Tuple, Union
 
-from attr import NOTHING
+MISSING: Tuple[Any, ...] = (_HAS_DEFAULT_FACTORY,)
 
 try:
     from pydantic import BaseModel
@@ -15,7 +15,12 @@ except ImportError:
 try:
     import attrs  # noqa
 
+    NOTHING = attrs.NOTHING
     ATTRS = True
+    MISSING = (
+        _HAS_DEFAULT_FACTORY,
+        NOTHING,
+    )
 except ImportError:
     ATTRS = False
 
@@ -116,10 +121,7 @@ def check_data(model, data, schema, allow_multiple=False, allow_coerce=False):
                     allow_coerce=allow_coerce,
                 )
             except ValueError:
-                if not hint.allow_missing or value not in (
-                    _HAS_DEFAULT_FACTORY,
-                    NOTHING,
-                ):
+                if not hint.allow_missing or value not in MISSING:
                     raise
     except ValueError as e:
         raise TypeError(e)

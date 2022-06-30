@@ -13,8 +13,6 @@ from typing import (
     get_type_hints,
 )
 
-from attr import NOTHING, Attribute
-
 from sanic_ext.utils.typing import is_generic
 
 from .check import Hint, is_attrs
@@ -23,6 +21,12 @@ try:
     UnionType = types.UnionType  # type: ignore
 except AttributeError:
     UnionType = type("UnionType", (), {})
+
+try:
+    from attr import NOTHING, Attribute
+except ModuleNotFoundError:
+    NOTHING = object()  # type: ignore
+    Attribute = type("Attribute", (), {})  # type: ignore
 
 
 def make_schema(agg, item):
@@ -73,9 +77,7 @@ def parse_hint(hint, field: Optional[Union[Field, Attribute]] = None):
 
     if field and (
         (
-            # is_dataclass(field)
             isinstance(field, Field)
-            and field.default_factory  # type: ignore
             and field.default_factory is not MISSING  # type: ignore
         )
         or (isinstance(field, Attribute) and field.default is not NOTHING)
