@@ -12,16 +12,26 @@ def test_schema_list():
         list1: List[int]
         list2: list[int]
 
-        def no_show(self) -> None:
-            ...
-
         @property
         def show(self) -> bool:
             return True
 
+        def no_show_method(self) -> None:
+            ...
+
+        @classmethod
+        def no_show_classmethod(self) -> None:
+            ...
+
+        @staticmethod
+        def no_show_staticmethod() -> None:
+            ...
+
     schema = Schema.make(Foo)
     serialized = schema.serialize()
-    assert "no_show" not in serialized
+    assert "no_show_method" not in serialized
+    assert "no_show_classmethod" not in serialized
+    assert "no_show_staticmethod" not in serialized
     assert serialized == {
         "type": "object",
         "properties": {

@@ -2,7 +2,7 @@ import json
 import uuid
 from datetime import date, datetime, time
 from enum import Enum
-from inspect import getmembers, isfunction
+from inspect import getmembers, isfunction, ismethod
 from typing import (
     Any,
     Dict,
@@ -312,7 +312,7 @@ def _properties(value: object) -> Dict:
         fields = {
             x: val
             for x, v in getmembers(value, _is_property)
-            if (val := _extract(v))
+            if (val := _extract(v)) and x in value.__dict__
         }
     except AttributeError:
         fields = {}
@@ -333,4 +333,4 @@ def _extract(item):
 
 
 def _is_property(item):
-    return not isfunction(item)
+    return not isfunction(item) and not ismethod(item)
