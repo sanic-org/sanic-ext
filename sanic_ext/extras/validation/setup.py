@@ -5,19 +5,13 @@ from sanic.log import logger
 
 from sanic_ext.exceptions import ValidationError
 
+from .check import is_pydantic
 from .schema import make_schema
 from .validators import (
     _validate_annotations,
     _validate_instance,
     validate_body,
 )
-
-try:
-    from pydantic import BaseModel
-
-    PYDANTIC = True
-except ImportError:
-    PYDANTIC = False
 
 
 async def do_validation(
@@ -52,7 +46,7 @@ async def do_validation(
 
 def generate_schema(param):
     try:
-        if param is None or _is_pydantic(param):
+        if param is None or is_pydantic(param):
             return param
     except TypeError:
         ...
@@ -60,15 +54,8 @@ def generate_schema(param):
     return make_schema({}, param) if isclass(param) else param
 
 
-def _is_pydantic(model):
-    is_pydantic = PYDANTIC and (
-        issubclass(model, BaseModel) or hasattr(model, "__pydantic_model__")
-    )
-    return is_pydantic
-
-
 def _get_validator(model, schema, allow_multiple, allow_coerce):
-    if _is_pydantic(model):
+    if is_pydantic(model):
         return _validate_instance
 
     return partial(

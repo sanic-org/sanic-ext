@@ -3,6 +3,22 @@ from __future__ import annotations
 from dataclasses import _HAS_DEFAULT_FACTORY  # type: ignore
 from typing import Any, Literal, NamedTuple, Optional, Tuple, Union
 
+from attr import NOTHING
+
+try:
+    from pydantic import BaseModel
+
+    PYDANTIC = True
+except ImportError:
+    PYDANTIC = False
+
+try:
+    import attrs  # noqa
+
+    ATTRS = True
+except ImportError:
+    ATTRS = False
+
 
 class Hint(NamedTuple):
     hint: Any
@@ -100,7 +116,10 @@ def check_data(model, data, schema, allow_multiple=False, allow_coerce=False):
                     allow_coerce=allow_coerce,
                 )
             except ValueError:
-                if not hint.allow_missing or value is not _HAS_DEFAULT_FACTORY:
+                if not hint.allow_missing or value not in (
+                    _HAS_DEFAULT_FACTORY,
+                    NOTHING,
+                ):
                     raise
     except ValueError as e:
         raise TypeError(e)
@@ -163,3 +182,13 @@ def _check_dict(value, allowed, hint, schema, allow_multiple, allow_coerce):
         except (ValueError, TypeError):
             ...
     raise ValueError(f"Value '{value}' must be a {hint}")
+
+
+def is_pydantic(model):
+    return PYDANTIC and (
+        issubclass(model, BaseModel) or hasattr(model, "__pydantic_model__")
+    )
+
+
+def is_attrs(model):
+    return ATTRS and (hasattr(model, "__attrs_attrs__"))
