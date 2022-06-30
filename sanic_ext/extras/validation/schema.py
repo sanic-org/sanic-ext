@@ -15,12 +15,18 @@ from typing import (
 
 from sanic_ext.utils.typing import is_generic
 
-from .check import Hint
+from .check import Hint, is_attrs
 
 try:
     UnionType = types.UnionType  # type: ignore
 except AttributeError:
     UnionType = type("UnionType", (), {})
+
+try:
+    from attr import NOTHING, Attribute
+except ModuleNotFoundError:
+    NOTHING = object()  # type: ignore
+    Attribute = type("Attribute", (), {})  # type: ignore
 
 
 def make_schema(agg, item):
@@ -30,9 +36,14 @@ def make_schema(agg, item):
     if is_generic(item) and (args := get_args(item)):
         for arg in args:
             make_schema(agg, arg)
-    elif item.__name__ not in agg and is_dataclass(item):
+    elif item.__name__ not in agg and (is_dataclass(item) or is_attrs(item)):
+        fields = (
+            item.__dataclass_fields__
+            if is_dataclass(item)
+            else {attr.name: attr for attr in item.__attrs_attrs__}
+        )
         sig = signature(item)
-        hints = parse_hints(get_type_hints(item), item.__dataclass_fields__)
+        hints = parse_hints(get_type_hints(item), fields)
 
         agg[item.__name__] = {
             "sig": sig,
@@ -45,7 +56,9 @@ def make_schema(agg, item):
     return agg
 
 
-def parse_hints(hints, fields: Dict[str, Field]) -> Dict[str, Hint]:
+def parse_hints(
+    hints, fields: Dict[str, Union[Field, Attribute]]
+) -> Dict[str, Hint]:
     output: Dict[str, Hint] = {
         name: parse_hint(hint, fields.get(name))
         for name, hint in hints.items()
@@ -53,7 +66,7 @@ def parse_hints(hints, fields: Dict[str, Field]) -> Dict[str, Hint]:
     return output
 
 
-def parse_hint(hint, field: Optional[Field] = None):
+def parse_hint(hint, field: Optional[Union[Field, Attribute]] = None):
     origin = None
     literal = not isclass(hint)
     nullable = False
@@ -62,14 +75,16 @@ def parse_hint(hint, field: Optional[Field] = None):
     allowed: Tuple[Any, ...] = tuple()
     allow_missing = False
 
-    if (
-        field
-        and field.default_factory  # type: ignore
-        and field.default_factory is not MISSING  # type: ignore
+    if field and (
+        (
+            isinstance(field, Field)
+            and field.default_factory is not MISSING  # type: ignore
+        )
+        or (isinstance(field, Attribute) and field.default is not NOTHING)
     ):
         allow_missing = True
 
-    if is_dataclass(hint):
+    if is_dataclass(hint) or is_attrs(hint):
         model = True
     elif is_generic(hint):
         typed = True
