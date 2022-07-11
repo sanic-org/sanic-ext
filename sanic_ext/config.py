@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import os
-from typing import Any, Dict, Optional, Sequence, Union
+from typing import Any, Dict, List, Optional, Sequence, Union
 
 from sanic import Sanic
 from sanic.config import Config as SanicConfig
@@ -17,7 +17,7 @@ class Config(SanicConfig):
         cors_expose_headers: str = "",
         cors_max_age: int = 5,
         cors_methods: str = "",
-        cors_origins: str = "",
+        cors_origins: Union[str, List[str]] = "",
         cors_send_wildcard: bool = False,
         cors_supports_credentials: bool = False,
         cors_vary_header: bool = True,
