@@ -299,9 +299,11 @@ def _get_allow_origins(app: Sanic) -> Tuple[re.Pattern, ...]:
 
 
 def _parse_allow_origins(
-    value: Union[str, re.Pattern]
+    value: Union[str, re.Pattern, List[Union[str, re.Pattern]]]
 ) -> Tuple[re.Pattern, ...]:
-    origins: Optional[Union[List[str], List[re.Pattern]]] = None
+    origins: Optional[
+        Union[List[str], List[re.Pattern], List[Union[str, re.Pattern]]]
+    ] = None
     if value and isinstance(value, str):
         if value == "*":
             origins = [WILDCARD_PATTERN]
@@ -309,9 +311,13 @@ def _parse_allow_origins(
             origins = value.split(",")
     elif isinstance(value, re.Pattern):
         origins = [value]
+    elif isinstance(value, list):
+        origins = value
 
     return tuple(
-        pattern if isinstance(pattern, re.Pattern) else re.compile(pattern)
+        pattern
+        if isinstance(pattern, re.Pattern)
+        else re.compile(re.escape(pattern))
         for pattern in (origins or [])
     )
 
