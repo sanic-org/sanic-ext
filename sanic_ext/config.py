@@ -21,6 +21,7 @@ class Config(SanicConfig):
         cors_send_wildcard: bool = False,
         cors_supports_credentials: bool = False,
         cors_vary_header: bool = True,
+        health: bool = True,
         http_all_methods: bool = True,
         http_auto_head: bool = True,
         http_auto_options: bool = True,
@@ -59,6 +60,7 @@ class Config(SanicConfig):
         self.CORS_SEND_WILDCARD = cors_send_wildcard
         self.CORS_SUPPORTS_CREDENTIALS = cors_supports_credentials
         self.CORS_VARY_HEADER = cors_vary_header
+        self.HEALTH = health
         self.HTTP_ALL_METHODS = http_all_methods
         self.HTTP_AUTO_HEAD = http_auto_head
         self.HTTP_AUTO_OPTIONS = http_auto_options
