@@ -33,7 +33,9 @@ class Config(SanicConfig):
         oas_path_to_swagger_html: Optional[str] = None,
         oas_ui_default: Optional[str] = "redoc",
         oas_ui_redoc: bool = True,
+        oas_ui_redoc_html_title: str = "ReDoc",
         oas_ui_swagger: bool = True,
+        oas_ui_swagger_html_title: str = "OpenAPI Swagger",
         oas_ui_swagger_version: str = "4.10.3",
         oas_uri_to_config: str = "/swagger-config",
         oas_uri_to_json: str = "/openapi.json",
@@ -71,7 +73,9 @@ class Config(SanicConfig):
         self.OAS_PATH_TO_SWAGGER_HTML = oas_path_to_swagger_html
         self.OAS_UI_DEFAULT = oas_ui_default
         self.OAS_UI_REDOC = oas_ui_redoc
+        self.OAS_UI_REDOC_HTML_TITLE = oas_ui_redoc_html_title
         self.OAS_UI_SWAGGER = oas_ui_swagger
+        self.OAS_UI_SWAGGER_HTML_TITLE = oas_ui_swagger_html_title
         self.OAS_UI_SWAGGER_VERSION = oas_ui_swagger_version
         self.OAS_URI_TO_CONFIG = oas_uri_to_config
         self.OAS_URI_TO_JSON = oas_uri_to_json

@@ -30,6 +30,7 @@ def blueprint_factory(config: Config):
             path = getattr(config, f"OAS_PATH_TO_{ui}_HTML".upper())
             uri = getattr(config, f"OAS_URI_TO_{ui}".upper())
             version = getattr(config, f"OAS_UI_{ui}_VERSION".upper(), "")
+            html_title = getattr(config, f"OAS_UI_{ui}_HTML_TITLE".upper())
             html_path = path if path else f"{dir_path}/{ui}.html"
 
             with open(html_path, "r") as f:
@@ -37,9 +38,9 @@ def blueprint_factory(config: Config):
 
             def index(request: Request, page: str):
                 return html(
-                    page.replace("__VERSION__", version).replace(
-                        "__URL_PREFIX__", getattr(config, "OAS_URL_PREFIX")
-                    )
+                    page.replace("__VERSION__", version)
+                        .replace("__URL_PREFIX__", getattr(config, "OAS_URL_PREFIX"))
+                        .replace("__HTML_TITLE__", html_title)
                 )
 
             bp.add_route(partial(index, page=page), uri, name=ui)
