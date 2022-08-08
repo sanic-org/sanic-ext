@@ -38,7 +38,7 @@ def blueprint_factory(config: Config):
             with open(html_path, "r") as f:
                 page = f.read()
 
-            def index(request: Request, page: str):
+            def index(request: Request, page: str, html_title: str, custom_css: str):
                 return html(
                     page.replace("__VERSION__", version)
                         .replace("__URL_PREFIX__", getattr(config, "OAS_URL_PREFIX"))
@@ -46,9 +46,11 @@ def blueprint_factory(config: Config):
                         .replace("__HTML_CUSTOM_CSS__", custom_css)
                 )
 
-            bp.add_route(partial(index, page=page), uri, name=ui)
+            bp.add_route(partial(index, page=page,
+                         html_title=html_title, custom_css=custom_css), uri, name=ui)
             if config.OAS_UI_DEFAULT and config.OAS_UI_DEFAULT == ui:
-                bp.add_route(partial(index, page=page), "", name="index")
+                bp.add_route(partial(index, page=page,
+                                     html_title=html_title, custom_css=custom_css), "", name="index")
 
     @bp.get(config.OAS_URI_TO_JSON)
     def spec(request: Request):
