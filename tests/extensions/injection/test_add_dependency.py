@@ -38,6 +38,14 @@ class Person:
         return cls(person_id=PersonID(person_id), name="noname", age=111)
 
 
+@dataclass
+class AsyncName:
+    name: str
+
+    def __await__(self):
+        return self
+
+
 counter = count()
 
 
@@ -235,3 +243,40 @@ def test_injection_on_websocket(app):
 
     request, response = app.test_client.websocket("/foo")
     assert ev.is_set()
+
+
+def test_injection_of_awaitable_variable_in_do_cast(app):
+    ''' Test for do_cast() iscoroutine() check '''
+
+    @app.get("/person/<name:str>")
+    def handler(request, name: AsyncName):
+        request.ctx.name = name
+        return text(name.name)
+
+    app.ext.add_dependency(AsyncName)
+
+    request, response = app.test_client.get("/person/george")
+
+    assert response.body == b"george"
+    assert isinstance(request.ctx.name, AsyncName)
+    assert request.ctx.name.name == "george"
+
+
+def test_injection_of_awaitable_variable_in_call(app):
+    ''' Test for __call__() iscoroutine() check '''
+
+    @app.get("/person/<name:str>")
+    def handler(request, name: AsyncName):
+        request.ctx.name = name
+        return text(name.name)
+
+    def test():
+        return AsyncName("george")
+
+    app.ext.dependency(test())
+
+    request, response = app.test_client.get("/person/george")
+
+    assert response.body == b"george"
+    assert isinstance(request.ctx.name, AsyncName)
+    assert request.ctx.name.name == "george"
