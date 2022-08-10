@@ -26,7 +26,6 @@ def validate(
             ("query", query),
         )
     }
-    print(schemas)
 
     if json and form:
         raise InitError("Cannot define both a form and json route validator")
