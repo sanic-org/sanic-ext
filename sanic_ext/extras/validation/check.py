@@ -183,16 +183,19 @@ def _check_nullability(
     if not nullable and value is None:
         raise ValueError("Value cannot be None")
     if nullable and value is not None:
-        for idx, hint in enumerate(allowed):
+        exc = None
+        for hint in allowed:
             try:
                 value = hint.validate(
                     value, schema, allow_multiple, allow_coerce
                 )
             except ValueError as e:
-                if idx + 1 == len(allowed):
-                    raise e
+                exc = e
             else:
                 break
+        else:
+            if exc:
+                raise exc
     return value
 
 
