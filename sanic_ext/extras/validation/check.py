@@ -118,17 +118,14 @@ class Hint(NamedTuple):
             coerce_types = [self.coerce_type]
         for coerce_type in coerce_types:
             try:
-                try:
-                    if isinstance(value, list):
-                        value = [coerce_type(item) for item in value]
-                    else:
-                        value = coerce_type(value)
-                except ValueError:
-                    ...
+                if isinstance(value, list):
+                    value = [coerce_type(item) for item in value]
                 else:
-                    return value
-            except TypeError:
+                    value = coerce_type(value)
+            except (ValueError, TypeError):
                 ...
+            else:
+                return value
         return value
 
     @property
