@@ -246,7 +246,7 @@ def test_injection_on_websocket(app):
 
 
 def test_injection_of_awaitable_variable_in_do_cast(app):
-    ''' Test for do_cast() iscoroutine() check '''
+    """Test for do_cast() iscoroutine() check"""
 
     @app.get("/person/<name:str>")
     def handler(request, name: AsyncName):
@@ -263,7 +263,7 @@ def test_injection_of_awaitable_variable_in_do_cast(app):
 
 
 def test_injection_of_awaitable_variable_in_call(app):
-    ''' Test for __call__() iscoroutine() check '''
+    """Test for __call__() iscoroutine() check"""
 
     @app.get("/person/<name:str>")
     def handler(request, name: AsyncName):
