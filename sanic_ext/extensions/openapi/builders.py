@@ -140,7 +140,7 @@ class OperationBuilder:
         default_dict = self._default
         merged_dict = {}
 
-        for d in (default_dict, defined_dict, autodoc_dict):
+        for d in (default_dict, autodoc_dict, defined_dict):
             cleaned = {
                 k: v for k, v in d.items() if v and not k.startswith("_")
             }

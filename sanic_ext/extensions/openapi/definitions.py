@@ -230,7 +230,7 @@ class Parameter(Definition):
 
     @staticmethod
     def make(name: str, schema: type, location: str, **kwargs):
-        if location == "path":
+        if location == "path" and "required" not in kwargs:
             kwargs["required"] = True
 
         return Parameter(name, Schema.make(schema), location, **kwargs)

@@ -44,7 +44,7 @@ class Definition:
             if (
                 k not in self.__ignore__
                 and (
-                    v
+                    v is not None
                     or (
                         isinstance(self.__nullable__, list)
                         and (not self.__nullable__ or k in self.__nullable__)
