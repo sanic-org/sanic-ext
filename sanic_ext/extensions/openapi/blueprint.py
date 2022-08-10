@@ -142,7 +142,8 @@ def blueprint_factory(config: Config):
                                 if schema := param.get("schema"):
                                     logger.warning(
                                         f"Ignoring the schema {schema} in "
-                                        f"'{route_name}' for '{_parameter.name}'. "
+                                        f"'{route_name}' for "
+                                        f"'{_parameter.name}'. "
                                         "Instead of using the definition in "
                                         "docstring definition, Sanic will use "
                                         "the actual schema defined for this "
