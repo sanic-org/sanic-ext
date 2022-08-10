@@ -7,7 +7,7 @@ These are completely internal, so can be refactored if desired without concern
 for breaking user experience
 """
 from collections import defaultdict
-from typing import TYPE_CHECKING, Optional, Sequence, Union
+from typing import TYPE_CHECKING, Optional, Sequence, Union, cast
 
 from sanic_ext.extensions.openapi.constants import (
     SecuritySchemeAuthorization,
@@ -140,7 +140,7 @@ class OperationBuilder:
         default_dict = self._default
         merged_dict = {}
 
-        for d in (default_dict, autodoc_dict, defined_dict):
+        for d in (default_dict, defined_dict, autodoc_dict):
             cleaned = {
                 k: v for k, v in d.items() if v and not k.startswith("_")
             }
@@ -193,7 +193,7 @@ class SpecificationBuilder:
         if not cls._singleton:
             cls._singleton = super().__new__(cls)
             cls._setup_instance(cls._singleton)
-        return cls._singleton
+        return cast(SpecificationBuilder, cls._singleton)
 
     @classmethod
     def _setup_instance(cls, instance):
