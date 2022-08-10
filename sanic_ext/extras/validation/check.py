@@ -195,7 +195,15 @@ def _check_nullability(
                 break
         else:
             if exc:
-                raise exc
+                if len(allowed) == 1:
+                    raise exc
+                else:
+                    options = ", ".join(
+                        [str(option.hint) for option in allowed]
+                    )
+                    raise ValueError(
+                        f"Value '{value}' must be one of {options}, or None"
+                    )
     return value
 
 
