@@ -29,6 +29,10 @@ def get_oauth2_redirect_html(version: str):
     return response.decode("utf-8")
 
 
+def oauth2_handler(request: Request, version: str):
+    return html(get_oauth2_redirect_html(version))
+
+
 def blueprint_factory(config: Config):
     bp = Blueprint("openapi", url_prefix=config.OAS_URL_PREFIX)
 
@@ -58,11 +62,10 @@ def blueprint_factory(config: Config):
 
             if ui == "swagger":
                 oauth2_redirect_uri = getattr(
-                    config, "OAS_UI_SWAGGER_OAUTH_REDIRECT")
-                content = get_oauth2_redirect_html(version)
+                    config, "OAS_UI_SWAGGER_OAUTH2_REDIRECT")
 
-                bp.add_route(partial(lambda _: html(content)),
-                             uri, name="oauth2-redirect")
+                bp.add_route(partial(oauth2_handler, version=version),
+                             oauth2_redirect_uri, name="oauth2-redirect")
 
     @bp.get(config.OAS_URI_TO_JSON)
     def spec(request: Request):
