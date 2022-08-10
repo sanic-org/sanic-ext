@@ -14,6 +14,8 @@ from typing import (
     get_type_hints,
 )
 
+from sanic_routing.patterns import nonemptystr
+
 from sanic_ext.utils.typing import is_generic
 
 
@@ -111,7 +113,7 @@ class Schema(Definition):
             return Integer(**kwargs)
         elif value == float:
             return Float(**kwargs)
-        elif value == str:
+        elif value == str or value is nonemptystr:
             return String(**kwargs)
         elif value == bytes:
             return Byte(**kwargs)
