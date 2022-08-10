@@ -1,7 +1,9 @@
 from __future__ import annotations
 
 from dataclasses import _HAS_DEFAULT_FACTORY  # type: ignore
-from typing import Any, Literal, NamedTuple, Optional, Tuple, Union
+from typing import Any, Literal, NamedTuple, Optional, Tuple, Union, get_args
+
+from sanic_ext.utils.typing import UnionType, is_generic, is_optional
 
 MISSING: Tuple[Any, ...] = (_HAS_DEFAULT_FACTORY,)
 
@@ -47,10 +49,11 @@ class Hint(NamedTuple):
                     allow_multiple=allow_multiple,
                     allow_coerce=allow_coerce,
                 )
+
             if (
                 allow_multiple
                 and isinstance(value, list)
-                and self.hint is not list
+                and self.coerce_type is not list
                 and len(value) == 1
             ):
                 value = value[0]
@@ -58,18 +61,22 @@ class Hint(NamedTuple):
                 _check_types(value, self.literal, self.hint)
             except ValueError as e:
                 if allow_coerce:
-                    if isinstance(value, list):
-                        value = [self.hint(item) for item in value]
-                    else:
-                        value = self.hint(value)
+                    value = self.coerce(value)
                     _check_types(value, self.literal, self.hint)
                 else:
                     raise e
         else:
-            _check_nullability(value, self.nullable, self.allowed, schema)
+            value = _check_nullability(
+                value,
+                self.nullable,
+                self.allowed,
+                schema,
+                allow_multiple,
+                allow_coerce,
+            )
 
             if not self.nullable:
-                if self.origin in (Union, Literal):
+                if self.origin in (Union, Literal, UnionType):
                     value = _check_inclusion(
                         value,
                         self.allowed,
@@ -96,7 +103,40 @@ class Hint(NamedTuple):
                         allow_coerce,
                     )
 
+            if allow_coerce:
+                value = self.coerce(value)
+
         return value
+
+    def coerce(self, value):
+        if is_generic(self.coerce_type):
+            args = get_args(self.coerce_type)
+            if type(None) in args and value is None:
+                return None
+            coerce_types = [arg for arg in args if not isinstance(None, arg)]
+        else:
+            coerce_types = [self.coerce_type]
+        for coerce_type in coerce_types:
+            try:
+                try:
+                    if isinstance(value, list):
+                        value = [coerce_type(item) for item in value]
+                    else:
+                        value = coerce_type(value)
+                except ValueError:
+                    ...
+                else:
+                    return value
+            except TypeError:
+                ...
+        return value
+
+    @property
+    def coerce_type(self):
+        coerce_type = self.hint
+        if is_optional(coerce_type):
+            coerce_type = get_args(self.hint)[0]
+        return coerce_type
 
 
 def check_data(model, data, schema, allow_multiple=False, allow_coerce=False):
@@ -140,11 +180,23 @@ def _check_types(value, literal, expected):
             raise ValueError(f"Value '{value}' is not of type {expected}")
 
 
-def _check_nullability(value, nullable, allowed, schema):
+def _check_nullability(
+    value, nullable, allowed, schema, allow_multiple, allow_coerce
+):
     if not nullable and value is None:
         raise ValueError("Value cannot be None")
     if nullable and value is not None:
-        allowed[0].validate(value, schema)
+        for idx, hint in enumerate(allowed):
+            try:
+                value = hint.validate(
+                    value, schema, allow_multiple, allow_coerce
+                )
+            except ValueError as e:
+                if idx + 1 == len(allowed):
+                    raise e
+            else:
+                break
+    return value
 
 
 def _check_inclusion(value, allowed, schema, allow_multiple, allow_coerce):

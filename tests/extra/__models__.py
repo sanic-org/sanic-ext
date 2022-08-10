@@ -39,6 +39,26 @@ class ModelUnionModels:
 
 
 @dataclass
+class ModelUnionStrInt:
+    foo: Union[str, int]
+
+
+@dataclass
+class ModelUnionIntStr:
+    foo: Union[int, str]
+
+
+@dataclass
+class ModelOptionalUnionStrInt:
+    foo: Optional[Union[str, int]]
+
+
+@dataclass
+class ModelOptionalUnionIntStr:
+    foo: Optional[Union[int, str]]
+
+
+@dataclass
 class ModelListStr:
     foo: List[str]
 
@@ -128,3 +148,11 @@ if sys.version_info > (3, 10):
     @dataclass
     class ModelUnionTypeStrNone:
         foo: str | None
+
+    @dataclass
+    class ModelUnionTypeStrIntNone:
+        foo: str | int | None
+
+    @dataclass
+    class ModelUnionTypeStrInt:
+        foo: str | int
