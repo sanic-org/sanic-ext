@@ -13,3 +13,10 @@ def is_generic(item):
         or isinstance(item, UnionType)
         or hasattr(item, "__origin__")
     )
+
+
+def is_optional(item):
+    if is_generic(item):
+        args = typing.get_args(item)
+        return len(args) == 2 and type(None) in args
+    return False

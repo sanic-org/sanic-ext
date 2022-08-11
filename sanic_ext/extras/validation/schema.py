@@ -94,10 +94,21 @@ def parse_hint(hint, field: Optional[Union[Field, Attribute]] = None):
         nullable = origin in (Union, UnionType) and type(None) in args
 
         if nullable:
-            allowed = (args[0],)
+            allowed = tuple(
+                [
+                    arg
+                    for arg in args
+                    if is_generic(arg) or not isinstance(None, arg)
+                ]
+            )
         elif origin is dict:
             allowed = (args[1],)
-        elif origin is list or origin is Literal or origin is Union:
+        elif (
+            origin is list
+            or origin is Literal
+            or origin is Union
+            or origin is UnionType
+        ):
             allowed = args
 
     return Hint(
