@@ -5,6 +5,7 @@ from os.path import abspath, dirname, realpath
 from sanic import Request
 from sanic.blueprints import Blueprint
 from sanic.config import Config
+from sanic.log import logger
 from sanic.response import html, json
 
 from sanic_ext.extensions.openapi.builders import (
@@ -132,13 +133,23 @@ def blueprint_factory(config: Config):
                     if operation._autodoc and (
                         parameters := operation._autodoc.get("parameters")
                     ):
-                        description = None
                         for param in parameters:
-                            if param["name"] == _parameter.name:
-                                description = param.get("description")
+                            if param.pop("name", None) == _parameter.name:
+                                kwargs["description"] = param.get(
+                                    "description"
+                                )
+                                kwargs["required"] = param.get("required")
+                                if schema := param.get("schema"):
+                                    logger.warning(
+                                        f"Ignoring the schema {schema} in "
+                                        f"'{route_name}' for "
+                                        f"'{_parameter.name}'. "
+                                        "Instead of using the definition in "
+                                        "docstring definition, Sanic will use "
+                                        "the actual schema defined for this "
+                                        "parameter on the route."
+                                    )
                                 break
-                        if description:
-                            kwargs["description"] = description
 
                     operation.parameter(
                         _parameter.name, _parameter.cast, "path", **kwargs
