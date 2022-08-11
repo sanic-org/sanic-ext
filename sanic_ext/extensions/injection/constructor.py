@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from inspect import isawaitable
+from inspect import iscoroutine
 from typing import (
     TYPE_CHECKING,
     Any,
@@ -44,7 +44,7 @@ class Constructor:
             if self.pass_kwargs:
                 args.update(kwargs)
             retval = self.func(request, **args)
-            if isawaitable(retval):
+            if iscoroutine(retval):
                 retval = await retval
             return retval
         except TypeError as e:
@@ -136,6 +136,6 @@ async def do_cast(_type, constructor, request, **kwargs):
     args = [request] if constructor else []
 
     retval = cast(*args, **kwargs)
-    if isawaitable(retval):
+    if iscoroutine(retval):
         retval = await retval
     return retval
