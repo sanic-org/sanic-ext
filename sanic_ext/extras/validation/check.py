@@ -4,6 +4,7 @@ from dataclasses import _HAS_DEFAULT_FACTORY  # type: ignore
 from typing import Any, Literal, NamedTuple, Optional, Tuple, Union, get_args
 
 from sanic.utils import str_to_bool
+
 from sanic_ext.utils.typing import UnionType, is_generic, is_optional
 
 MISSING: Tuple[Any, ...] = (_HAS_DEFAULT_FACTORY,)
