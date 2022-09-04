@@ -3,6 +3,7 @@ from __future__ import annotations
 from dataclasses import _HAS_DEFAULT_FACTORY  # type: ignore
 from typing import Any, Literal, NamedTuple, Optional, Tuple, Union, get_args
 
+from sanic.utils import str_to_bool
 from sanic_ext.utils.typing import UnionType, is_generic, is_optional
 
 MISSING: Tuple[Any, ...] = (_HAS_DEFAULT_FACTORY,)
@@ -133,6 +134,8 @@ class Hint(NamedTuple):
         coerce_type = self.hint
         if is_optional(coerce_type):
             coerce_type = get_args(self.hint)[0]
+        elif coerce_type is bool:
+            coerce_type = str_to_bool
         return coerce_type
 
 
