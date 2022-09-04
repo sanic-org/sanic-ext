@@ -135,7 +135,7 @@ class Hint(NamedTuple):
         coerce_type = self.hint
         if is_optional(coerce_type):
             coerce_type = get_args(self.hint)[0]
-        elif coerce_type is bool:
+        if coerce_type is bool:
             coerce_type = str_to_bool
         return coerce_type
 
