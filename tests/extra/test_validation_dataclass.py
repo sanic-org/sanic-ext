@@ -358,3 +358,28 @@ def test_validate_decorator_query(app, query_value, expected):
     _, response = app.test_client.get(f"/method?flag={query_value}")
     assert response.status == 200
     assert response.json["is_flagged"] is expected
+
+
+@pytest.mark.parametrize(
+    "query,expected",
+    (
+        ("?maybe=true", True),
+        ("?maybe=false", False),
+        ("?maybe=null", None),
+        ("?maybe=None", None),
+        ("?maybe=", None),
+        ("", None),
+    ),
+)
+def test_validate_decorator_query_optional_bool(app, query, expected):
+    @dataclass
+    class Query:
+        maybe: Optional[bool] = None
+
+    @app.get("/")
+    @validate(query=Query)
+    async def handler(_, query: Query):
+        return json({"is_flagged": query.maybe})
+
+    _, response = app.test_client.get(f"/{query}")
+    assert response.json["is_flagged"] is expected

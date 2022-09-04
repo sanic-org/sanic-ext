@@ -68,6 +68,8 @@ class Hint(NamedTuple):
                 else:
                     raise e
         else:
+            if allow_coerce:
+                value = self.coerce(value, allow_multiple)
             value = _check_nullability(
                 value,
                 self.nullable,
@@ -105,12 +107,9 @@ class Hint(NamedTuple):
                         allow_coerce,
                     )
 
-            if allow_coerce:
-                value = self.coerce(value)
-
         return value
 
-    def coerce(self, value):
+    def coerce(self, value, allow_multiple=False):
         if is_generic(self.coerce_type):
             args = get_args(self.coerce_type)
             if type(None) in args and value is None:
@@ -118,16 +117,27 @@ class Hint(NamedTuple):
             coerce_types = [arg for arg in args if not isinstance(None, arg)]
         else:
             coerce_types = [self.coerce_type]
+
+        if self.nullable:
+            value = self._do_coerce(value, str_to_none)
+            if value is None or (
+                isinstance(value, list)
+                and allow_multiple
+                and all(val is None for val in value)
+            ):
+                return value
+
         for coerce_type in coerce_types:
+            if isinstance(value, coerce_type):
+                return value
+            coercer = self.get_coercer(coerce_type)
             try:
-                if isinstance(value, list):
-                    value = [coerce_type(item) for item in value]
-                else:
-                    value = coerce_type(value)
+                value = self._do_coerce(value, coercer, raise_exception=True)
             except (ValueError, TypeError):
                 ...
             else:
                 return value
+
         return value
 
     @property
@@ -135,9 +145,31 @@ class Hint(NamedTuple):
         coerce_type = self.hint
         if is_optional(coerce_type):
             coerce_type = get_args(self.hint)[0]
+        return coerce_type
+
+    @staticmethod
+    def _do_coerce(value, coercer, raise_exception=False):
+        try:
+            if isinstance(value, list):
+                value = [coercer(item) for item in value]
+            else:
+                value = coercer(value)
+        except (ValueError, TypeError):
+            if raise_exception:
+                raise
+        return value
+
+    @staticmethod
+    def get_coercer(coerce_type):
         if coerce_type is bool:
             coerce_type = str_to_bool
         return coerce_type
+
+
+def str_to_none(value: Optional[str]):
+    if value is None or value.lower() in ("null", "none", ""):
+        return None
+    raise ValueError(f"Could not convert {value} to None")
 
 
 def check_data(model, data, schema, allow_multiple=False, allow_coerce=False):
@@ -186,7 +218,17 @@ def _check_nullability(
 ):
     if not nullable and value is None:
         raise ValueError("Value cannot be None")
-    if nullable and value is not None:
+    if (
+        nullable
+        and (value is not None)
+        and (
+            allow_multiple is False
+            or (
+                isinstance(value, list)
+                and any(val is not None for val in value)
+            )
+        )
+    ):
         exc = None
         for hint in allowed:
             try:
