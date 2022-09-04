@@ -295,7 +295,7 @@ def test_modeling_union_type_ModelUnionTypeStrInt():
         check_data(models.ModelUnionTypeStrInt, {"foo": 1.1}, schema)
 
 
-def test_validate_decorator(app):
+def test_validate_decorator_json(app):
     @dataclass
     class Pet:
         name: str
@@ -318,3 +318,43 @@ def test_validate_decorator(app):
     _, response = app.test_client.post("/method", json={"name": "Snoopy"})
     assert response.status == 200
     assert response.json["is_pet"]
+
+
+@pytest.mark.parametrize(
+    "query_value,expected",
+    (
+        ("true", True),
+        ("True", True),
+        ("1", True),
+        ("Yes", True),
+        ("y", True),
+        ("false", False),
+        ("False", False),
+        ("0", False),
+        ("No", False),
+        ("n", False),
+    ),
+)
+def test_validate_decorator_query(app, query_value, expected):
+    @dataclass
+    class Query:
+        flag: bool
+
+    @app.get("/function")
+    @validate(query=Query)
+    async def handler(_, query: Query):
+        return json({"is_flagged": query.flag})
+
+    class MethodView(HTTPMethodView, attach=app, uri="/method"):
+        decorators = [validate(query=Query)]
+
+        async def get(self, _, query: Query):
+            return json({"is_flagged": query.flag})
+
+    _, response = app.test_client.get(f"/function?flag={query_value}")
+    assert response.status == 200
+    assert response.json["is_flagged"] is expected
+
+    _, response = app.test_client.get(f"/method?flag={query_value}")
+    assert response.status == 200
+    assert response.json["is_flagged"] is expected
