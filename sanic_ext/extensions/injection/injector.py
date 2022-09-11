@@ -22,6 +22,7 @@ def add_injection(app: Sanic, injection_registry: InjectionRegistry) -> None:
             async def inject_kwargs(request, route, kwargs, **_):
                 nonlocal signature_registry
 
+                injections = None
                 for name in (
                     route.name,
                     f"{route.name}_{request.method.lower()}",
