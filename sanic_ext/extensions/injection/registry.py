@@ -1,7 +1,10 @@
 from typing import Any, Callable, Dict, Optional, Tuple, Type
 
 from collections import defaultdict
+
+from sanic.exceptions import SanicException
 from sanic.signals import Event
+
 from .constructor import Constructor
 
 
@@ -43,7 +46,10 @@ class InjectionRegistry:
             constructor = Constructor(constructor)
 
         if self.get(_type) is not None:
-            raise Exception()  # TODO: Check which exception
+            raise SanicException(
+                "There is already an injection registered for "
+                f"{_type.__name__}"
+            )
 
         self._registry[signal][_type] = constructor
 
