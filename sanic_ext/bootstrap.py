@@ -143,7 +143,7 @@ class Extend:
         )
         if signal.value not in allowed_signals:
             raise SanicException(
-                "You may only add_dependency for the following signals: "
+                "You may only call add_dependency with these signals: "
                 f"{allowed_signals}"
             )
 
