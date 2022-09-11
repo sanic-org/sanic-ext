@@ -137,6 +137,12 @@ class Extend:
         if isinstance(signal, str):
             signal = Event(signal)
 
+        if signal.value not in (
+            "http.routing.after",
+            "http.handler.before",
+        ):
+            raise Exception()  # TODO: Check which exception
+
         self._injection_registry.register(type, constructor, signal)
 
     def dependency(self, obj: Any, name: Optional[str] = None) -> None:
