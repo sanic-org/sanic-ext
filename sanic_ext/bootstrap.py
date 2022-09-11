@@ -137,11 +137,15 @@ class Extend:
         if isinstance(signal, str):
             signal = Event(signal)
 
-        if signal.value not in (
+        allowed_signals = (
             "http.routing.after",
             "http.handler.before",
-        ):
-            raise Exception()  # TODO: Check which exception
+        )
+        if signal.value not in allowed_signals:
+            raise SanicException(
+                "You may only add_dependency for the following signals: "
+                f"{allowed_signals}"
+            )
 
         self._injection_registry.register(type, constructor, signal)
 
