@@ -4,7 +4,7 @@ from functools import partial
 from inspect import getmembers, isclass, isfunction
 from typing import Any, Callable, Dict, Optional, Tuple, Type, get_type_hints
 
-from sanic import Sanic
+from sanic import Request, Sanic
 from sanic.constants import HTTP_METHODS
 
 from sanic_ext.extensions.injection.constructor import gather_args
@@ -22,8 +22,12 @@ def add_injection(app: Sanic, injection_registry: InjectionRegistry) -> None:
         for signal in injection_registry.signals:
 
             @app.signal(signal)
-            async def inject_kwargs(request, route, kwargs, **_):
+            async def inject_kwargs(request: Request, **_):
                 injections = None
+
+                route = request.route
+                # ↓ With the allowed signals this is true
+                assert route is not None
 
                 for name in (
                     route.name,
@@ -35,7 +39,7 @@ def add_injection(app: Sanic, injection_registry: InjectionRegistry) -> None:
 
                 if injections:
                     injected_args = await gather_args(
-                        injections, request, **kwargs
+                        injections, request, **request.match_info
                     )
                     request.match_info.update(injected_args)
 
