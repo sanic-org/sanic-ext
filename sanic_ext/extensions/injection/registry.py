@@ -41,6 +41,10 @@ class InjectionRegistry:
     ) -> None:
         if constructor:
             constructor = Constructor(constructor)
+
+        if self.get(_type) is not None:
+            raise Exception()  # TODO: Check which exception
+
         self._registry[signal][_type] = constructor
 
     def finalize(self, allowed_types):
