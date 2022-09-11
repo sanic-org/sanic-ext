@@ -11,17 +11,23 @@ class InjectionRegistry:
             Event, Dict[Type, Optional[Callable[..., Any]]]
         ] = defaultdict(dict)
 
-    # def __getitem__(self, key):
-    #     return self._registry[key]
+    def __getitem__(self, key):
+        item = self.get(key)
+        if item is None:
+            raise KeyError(key)
+        return item
 
-    # def __str__(self) -> str:
-    #     return str(self._registry)
+    def __str__(self) -> str:
+        return str(self._registry)
 
-    # def __contains__(self, other: Any):
-    #     return other in self._registry
+    def __contains__(self, other: Any):
+        return self.get(other) is not None
 
-    # def get(self, key, default=None):
-    #     return self._registry.get(key, default)
+    def get(self, key, default=None):
+        for signal_registry in self._registry.values():
+            if key in signal_registry:
+                return signal_registry[key]
+        return default
 
     @property
     def signals(self):
