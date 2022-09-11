@@ -18,12 +18,13 @@ def add_injection(app: Sanic, injection_registry: InjectionRegistry) -> None:
     @app.before_server_start
     def register_needed_signals(app: Sanic, _):
         app.signal_router.reset()
+
         for signal in injection_registry.signals:
+
             @app.signal(signal)
             async def inject_kwargs(request, route, kwargs, **_):
-                nonlocal signature_registry
-
                 injections = None
+
                 for name in (
                     route.name,
                     f"{route.name}_{request.method.lower()}",
@@ -37,6 +38,7 @@ def add_injection(app: Sanic, injection_registry: InjectionRegistry) -> None:
                         injections, request, **kwargs
                     )
                     request.match_info.update(injected_args)
+
         app.signal_router.finalize()
 
     @app.after_server_start
