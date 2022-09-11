@@ -15,6 +15,27 @@ from .registry import InjectionRegistry, SignatureRegistry
 def add_injection(app: Sanic, injection_registry: InjectionRegistry) -> None:
     signature_registry = _setup_signature_registry(app, injection_registry)
 
+    @app.before_server_start
+    def register_needed_signals(app: Sanic, _):
+        for signal in injection_registry.signals:
+            @app.signal(signal)
+            async def inject_kwargs(request, route, kwargs, **_):
+                nonlocal signature_registry
+
+                for name in (
+                    route.name,
+                    f"{route.name}_{request.method.lower()}",
+                ):
+                    injections = signature_registry.get(name)
+                    if injections:
+                        break
+
+                if injections:
+                    injected_args = await gather_args(
+                        injections, request, **kwargs
+                    )
+                    request.match_info.update(injected_args)
+
     @app.after_server_start
     async def finalize_injections(app: Sanic, _):
         router_converters = set(
@@ -29,19 +50,6 @@ def add_injection(app: Sanic, injection_registry: InjectionRegistry) -> None:
                 if return_type := hints.get("return"):
                     router_types.add(return_type)
         injection_registry.finalize(router_types)
-
-    @app.signal("http.routing.after")
-    async def inject_kwargs(request, route, kwargs, **_):
-        nonlocal signature_registry
-
-        for name in (route.name, f"{route.name}_{request.method.lower()}"):
-            injections = signature_registry.get(name)
-            if injections:
-                break
-
-        if injections:
-            injected_args = await gather_args(injections, request, **kwargs)
-            request.match_info.update(injected_args)
 
 
 def _http_method_predicate(member):

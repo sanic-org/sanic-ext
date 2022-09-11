@@ -23,6 +23,10 @@ class InjectionRegistry:
     # def get(self, key, default=None):
     #     return self._registry.get(key, default)
 
+    @property
+    def signals(self):
+        return self._registry.keys()
+
     def register(
         self,
         _type: Type,
