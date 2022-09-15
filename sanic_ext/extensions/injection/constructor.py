@@ -77,7 +77,10 @@ class Constructor:
                 self.pass_kwargs = True
             if is_optional(annotation):
                 annotation = get_args(annotation)[0]
-            if isclass(annotation) and issubclass(annotation, Request):
+            if not isclass(annotation):
+                missing.append((param, annotation))
+                continue
+            if issubclass(annotation, Request):
                 self.request_arg = param
             if (
                 annotation not in self.EXEMPT_ANNOTATIONS
@@ -87,9 +90,9 @@ class Constructor:
                 dependency = injection_registry.get(annotation)
                 if not dependency:
                     missing.append((param, annotation))
+                    continue
                 self.injections[param] = (annotation, dependency)
 
-        print(self.func, self.injections)
         if missing:
             dependencies = "\n".join(
                 [f"  - {param}: {annotation}" for param, annotation in missing]
