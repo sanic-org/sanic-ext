@@ -8,8 +8,6 @@ from sanic_ext.utils.typing import UnionType, is_generic, is_optional
 MISSING: Tuple[Any, ...] = (_HAS_DEFAULT_FACTORY,)
 
 try:
-    from pydantic import BaseModel
-
     PYDANTIC = True
 except ImportError:
     PYDANTIC = False
@@ -244,13 +242,3 @@ def _check_dict(value, allowed, hint, schema, allow_multiple, allow_coerce):
         except (ValueError, TypeError):
             ...
     raise ValueError(f"Value '{value}' must be a {hint}")
-
-
-def is_pydantic(model):
-    return PYDANTIC and (
-        issubclass(model, BaseModel) or hasattr(model, "__pydantic_model__")
-    )
-
-
-def is_attrs(model):
-    return ATTRS and (hasattr(model, "__attrs_attrs__"))
