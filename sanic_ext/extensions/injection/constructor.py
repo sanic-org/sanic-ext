@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import is_dataclass
-from inspect import isclass, iscoroutine, signature
+from inspect import isclass, iscoroutine
 from typing import (
     TYPE_CHECKING,
     Any,
@@ -12,7 +12,6 @@ from typing import (
     Tuple,
     Type,
     get_args,
-    get_origin,
     get_type_hints,
 )
 
