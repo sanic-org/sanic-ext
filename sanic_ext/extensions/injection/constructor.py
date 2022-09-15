@@ -151,7 +151,7 @@ class Constructor:
             return get_type_hints(self.func)
         elif isclass(self.func):
             return get_type_hints(self.func.__init__)
-        raise Exception(">>>>")
+        raise InitError(f"Cannot get type hints for {self.func}")
 
 
 async def gather_args(injections, request, **kwargs) -> Dict[str, Any]:
