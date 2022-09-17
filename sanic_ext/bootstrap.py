@@ -6,9 +6,9 @@ from typing import Any, Callable, Dict, List, Optional, Type, Union
 from warnings import warn
 
 from sanic import Sanic, __version__
-from sanic.signals import Event
 from sanic.exceptions import SanicException
 from sanic.log import logger
+from sanic.signals import Event
 
 from sanic_ext.config import Config, add_fallback_config
 from sanic_ext.extensions.base import Extension
@@ -129,7 +129,7 @@ class Extend:
         self,
         type: Type,
         constructor: Optional[Callable[..., Any]] = None,
-        signal: Union[str, Event] = Event.HTTP_ROUTING_AFTER
+        signal: Union[str, Event] = Event.HTTP_ROUTING_AFTER,
     ) -> None:
         if not self._injection_registry:
             raise SanicException("Injection extension not enabled")
