@@ -5,6 +5,8 @@ from typing import Any, Dict, List, Optional, Sequence, Union
 
 from sanic import Sanic
 from sanic.config import Config as SanicConfig
+from sanic.exceptions import SanicException
+from sanic.signals import Event
 
 
 class Config(SanicConfig):
@@ -25,6 +27,7 @@ class Config(SanicConfig):
         http_auto_head: bool = True,
         http_auto_options: bool = True,
         http_auto_trace: bool = False,
+        injection_signal: Union[str, Event] = Event.HTTP_ROUTING_AFTER,
         oas: bool = True,
         oas_autodoc: bool = True,
         oas_ignore_head: bool = True,
@@ -63,6 +66,7 @@ class Config(SanicConfig):
         self.HTTP_AUTO_HEAD = http_auto_head
         self.HTTP_AUTO_OPTIONS = http_auto_options
         self.HTTP_AUTO_TRACE = http_auto_trace
+        self.INJECTION_SIGNAL = injection_signal
         self.OAS = oas
         self.OAS_AUTODOC = oas_autodoc
         self.OAS_IGNORE_HEAD = oas_ignore_head
@@ -90,6 +94,15 @@ class Config(SanicConfig):
         if isinstance(self.TRACE_EXCLUDED_HEADERS, str):
             self.TRACE_EXCLUDED_HEADERS = tuple(
                 self.TRACE_EXCLUDED_HEADERS.split(",")
+            )
+
+        if isinstance(self.INJECTION_SIGNAL, str):
+            self.INJECTION_SIGNAL = Event(self.INJECTION_SIGNAL)
+
+        valid_injection_signals = ("http.handler.before", "http.routing.after")
+        if self.INJECTION_SIGNAL.value not in valid_injection_signals:
+            raise SanicException(
+                f"Injection signal may only be one of {valid_injection_signals}"
             )
 
         self.load({key.upper(): value for key, value in kwargs.items()})
