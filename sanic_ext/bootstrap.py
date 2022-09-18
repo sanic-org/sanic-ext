@@ -8,7 +8,6 @@ from warnings import warn
 from sanic import Sanic, __version__
 from sanic.exceptions import SanicException
 from sanic.log import logger
-from sanic.signals import Event
 
 from sanic_ext.config import Config, add_fallback_config
 from sanic_ext.extensions.base import Extension
@@ -129,25 +128,10 @@ class Extend:
         self,
         type: Type,
         constructor: Optional[Callable[..., Any]] = None,
-        signal: Union[str, Event] = Event.HTTP_ROUTING_AFTER,
     ) -> None:
         if not self._injection_registry:
             raise SanicException("Injection extension not enabled")
-
-        if isinstance(signal, str):
-            signal = Event(signal)
-
-        allowed_signals = (
-            "http.routing.after",
-            "http.handler.before",
-        )
-        if signal.value not in allowed_signals:
-            raise SanicException(
-                "You may only call add_dependency with these signals: "
-                f"{allowed_signals}"
-            )
-
-        self._injection_registry.register(type, constructor, signal)
+        self._injection_registry.register(type, constructor)
 
     def dependency(self, obj: Any, name: Optional[str] = None) -> None:
         if not name:

@@ -1,63 +1,35 @@
-from collections import defaultdict
 from typing import Any, Callable, Dict, Optional, Tuple, Type
-
-from sanic.exceptions import SanicException
-from sanic.helpers import _default
-from sanic.signals import Event
 
 from .constructor import Constructor
 
 
 class InjectionRegistry:
     def __init__(self):
-        self._registry: Dict[
-            Event, Dict[Type, Optional[Callable[..., Any]]]
-        ] = defaultdict(dict)
+        self._registry: Dict[Type, Optional[Callable[..., Any]]] = {}
 
     def __getitem__(self, key):
-        item = self.get(key, default=_default)
-        if item is _default:
-            raise KeyError(key)
-        return item
+        return self._registry[key]
 
     def __str__(self) -> str:
         return str(self._registry)
 
     def __contains__(self, other: Any):
-        return self.get(other, default=_default) is not _default
+        return other in self._registry
 
     def get(self, key, default=None):
-        for signal_registry in self._registry.values():
-            if key in signal_registry:
-                return signal_registry[key]
-        return default
-
-    @property
-    def signals(self):
-        return self._registry.keys()
+        return self._registry.get(key, default)
 
     def register(
-        self,
-        _type: Type,
-        constructor: Optional[Callable[..., Any]],
-        signal: Event,
+        self, _type: Type, constructor: Optional[Callable[..., Any]]
     ) -> None:
         if constructor:
             constructor = Constructor(constructor)
-
-        if self.get(_type, default=_default) is not _default:
-            raise SanicException(
-                "There is already an injection registered for "
-                f"{_type.__name__}"
-            )
-
-        self._registry[signal][_type] = constructor
+        self._registry[_type] = constructor
 
     def finalize(self, allowed_types):
-        for signal_registry in self._registry.values():
-            for constructor in signal_registry.values():
-                if isinstance(constructor, Constructor):
-                    constructor.prepare(self, allowed_types)
+        for constructor in self._registry.values():
+            if isinstance(constructor, Constructor):
+                constructor.prepare(self, allowed_types)
 
     @property
     def length(self):

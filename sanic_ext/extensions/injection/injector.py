@@ -4,60 +4,16 @@ from functools import partial
 from inspect import getmembers, isclass, isfunction
 from typing import Any, Callable, Dict, Optional, Tuple, Type, get_type_hints
 
-from sanic import Request, Sanic
+from sanic import Sanic
 from sanic.constants import HTTP_METHODS
-from sanic.signals import Event
 
 from sanic_ext.extensions.injection.constructor import gather_args
 
 from .registry import InjectionRegistry, SignatureRegistry
 
-BEFORE_HANDLER_EXISTS = False
-try:  # Only available in Sanic >= XX.X
-    Event.HTTP_HANDLER_BEFORE
-except AttributeError:
-    ...
-else:
-    BEFORE_HANDLER_EXISTS = True
-
 
 def add_injection(app: Sanic, injection_registry: InjectionRegistry) -> None:
     signature_registry = _setup_signature_registry(app, injection_registry)
-
-    async def inject_kwargs(request: Request, **_):
-        injections = None
-
-        route = request.route
-        # ↓ With the allowed signals this is true
-        assert route is not None
-
-        for name in (
-            route.name,
-            f"{route.name}_{request.method.lower()}",
-        ):
-            injections = signature_registry.get(name)
-            if injections:
-                break
-
-        if injections:
-            injected_args = await gather_args(
-                injections, request, **request.match_info
-            )
-            request.match_info.update(injected_args)
-
-    @app.signal(Event.HTTP_ROUTING_AFTER)
-    async def after_routing_inject(request: Request, **_):
-        if Event.HTTP_ROUTING_AFTER not in injection_registry.signals:
-            return
-        return await inject_kwargs(request)
-
-    if BEFORE_HANDLER_EXISTS:
-
-        @app.signal(Event.HTTP_HANDLER_BEFORE)
-        async def before_handler_inject(request: Request, **_):
-            if Event.HTTP_HANDLER_BEFORE not in injection_registry.signals:
-                return
-            return await inject_kwargs(request)
 
     @app.after_server_start
     async def finalize_injections(app: Sanic, _):
@@ -73,6 +29,19 @@ def add_injection(app: Sanic, injection_registry: InjectionRegistry) -> None:
                 if return_type := hints.get("return"):
                     router_types.add(return_type)
         injection_registry.finalize(router_types)
+
+    @app.signal("http.routing.after")
+    async def inject_kwargs(request, route, kwargs, **_):
+        nonlocal signature_registry
+
+        for name in (route.name, f"{route.name}_{request.method.lower()}"):
+            injections = signature_registry.get(name)
+            if injections:
+                break
+
+        if injections:
+            injected_args = await gather_args(injections, request, **kwargs)
+            request.match_info.update(injected_args)
 
 
 def _http_method_predicate(member):
