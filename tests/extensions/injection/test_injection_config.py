@@ -1,7 +1,9 @@
-import pytest
 from unittest.mock import Mock
+
+import pytest
 from sanic.exceptions import SanicException
 from sanic.signals import Event
+
 from sanic_ext.config import Config
 from sanic_ext.extensions.injection.injector import add_injection
 
