@@ -44,13 +44,10 @@ class HealthState:
         if not self.last:
             return
 
-        if self.last < (
-            datetime.now()
-            - (
-                timedelta(seconds=HealthMonitor.MISSED_THRESHHOLD)
-                * (self.misses + 1)
-            )
-        ):
+        threshhold = timedelta(
+            seconds=(HealthMonitor.MISSED_THRESHHOLD * (self.misses + 1))
+        )
+        if self.last < (datetime.now() - threshhold):
             self.missed()
 
     def reset(self) -> None:
@@ -60,7 +57,7 @@ class HealthState:
 
 def send_healthy(name, queue):
     health = (name, datetime.now().timestamp())
-    logger.debug(f"Sending health: {health}", extra={"verbosity": 2})
+    logger.debug(f"Sending health: {health}", extra={"verbosity": 1})
     try:
         queue.put_nowait(health)
     except Full:
@@ -79,16 +76,14 @@ async def health_check(app: Sanic):
 
 
 async def start_health_check(app: Sanic):
-    app.add_task(health_check(app))
+    app.add_task(health_check(app), name="health_check")
 
 
 async def prepare_health_monitor(app, *_):
-    print(">>>>>>>>>>>>>>>>>>>>>> prepare_health_monitor")
     HealthMonitor.prepare(app)
 
 
 async def setup_health_monitor(app, *_):
-    print(">>>>>>>>>>>>>>>>>>>>>> setup_health_monitor")
     health = HealthMonitor(app)
     process_names = [
         process.name for process in app.manager.transient_processes
@@ -110,7 +105,7 @@ class HealthMonitor:
 
     def __init__(self, app: Sanic):
         self.run = True
-        self.restart_publisher = app.manager.restart_publisher
+        self.monitor_publisher = app.manager.monitor_publisher
 
     def __call__(self, process_names, health_queue) -> None:
         signal_func(SIGINT, self.stop)
@@ -134,7 +129,7 @@ class HealthMonitor:
                     state.check()
                 except Stale:
                     state.reset()
-                    self.restart_publisher.send(state.name)
+                    self.monitor_publisher.send(state.name)
 
     def stop(self, *_):
         self.run = False

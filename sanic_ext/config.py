@@ -21,7 +21,11 @@ class Config(SanicConfig):
         cors_send_wildcard: bool = False,
         cors_supports_credentials: bool = False,
         cors_vary_header: bool = True,
-        health: bool = True,
+        health: bool = False,
+        health_endpoint: bool = True,
+        health_monitor: bool = True,
+        health_url_prefix: str = "/__health__",
+        health_uri_to_info: str = "",
         http_all_methods: bool = True,
         http_auto_head: bool = True,
         http_auto_options: bool = True,
@@ -61,6 +65,10 @@ class Config(SanicConfig):
         self.CORS_SUPPORTS_CREDENTIALS = cors_supports_credentials
         self.CORS_VARY_HEADER = cors_vary_header
         self.HEALTH = health
+        self.HEALTH_ENDPOINT = health_endpoint
+        self.HEALTH_MONITOR = health_monitor
+        self.HEALTH_URL_PREFIX = health_url_prefix
+        self.HEALTH_URI_TO_INFO = health_uri_to_info
         self.HTTP_ALL_METHODS = http_all_methods
         self.HTTP_AUTO_HEAD = http_auto_head
         self.HTTP_AUTO_OPTIONS = http_auto_options
