@@ -8,11 +8,6 @@ from sanic_ext.utils.typing import UnionType, is_generic, is_optional
 MISSING: Tuple[Any, ...] = (_HAS_DEFAULT_FACTORY,)
 
 try:
-    PYDANTIC = True
-except ImportError:
-    PYDANTIC = False
-
-try:
     import attrs  # noqa
 
     NOTHING = attrs.NOTHING

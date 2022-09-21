@@ -92,7 +92,7 @@ def add_auto_handlers(
                                 name=name,
                                 host=host,
                             )
-            app.router.finalize()
+            app.finalize()
 
         if auto_trace:
             app.router.reset()
@@ -104,7 +104,7 @@ def add_auto_handlers(
                         methods=["TRACE"],
                         strict_slashes=group.strict,
                     )
-            app.router.finalize()
+            app.finalize()
 
         if auto_options:
             app.router.reset()
@@ -138,4 +138,4 @@ def add_auto_handlers(
                             name=name,
                             host=host,
                         )
-            app.router.finalize()
+            app.finalize()
