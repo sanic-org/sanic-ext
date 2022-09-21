@@ -3,6 +3,7 @@ from __future__ import annotations
 import asyncio
 from dataclasses import dataclass
 from itertools import count
+from typing import Optional
 
 import pytest
 from sanic import Request, json, text
@@ -34,8 +35,16 @@ class Person:
     age: int
 
     @classmethod
-    async def create(cls, request, person_id: int) -> Person:
+    async def create(cls, person_id: int) -> Person:
         return cls(person_id=PersonID(person_id), name="noname", age=111)
+
+
+@dataclass
+class AsyncName:
+    name: str
+
+    def __await__(self):
+        return self
 
 
 counter = count()
@@ -87,6 +96,35 @@ class E:
     def create(cls, request: Request, c: C, d: D):
         next(counter)
         return cls(c, d)
+
+
+class Alpha:
+    ...
+
+
+class Beta:
+    def __init__(self, alpha: Alpha) -> None:
+        self.alpha = alpha
+
+
+class Gamma:
+    def __init__(self, beta: Beta, request: Optional[Request] = None) -> None:
+        self.beta = beta
+        self.request = request
+
+
+class Delta:
+    def __init__(self, gamma: Gamma, request: Request) -> None:
+        self.gamma = gamma
+        self.request = request
+
+
+def make_gamma_with_request(beta: Beta, request: Request):
+    return Gamma(beta, request)
+
+
+def make_gamma_without_request(beta: Beta):
+    return Gamma(beta)
 
 
 def test_injection_not_allowed_when_ext_disabled(bare_app):
@@ -235,3 +273,125 @@ def test_injection_on_websocket(app):
 
     request, response = app.test_client.websocket("/foo")
     assert ev.is_set()
+
+
+def test_injection_of_awaitable_variable_in_do_cast(app):
+    """Test for do_cast() iscoroutine() check"""
+
+    @app.get("/person/<name:str>")
+    def handler(request, name: AsyncName):
+        request.ctx.name = name
+        return text(name.name)
+
+    app.ext.add_dependency(AsyncName)
+
+    request, response = app.test_client.get("/person/george")
+
+    assert response.body == b"george"
+    assert isinstance(request.ctx.name, AsyncName)
+    assert request.ctx.name.name == "george"
+
+
+def test_injection_of_awaitable_variable_in_call(app):
+    """Test for __call__() iscoroutine() check"""
+
+    @app.get("/person/<name:str>")
+    def handler(request, name: AsyncName):
+        request.ctx.name = name
+        return text(name.name)
+
+    def test():
+        return AsyncName("george")
+
+    app.ext.dependency(test())
+
+    request, response = app.test_client.get("/person/george")
+
+    assert response.body == b"george"
+    assert isinstance(request.ctx.name, AsyncName)
+    assert request.ctx.name.name == "george"
+
+
+def test_injection_class_constructors(app):
+    app.ext.add_dependency(Alpha)
+    app.ext.add_dependency(Beta)
+
+    @app.get("/")
+    def handler(request: Request, beta: Beta):
+        return json({"is_beta": isinstance(beta, Beta)})
+
+    _, response = app.test_client.get("/")
+    assert response.json == {"is_beta": True}
+
+
+def test_injection_class_constructors_with_optional_request(app):
+    app.ext.add_dependency(Alpha)
+    app.ext.add_dependency(Beta)
+    app.ext.add_dependency(Gamma)
+
+    @app.get("/")
+    def handler(request: Request, gamma: Gamma):
+        return json(
+            {
+                "is_gamma": isinstance(gamma, Gamma),
+                "has_request": bool(gamma.request),
+            }
+        )
+
+    _, response = app.test_client.get("/")
+    assert response.json == {"is_gamma": True, "has_request": True}
+
+
+def test_injection_class_constructors_with_request(app):
+    app.ext.add_dependency(Alpha)
+    app.ext.add_dependency(Beta)
+    app.ext.add_dependency(Gamma)
+    app.ext.add_dependency(Delta)
+
+    @app.get("/")
+    def handler(request: Request, delta: Delta):
+        return json(
+            {
+                "is_delta": isinstance(delta, Delta),
+                "has_request": bool(delta.request),
+            }
+        )
+
+    _, response = app.test_client.get("/")
+    assert response.json == {"is_delta": True, "has_request": True}
+
+
+def test_injection_class_constructors_with_func_and_request(app):
+    app.ext.add_dependency(Alpha)
+    app.ext.add_dependency(Beta)
+    app.ext.add_dependency(Gamma, make_gamma_with_request)
+
+    @app.get("/")
+    def handler(request: Request, gamma: Gamma):
+        return json(
+            {
+                "is_gamma": isinstance(gamma, Gamma),
+                "has_request": bool(gamma.request),
+            }
+        )
+
+    _, response = app.test_client.get("/")
+    assert response.json == {"is_gamma": True, "has_request": True}
+
+
+def test_injection_class_constructors_with_func_and_no_request(app):
+    app.ext.add_dependency(Alpha)
+    app.ext.add_dependency(Beta)
+    app.ext.add_dependency(Gamma, make_gamma_without_request)
+
+    @app.get("/")
+    def handler(request: Request, gamma: Gamma):
+        return json(
+            {
+                "is_gamma": isinstance(gamma, Gamma),
+                "has_request": bool(gamma.request),
+            }
+        )
+
+    _, response = app.test_client.get("/")
+    assert response.json == {"is_gamma": True, "has_request": False}

@@ -122,6 +122,26 @@ def test_should_not_hydrate(data):
         (models.ModelUnionModels, False, {"foo": 1}),
         (models.ModelUnionModels, False, {"foo": 1.1}),
         (models.ModelUnionModels, False, {"foo": None}),
+        (models.ModelUnionStrInt, True, {"foo": "1"}),
+        (models.ModelUnionStrInt, True, {"foo": "1q"}),
+        (models.ModelUnionStrInt, True, {"foo": 1}),
+        (models.ModelUnionStrInt, False, {"foo": 1.1}),
+        (models.ModelUnionStrInt, False, {"foo": None}),
+        (models.ModelUnionIntStr, True, {"foo": "1"}),
+        (models.ModelUnionIntStr, True, {"foo": "1q"}),
+        (models.ModelUnionIntStr, True, {"foo": 1}),
+        (models.ModelUnionIntStr, False, {"foo": 1.1}),
+        (models.ModelUnionIntStr, False, {"foo": None}),
+        (models.ModelOptionalUnionStrInt, True, {"foo": "1"}),
+        (models.ModelOptionalUnionStrInt, True, {"foo": "1q"}),
+        (models.ModelOptionalUnionStrInt, True, {"foo": 1}),
+        (models.ModelOptionalUnionStrInt, False, {"foo": 1.1}),
+        (models.ModelOptionalUnionStrInt, True, {"foo": None}),
+        (models.ModelOptionalUnionIntStr, True, {"foo": "1"}),
+        (models.ModelOptionalUnionIntStr, True, {"foo": "1q"}),
+        (models.ModelOptionalUnionIntStr, True, {"foo": 1}),
+        (models.ModelOptionalUnionIntStr, False, {"foo": 1.1}),
+        (models.ModelOptionalUnionIntStr, True, {"foo": None}),
         (models.ModelListStr, True, {"foo": ["bar"]}),
         (models.ModelListStr, True, {"foo": ["one", "two"]}),
         (models.ModelListStr, False, {"foo": "bar"}),
@@ -235,13 +255,44 @@ def test_modeling(model, okay, data):
 @pytest.mark.skipif(
     sys.version_info < (3, 10), reason="UnionType added in 3.10"
 )
-def test_modeling_union_type():
+def test_modeling_union_type_ModelUnionTypeStrNone():
     schema = make_schema({}, models.ModelUnionTypeStrNone)
 
     check_data(models.ModelUnionTypeStrNone, {"foo": "bar"}, schema)
     check_data(models.ModelUnionTypeStrNone, {"foo": None}, schema)
     with pytest.raises(TypeError):
         check_data(models.ModelUnionTypeStrNone, {"foo": 0}, schema)
+
+
+@pytest.mark.skipif(
+    sys.version_info < (3, 10), reason="UnionType added in 3.10"
+)
+def test_modeling_union_type_ModelUnionTypeStrIntNone():
+    schema = make_schema({}, models.ModelUnionTypeStrIntNone)
+
+    check_data(models.ModelUnionTypeStrIntNone, {"foo": "1"}, schema)
+    check_data(models.ModelUnionTypeStrIntNone, {"foo": "bar"}, schema)
+    check_data(models.ModelUnionTypeStrIntNone, {"foo": None}, schema)
+    check_data(models.ModelUnionTypeStrIntNone, {"foo": 1}, schema)
+    check_data(models.ModelUnionTypeStrIntNone, {"foo": 0}, schema)
+    with pytest.raises(TypeError):
+        check_data(models.ModelUnionTypeStrIntNone, {"foo": 1.1}, schema)
+
+
+@pytest.mark.skipif(
+    sys.version_info < (3, 10), reason="UnionType added in 3.10"
+)
+def test_modeling_union_type_ModelUnionTypeStrInt():
+    schema = make_schema({}, models.ModelUnionTypeStrInt)
+
+    check_data(models.ModelUnionTypeStrInt, {"foo": "1"}, schema)
+    check_data(models.ModelUnionTypeStrInt, {"foo": "bar"}, schema)
+    check_data(models.ModelUnionTypeStrInt, {"foo": 1}, schema)
+    check_data(models.ModelUnionTypeStrInt, {"foo": 0}, schema)
+    with pytest.raises(TypeError):
+        check_data(models.ModelUnionTypeStrInt, {"foo": None}, schema)
+    with pytest.raises(TypeError):
+        check_data(models.ModelUnionTypeStrInt, {"foo": 1.1}, schema)
 
 
 def test_validate_decorator(app):
