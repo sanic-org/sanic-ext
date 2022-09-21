@@ -85,8 +85,11 @@ class MediaType(Definition):
     @staticmethod
     def make(value: Any):
         if isinstance(value, dict):
-            if "schema" not in value:
-                return {"schema": value}
+            kwargs = {}
+            if "schema" in value:
+                kwargs = {**value}
+                value = kwargs.pop("schema")
+            return MediaType(value, **kwargs)
         return MediaType(Schema.make(value))
 
     @staticmethod

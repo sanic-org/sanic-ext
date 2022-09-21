@@ -405,9 +405,63 @@ def test_tag_decorator(app, decorator, tags):
     assert list(tagged) == list(tags)
 
 
-def test_definition_decorator_body_dict(app):
+def test_definition_decorator_body_dict_w_obj(app):
     @app.route("/")
     @openapi.definition(body={"application/json": Bar})
+    async def handler(_):
+        ...
+
+    body = get_path(app, "/")["requestBody"]
+    assert body == {
+        "content": {
+            "application/json": {
+                "schema": {
+                    "type": "object",
+                    "properties": {"name": {"type": "string"}},
+                }
+            }
+        }
+    }
+
+
+def test_definition_decorator_body_dict_only_schema_head(app):
+    @app.route("/")
+    @openapi.definition(
+        body={
+            "application/json": {
+                "schema": {
+                    "type": "object",
+                    "properties": {"name": {"type": "string"}},
+                }
+            }
+        }
+    )
+    async def handler(_):
+        ...
+
+    body = get_path(app, "/")["requestBody"]
+    assert body == {
+        "content": {
+            "application/json": {
+                "schema": {
+                    "type": "object",
+                    "properties": {"name": {"type": "string"}},
+                }
+            }
+        }
+    }
+
+
+def test_definition_decorator_body_dict_only_schema_root(app):
+    @app.route("/")
+    @openapi.definition(
+        body={
+            "application/json": {
+                "type": "object",
+                "properties": {"name": {"type": "string"}},
+            }
+        }
+    )
     async def handler(_):
         ...
 
