@@ -11,6 +11,7 @@ from sanic.log import logger
 
 from sanic_ext.config import Config, add_fallback_config
 from sanic_ext.extensions.base import Extension
+from sanic_ext.extensions.health.extension import HealthExtension
 from sanic_ext.extensions.http.extension import HTTPExtension
 from sanic_ext.extensions.injection.extension import InjectionExtension
 from sanic_ext.extensions.injection.registry import InjectionRegistry
@@ -65,14 +66,15 @@ class Extend:
         if MIN_SUPPORT > sanic_version:
             min_version = ".".join(map(str, MIN_SUPPORT))
             raise SanicException(
-                f"SanicExt only works with Sanic v{min_version} and above. "
-                f"It looks like you are running {__version__}."
+                f"Sanic Extensions only works with Sanic v{min_version} "
+                f"and above. It looks like you are running {__version__}."
             )
 
-        self.app = app
-        self._openapi: Optional[SpecificationBuilder] = None
-        self.extensions: List[Extension] = []
         self._injection_registry: Optional[InjectionRegistry] = None
+        self._openapi: Optional[SpecificationBuilder] = None
+        self.app = app
+        self.extensions: List[Extension] = []
+        self.sanic_version = sanic_version
         app._ext = self
         app.ctx._dependencies = SimpleNamespace()
 
@@ -88,6 +90,7 @@ class Extend:
                     InjectionExtension,
                     OpenAPIExtension,
                     HTTPExtension,
+                    HealthExtension,
                 ]
             )
 

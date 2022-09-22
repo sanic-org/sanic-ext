@@ -45,6 +45,7 @@ from sanic_ext.extensions.openapi.types import (
     Time,
 )
 from sanic_ext.extras.validation.setup import do_validation, generate_schema
+from sanic_ext.utils.extraction import extract_request
 
 __all__ = (
     "definitions",
@@ -196,7 +197,9 @@ def body(
 
     def inner(func):
         @wraps(func)
-        async def handler(request, *handler_args, **handler_kwargs):
+        async def handler(*handler_args, **handler_kwargs):
+            request = extract_request(*handler_args)
+
             if validate:
                 try:
                     data = request.json
@@ -218,7 +221,7 @@ def body(
                     allow_coerce=allow_coerce,
                 )
 
-            retval = func(request, *handler_args, **handler_kwargs)
+            retval = func(*handler_args, **handler_kwargs)
             if isawaitable(retval):
                 retval = await retval
             return retval

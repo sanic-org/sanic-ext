@@ -5,6 +5,7 @@ from uuid import UUID
 
 import pytest
 from sanic.exceptions import SanicException
+from sanic.views import HTTPMethodView
 
 from sanic_ext import openapi
 
@@ -464,6 +465,13 @@ def test_definition_decorator_body_dict_only_schema_root(app):
     )
     async def handler(_):
         ...
+
+
+def test_definition_decorator_httpmethodview(app):
+    class View(HTTPMethodView, uri="/", attach=app):
+        @openapi.definition(body={"application/json": Bar})
+        async def get(self, request):
+            ...
 
     body = get_path(app, "/")["requestBody"]
     assert body == {
