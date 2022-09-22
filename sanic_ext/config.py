@@ -22,7 +22,7 @@ class Config(SanicConfig):
         cors_supports_credentials: bool = False,
         cors_vary_header: bool = True,
         health: bool = False,
-        health_endpoint: bool = True,
+        health_endpoint: bool = False,
         health_monitor: bool = True,
         health_url_prefix: str = "/__health__",
         health_uri_to_info: str = "",

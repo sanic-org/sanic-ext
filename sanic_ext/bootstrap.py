@@ -90,14 +90,12 @@ class Extend:
                     InjectionExtension,
                     OpenAPIExtension,
                     HTTPExtension,
+                    HealthExtension,
                 ]
             )
 
             if TEMPLATING_ENABLED:
                 extensions.append(TemplatingExtension)
-
-            if self.config.HEALTH:
-                extensions.append(HealthExtension)
 
         started = set()
         for ext in extensions[::-1]:
