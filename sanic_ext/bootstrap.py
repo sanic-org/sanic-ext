@@ -100,7 +100,7 @@ class Extend:
                 extensions.append(TemplatingExtension)
 
         started = set()
-        for ext in extensions[::-1]:
+        for ext in extensions:
             if ext in started:
                 continue
             extension = Extension.create(ext, app, self.config)
@@ -111,9 +111,9 @@ class Extend:
     def _display(self):
         init_logs = ["Sanic Extensions:"]
         for extension in self.extensions:
-            init_logs.append(
-                f"  > {extension.name} {extension.render_label()}"
-            )
+            label = extension.render_label()
+            if extension.included():
+                init_logs.append(f"  > {extension.name} {label}")
 
         list(map(logger.info, init_logs))
 

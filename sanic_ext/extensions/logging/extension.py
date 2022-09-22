@@ -9,7 +9,7 @@ class LoggingExtension(Extension):
     MIN_VERSION = (22, 9)
 
     def startup(self, bootstrap) -> None:
-        if self.config.LOGGING:
+        if self.included():
             if self.MIN_VERSION > bootstrap.sanic_version:
                 min_version = ".".join(map(str, self.MIN_VERSION))
                 sanic_version = ".".join(map(str, bootstrap.sanic_version))
@@ -19,3 +19,6 @@ class LoggingExtension(Extension):
                     f"running {sanic_version}."
                 )
             Logger.setup(self.app)
+
+    def included(self):
+        return self.config.LOGGING

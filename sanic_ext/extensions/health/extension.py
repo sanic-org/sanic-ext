@@ -25,3 +25,6 @@ class HealthExtension(Extension):
 
             if self.config.HEALTH_ENDPOINT:
                 setup_health_endpoint(self.app)
+
+    def included(self):
+        return self.config.HEALTH

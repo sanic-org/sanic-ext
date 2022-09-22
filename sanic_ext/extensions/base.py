@@ -53,10 +53,15 @@ class Extension(ABC):
         return ""
 
     def render_label(self):
+        if not self.included:
+            return "~~disabled~~"
         label = self.label()
         if not label:
             return ""
         return f"[{label}]"
+
+    def included(self):
+        return True
 
     @classmethod
     def create(
