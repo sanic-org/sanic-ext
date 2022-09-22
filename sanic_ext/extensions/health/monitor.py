@@ -150,20 +150,13 @@ class HealthMonitor:
         report_interval: Optional[int] = None,
         missed_threshhold: Optional[int] = None,
     ):
-        if max_misses is not None:
-            HealthMonitor.MAX_MISSES = max_misses
-        else:
-            HealthMonitor.MAX_MISSES = app.config.HEALTH_MAX_MISSES
-        if report_interval is not None:
-            HealthMonitor.REPORT_INTERVAL = report_interval
-        else:
-            HealthMonitor.REPORT_INTERVAL = app.config.HEALTH_REPORT_INTERVAL
-        if missed_threshhold is not None:
-            HealthMonitor.MISSED_THRESHHOLD = missed_threshhold
-        else:
-            HealthMonitor.MISSED_THRESHHOLD = (
-                app.config.HEALTH_MISSED_THRESHHOLD
-            )
+        HealthMonitor.MAX_MISSES = max_misses or app.config.HEALTH_MAX_MISSES
+        HealthMonitor.REPORT_INTERVAL = (
+            report_interval or app.config.HEALTH_REPORT_INTERVAL
+        )
+        HealthMonitor.MISSED_THRESHHOLD = (
+            missed_threshhold or app.config.HEALTH_MISSED_THRESHHOLD
+        )
         app.main_process_start(prepare_health_monitor)
         app.main_process_ready(setup_health_monitor)
         app.after_server_start(start_health_check)
