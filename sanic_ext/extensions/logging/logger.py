@@ -2,13 +2,14 @@ from collections import defaultdict
 from logging import LogRecord
 from logging.handlers import QueueHandler
 from multiprocessing import Manager
-from queue import Empty
+from queue import Empty, Full
 from signal import SIGINT, SIGTERM
 from signal import signal as signal_func
 
 from sanic import Sanic
 from sanic.log import access_logger, error_logger
 from sanic.log import logger as root_logger
+from sanic.log import server_logger
 
 
 async def prepare_logger(app: Sanic, *_):
@@ -26,8 +27,19 @@ async def setup_logger(app: Sanic, *_):
     )
 
 
+class SanicQueueHandler(QueueHandler):
+    def emit(self, record: LogRecord) -> None:
+        try:
+            return super().enqueue(record)
+        except Full:
+            server_logger.warning(
+                "Background logger is full. Emitting log in process."
+            )
+            server_logger.handle(record)
+
+
 async def setup_server_logging(app: Sanic):
-    qhandler = QueueHandler(app.shared_ctx.logger_queue)
+    qhandler = SanicQueueHandler(app.shared_ctx.logger_queue)
     app.ctx._logger_handlers = defaultdict(list)
     app.ctx._qhandler = qhandler
 
@@ -71,7 +83,9 @@ class Logger:
     @classmethod
     def prepare(cls, app: Sanic):
         sync_manager = Manager()
-        logger_queue = sync_manager.Queue(maxsize=4096)
+        logger_queue = sync_manager.Queue(
+            maxsize=app.config.LOGGING_QUEUE_MAX_SIZE
+        )
         app.shared_ctx.logger_queue = logger_queue
 
     @classmethod
