@@ -1,6 +1,6 @@
 from collections import defaultdict
 from logging import LogRecord
-from logging.handlers import QueueHandler, QueueListener
+from logging.handlers import QueueHandler
 from multiprocessing import Manager
 from queue import Empty
 from signal import SIGINT, SIGTERM
@@ -45,8 +45,6 @@ async def remove_server_logging(app: Sanic):
 
 
 class Logger:
-    listener: QueueListener
-
     def __init__(self):
         self.run = True
         self.loggers = {
@@ -57,8 +55,6 @@ class Logger:
     def __call__(self, queue) -> None:
         signal_func(SIGINT, self.stop)
         signal_func(SIGTERM, self.stop)
-
-        self.listener = QueueListener(queue)
 
         while self.run:
             try:
