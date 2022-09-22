@@ -15,6 +15,7 @@ from sanic_ext.extensions.health.extension import HealthExtension
 from sanic_ext.extensions.http.extension import HTTPExtension
 from sanic_ext.extensions.injection.extension import InjectionExtension
 from sanic_ext.extensions.injection.registry import InjectionRegistry
+from sanic_ext.extensions.logging.extension import LoggingExtension
 from sanic_ext.extensions.openapi.builders import SpecificationBuilder
 from sanic_ext.extensions.openapi.extension import OpenAPIExtension
 from sanic_ext.utils.string import camel_to_snake
@@ -91,6 +92,7 @@ class Extend:
                     OpenAPIExtension,
                     HTTPExtension,
                     HealthExtension,
+                    LoggingExtension,
                 ]
             )
 
