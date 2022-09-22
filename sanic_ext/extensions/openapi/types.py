@@ -2,7 +2,7 @@ import json
 import uuid
 from datetime import date, datetime, time
 from enum import Enum
-from inspect import getmembers, isfunction, ismethod
+from inspect import getmembers, isclass, isfunction, ismethod
 from typing import (
     Any,
     Dict,
@@ -335,4 +335,4 @@ def _extract(item):
 
 
 def _is_property(item):
-    return not isfunction(item) and not ismethod(item)
+    return not isfunction(item) and not ismethod(item) and not isclass(item)

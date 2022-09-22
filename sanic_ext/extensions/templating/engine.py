@@ -8,7 +8,10 @@ from jinja2 import Environment
 from sanic.compat import Header
 from sanic.response import HTTPResponse
 
-from sanic_ext.extensions.templating.render import LazyResponse
+from sanic_ext.extensions.templating.render import (
+    LazyResponse,
+    TemplateResponse,
+)
 
 if TYPE_CHECKING:
     from sanic_ext import Config
@@ -36,11 +39,14 @@ class Templating:
 
         def decorator(f):
             @wraps(f)
-            async def decorated_function(request, *args, **kwargs):
-
-                context = f(request, *args, **kwargs)
+            async def decorated_function(*args, **kwargs):
+                context = f(*args, **kwargs)
                 if isawaitable(context):
                     context = await context
+                if isinstance(context, HTTPResponse) and not isinstance(
+                    context, TemplateResponse
+                ):
+                    return context
 
                 # TODO
                 # - Allow each of these to be a callable that is executed here
