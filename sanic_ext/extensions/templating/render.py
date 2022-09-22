@@ -12,7 +12,11 @@ if TYPE_CHECKING:
     from jinja2 import Environment
 
 
-class LazyResponse(HTTPResponse):
+class TemplateResponse(HTTPResponse):
+    ...
+
+
+class LazyResponse(TemplateResponse):
     __slots__ = (
         "body",
         "status",
@@ -45,7 +49,7 @@ async def render(
     context: Optional[Dict[str, Any]] = None,
     *,
     template_source: str = "",
-) -> HTTPResponse:
+) -> TemplateResponse:
     if app is None:
         try:
             app = Sanic.get_app()
@@ -80,7 +84,7 @@ async def render(
         if isawaitable(content):
             content = await content  # type: ignore
 
-        return HTTPResponse(  # type: ignore
+        return TemplateResponse(  # type: ignore
             content, status=status, headers=headers, content_type=content_type
         )
     else:
