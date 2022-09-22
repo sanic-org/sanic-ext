@@ -28,6 +28,8 @@ class HealthState:
 
     def report(self, timestamp: int) -> None:
         logger.debug(f"Reporting {self.name}")
+        if self.misses:
+            logger.info(f"Recovered {self.name}")
         self.last = datetime.fromtimestamp(timestamp)
         self.misses = 0
 
@@ -100,8 +102,8 @@ async def setup_health_monitor(app, *_):
 
 class HealthMonitor:
     MAX_MISSES = 3
-    REPORT_INTERVAL = 2
-    MISSED_THRESHHOLD = 5
+    REPORT_INTERVAL = 5
+    MISSED_THRESHHOLD = 10
 
     def __init__(self, app: Sanic):
         self.run = True
@@ -144,13 +146,24 @@ class HealthMonitor:
     def setup(
         cls,
         app: Sanic,
-        max_misses: int = 3,
-        report_interval: int = 5,
-        missed_threshhold: int = 7,
+        max_misses: Optional[int] = None,
+        report_interval: Optional[int] = None,
+        missed_threshhold: Optional[int] = None,
     ):
-        HealthMonitor.MAX_MISSES = max_misses
-        HealthMonitor.REPORT_INTERVAL = report_interval
-        HealthMonitor.MISSED_THRESHHOLD = missed_threshhold
+        if max_misses is not None:
+            HealthMonitor.MAX_MISSES = max_misses
+        else:
+            HealthMonitor.MAX_MISSES = app.config.HEALTH_MAX_MISSES
+        if report_interval is not None:
+            HealthMonitor.REPORT_INTERVAL = report_interval
+        else:
+            HealthMonitor.REPORT_INTERVAL = app.config.HEALTH_REPORT_INTERVAL
+        if missed_threshhold is not None:
+            HealthMonitor.MISSED_THRESHHOLD = missed_threshhold
+        else:
+            HealthMonitor.MISSED_THRESHHOLD = (
+                app.config.HEALTH_MISSED_THRESHHOLD
+            )
         app.main_process_start(prepare_health_monitor)
         app.main_process_ready(setup_health_monitor)
         app.after_server_start(start_health_check)

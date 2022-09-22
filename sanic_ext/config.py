@@ -23,9 +23,12 @@ class Config(SanicConfig):
         cors_vary_header: bool = True,
         health: bool = False,
         health_endpoint: bool = False,
+        health_max_misses: int = 3,
+        health_missed_threshhold: int = 10,
         health_monitor: bool = True,
-        health_url_prefix: str = "/__health__",
+        health_report_interval: int = 5,
         health_uri_to_info: str = "",
+        health_url_prefix: str = "/__health__",
         http_all_methods: bool = True,
         http_auto_head: bool = True,
         http_auto_options: bool = True,
@@ -66,9 +69,12 @@ class Config(SanicConfig):
         self.CORS_VARY_HEADER = cors_vary_header
         self.HEALTH = health
         self.HEALTH_ENDPOINT = health_endpoint
+        self.HEALTH_MAX_MISSES = health_max_misses
+        self.HEALTH_MISSED_THRESHHOLD = health_missed_threshhold
         self.HEALTH_MONITOR = health_monitor
-        self.HEALTH_URL_PREFIX = health_url_prefix
+        self.HEALTH_REPORT_INTERVAL = health_report_interval
         self.HEALTH_URI_TO_INFO = health_uri_to_info
+        self.HEALTH_URL_PREFIX = health_url_prefix
         self.HTTP_ALL_METHODS = http_all_methods
         self.HTTP_AUTO_HEAD = http_auto_head
         self.HTTP_AUTO_OPTIONS = http_auto_options
