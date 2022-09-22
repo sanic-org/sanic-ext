@@ -115,10 +115,10 @@ class Config(SanicConfig):
         if isinstance(self.INJECTION_SIGNAL, str):
             self.INJECTION_SIGNAL = Event(self.INJECTION_SIGNAL)
 
-        valid_injection_signals = ("http.handler.before", "http.routing.after")
-        if self.INJECTION_SIGNAL.value not in valid_injection_signals:
+        valid_signals = ("http.handler.before", "http.routing.after")
+        if self.INJECTION_SIGNAL.value not in valid_signals:
             raise SanicException(
-                f"Injection signal may only be one of {valid_injection_signals}"
+                f"Injection signal may only be one of {valid_signals}"
             )
 
         self.load({key.upper(): value for key, value in kwargs.items()})
