@@ -6,6 +6,7 @@ from typing import Any, Callable, Dict, Optional, Tuple, Type, get_type_hints
 
 from sanic import Sanic
 from sanic.constants import HTTP_METHODS
+from sanic.signals import Event
 
 from sanic_ext.extensions.injection.constructor import gather_args
 
@@ -30,7 +31,9 @@ def add_injection(app: Sanic, injection_registry: InjectionRegistry) -> None:
                     router_types.add(return_type)
         injection_registry.finalize(router_types)
 
-    @app.signal("http.routing.after")
+    injection_signal: Event = app.ext.config.INJECTION_SIGNAL
+
+    @app.signal(injection_signal)
     async def inject_kwargs(request, route, kwargs, **_):
         nonlocal signature_registry
 
