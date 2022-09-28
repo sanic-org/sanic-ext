@@ -36,6 +36,8 @@ class Config(SanicConfig):
         http_auto_options: bool = True,
         http_auto_trace: bool = False,
         injection_signal: Union[str, Event] = Event.HTTP_ROUTING_AFTER,
+        logging: bool = False,
+        logging_queue_max_size: int = 4096,
         oas: bool = True,
         oas_autodoc: bool = True,
         oas_ignore_head: bool = True,
@@ -83,6 +85,8 @@ class Config(SanicConfig):
         self.HTTP_AUTO_OPTIONS = http_auto_options
         self.HTTP_AUTO_TRACE = http_auto_trace
         self.INJECTION_SIGNAL = injection_signal
+        self.LOGGING = logging
+        self.LOGGING_QUEUE_MAX_SIZE = logging_queue_max_size
         self.OAS = oas
         self.OAS_AUTODOC = oas_autodoc
         self.OAS_IGNORE_HEAD = oas_ignore_head

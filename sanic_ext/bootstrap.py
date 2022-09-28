@@ -15,6 +15,7 @@ from sanic_ext.extensions.health.extension import HealthExtension
 from sanic_ext.extensions.http.extension import HTTPExtension
 from sanic_ext.extensions.injection.extension import InjectionExtension
 from sanic_ext.extensions.injection.registry import InjectionRegistry
+from sanic_ext.extensions.logging.extension import LoggingExtension
 from sanic_ext.extensions.openapi.builders import SpecificationBuilder
 from sanic_ext.extensions.openapi.extension import OpenAPIExtension
 from sanic_ext.utils.string import camel_to_snake
@@ -91,6 +92,7 @@ class Extend:
                     OpenAPIExtension,
                     HTTPExtension,
                     HealthExtension,
+                    LoggingExtension,
                 ]
             )
 
@@ -98,7 +100,7 @@ class Extend:
                 extensions.append(TemplatingExtension)
 
         started = set()
-        for ext in extensions[::-1]:
+        for ext in extensions:
             if ext in started:
                 continue
             extension = Extension.create(ext, app, self.config)
@@ -109,9 +111,9 @@ class Extend:
     def _display(self):
         init_logs = ["Sanic Extensions:"]
         for extension in self.extensions:
-            init_logs.append(
-                f"  > {extension.name} {extension.render_label()}"
-            )
+            label = extension.render_label()
+            if extension.included():
+                init_logs.append(f"  > {extension.name} {label}")
 
         list(map(logger.info, init_logs))
 
