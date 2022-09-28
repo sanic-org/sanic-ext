@@ -1,14 +1,17 @@
 from __future__ import annotations
 
-from inspect import isawaitable
+from dataclasses import is_dataclass
+from inspect import isclass, iscoroutine
 from typing import (
     TYPE_CHECKING,
     Any,
     Callable,
     Dict,
+    Optional,
     Set,
     Tuple,
     Type,
+    get_args,
     get_type_hints,
 )
 
@@ -16,6 +19,7 @@ from sanic import Request
 from sanic.exceptions import ServerError
 
 from sanic_ext.exceptions import InitError
+from sanic_ext.utils.typing import is_attrs, is_optional, is_pydantic
 
 if TYPE_CHECKING:
     from .registry import InjectionRegistry
@@ -30,7 +34,8 @@ class Constructor:
     ):
         self.func = func
         self.injections: Dict[str, Tuple[Type, Constructor]] = {}
-        self.pass_kwargs = False
+        self.pass_kwargs: bool = False
+        self.request_arg: Optional[str] = None
 
     def __str__(self) -> str:
         return f"<{self.__class__.__name__}:{self.func.__name__}>"
@@ -43,8 +48,13 @@ class Constructor:
             args = await gather_args(self.injections, request, **kwargs)
             if self.pass_kwargs:
                 args.update(kwargs)
-            retval = self.func(request, **args)
-            if isawaitable(retval):
+
+            if self.request_arg:
+                args[self.request_arg] = request
+
+            retval = self.func(**args)
+
+            if iscoroutine(retval):
                 retval = await retval
             return retval
         except TypeError as e:
@@ -59,12 +69,19 @@ class Constructor:
         injection_registry: InjectionRegistry,
         allowed_types: Set[Type[object]],
     ) -> None:
-        hints = get_type_hints(self.func)
+        hints = self._get_hints()
         hints.pop("return", None)
         missing = []
         for param, annotation in hints.items():
             if annotation in allowed_types:
                 self.pass_kwargs = True
+            if is_optional(annotation):
+                annotation = get_args(annotation)[0]
+            if not isclass(annotation):
+                missing.append((param, annotation))
+                continue
+            if issubclass(annotation, Request):
+                self.request_arg = param
             if (
                 annotation not in self.EXEMPT_ANNOTATIONS
                 and not issubclass(annotation, self.EXEMPT_ANNOTATIONS)
@@ -73,6 +90,7 @@ class Constructor:
                 dependency = injection_registry.get(annotation)
                 if not dependency:
                     missing.append((param, annotation))
+                    continue
                 self.injections[param] = (annotation, dependency)
 
         if missing:
@@ -123,6 +141,18 @@ class Constructor:
         current.remove(dependency)
         checked.add(dependency)
 
+    def _get_hints(self):
+        if (
+            not isclass(self.func)
+            or is_dataclass(self.func)
+            or is_attrs(self.func)
+            or is_pydantic(self.func)
+        ):
+            return get_type_hints(self.func)
+        elif isclass(self.func):
+            return get_type_hints(self.func.__init__)
+        raise InitError(f"Cannot get type hints for {self.func}")
+
 
 async def gather_args(injections, request, **kwargs) -> Dict[str, Any]:
     return {
@@ -136,6 +166,6 @@ async def do_cast(_type, constructor, request, **kwargs):
     args = [request] if constructor else []
 
     retval = cast(*args, **kwargs)
-    if isawaitable(retval):
+    if iscoroutine(retval):
         retval = await retval
     return retval

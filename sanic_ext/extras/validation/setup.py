@@ -4,8 +4,8 @@ from inspect import isawaitable, isclass
 from sanic.log import logger
 
 from sanic_ext.exceptions import ValidationError
+from sanic_ext.utils.typing import is_pydantic
 
-from .check import is_pydantic
 from .schema import make_schema
 from .validators import (
     _validate_annotations,

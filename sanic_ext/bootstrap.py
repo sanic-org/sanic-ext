@@ -11,9 +11,11 @@ from sanic.log import logger
 
 from sanic_ext.config import Config, add_fallback_config
 from sanic_ext.extensions.base import Extension
+from sanic_ext.extensions.health.extension import HealthExtension
 from sanic_ext.extensions.http.extension import HTTPExtension
 from sanic_ext.extensions.injection.extension import InjectionExtension
 from sanic_ext.extensions.injection.registry import InjectionRegistry
+from sanic_ext.extensions.logging.extension import LoggingExtension
 from sanic_ext.extensions.openapi.builders import SpecificationBuilder
 from sanic_ext.extensions.openapi.extension import OpenAPIExtension
 from sanic_ext.utils.string import camel_to_snake
@@ -65,14 +67,15 @@ class Extend:
         if MIN_SUPPORT > sanic_version:
             min_version = ".".join(map(str, MIN_SUPPORT))
             raise SanicException(
-                f"SanicExt only works with Sanic v{min_version} and above. "
-                f"It looks like you are running {__version__}."
+                f"Sanic Extensions only works with Sanic v{min_version} "
+                f"and above. It looks like you are running {__version__}."
             )
 
-        self.app = app
-        self._openapi: Optional[SpecificationBuilder] = None
-        self.extensions: List[Extension] = []
         self._injection_registry: Optional[InjectionRegistry] = None
+        self._openapi: Optional[SpecificationBuilder] = None
+        self.app = app
+        self.extensions: List[Extension] = []
+        self.sanic_version = sanic_version
         app._ext = self
         app.ctx._dependencies = SimpleNamespace()
 
@@ -88,6 +91,8 @@ class Extend:
                     InjectionExtension,
                     OpenAPIExtension,
                     HTTPExtension,
+                    HealthExtension,
+                    LoggingExtension,
                 ]
             )
 
@@ -95,7 +100,7 @@ class Extend:
                 extensions.append(TemplatingExtension)
 
         started = set()
-        for ext in extensions[::-1]:
+        for ext in extensions:
             if ext in started:
                 continue
             extension = Extension.create(ext, app, self.config)
@@ -106,9 +111,9 @@ class Extend:
     def _display(self):
         init_logs = ["Sanic Extensions:"]
         for extension in self.extensions:
-            init_logs.append(
-                f"  > {extension.name} {extension.render_label()}"
-            )
+            label = extension.render_label()
+            if extension.included():
+                init_logs.append(f"  > {extension.name} {label}")
 
         list(map(logger.info, init_logs))
 
