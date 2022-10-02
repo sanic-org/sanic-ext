@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-from string import ascii_lowercase
 from types import SimpleNamespace
 from typing import Any, Callable, Dict, List, Optional, Type, Union
 from warnings import warn
@@ -19,6 +18,7 @@ from sanic_ext.extensions.logging.extension import LoggingExtension
 from sanic_ext.extensions.openapi.builders import SpecificationBuilder
 from sanic_ext.extensions.openapi.extension import OpenAPIExtension
 from sanic_ext.utils.string import camel_to_snake
+from sanic_ext.utils.version import get_version
 
 try:
     from jinja2 import Environment
@@ -60,9 +60,7 @@ class Extend:
                 f"Cannot apply SanicExt to {app.__class__.__name__}"
             )
 
-        sanic_version = tuple(
-            map(int, __version__.strip(ascii_lowercase).split(".", 3)[:3])
-        )
+        sanic_version = get_version(__version__)
 
         if MIN_SUPPORT > sanic_version:
             min_version = ".".join(map(str, MIN_SUPPORT))
