@@ -37,15 +37,19 @@ def add_injection(app: Sanic, injection_registry: InjectionRegistry) -> None:
     async def inject_kwargs(request, **_):
         nonlocal signature_registry
 
-        for name in (request.route.name, f"{request.route.name}_{request.method.lower()}"):
+        for name in (
+            request.route.name,
+            f"{request.route.name}_{request.method.lower()}",
+        ):
             injections = signature_registry.get(name)
             if injections:
                 break
 
         if injections:
-            injected_args = await gather_args(injections, request, **request.match_info)
+            injected_args = await gather_args(
+                injections, request, **request.match_info
+            )
             request.match_info.update(injected_args)
-
 
 
 def _http_method_predicate(member):
