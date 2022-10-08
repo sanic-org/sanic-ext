@@ -73,7 +73,7 @@ This project includes all static files of `swagger-ui` under `sanic_openapi/ui/`
 
 ## Code Style
 
-In `dev` requirements, it already includes some modules related to code style:
+In `dev` requirements, some modules related to code style are already included:
 
 * black
 * flake8
@@ -97,7 +97,7 @@ make html
 
 And you can open `docs/_build/html/index.html` to preview your works.
 
-> **Note:** Make sure you have install related modules. If you don't, you can run `pip install -e .['doc']` to install all depedencies to build the documents.
+> **Note:** Make sure you have installed the related modules. If you haven't, you can run `pip install -e .['doc']` to install all depedencies to build the documents.
 
 ## Make a Pull Request
 
@@ -105,7 +105,7 @@ If you want to make a Pull Request, here are some suggestions:
 
 1. Check other pull requests first, make sure your contributions are not duplicate to others.
 2. Run all tests at your machine, make sure your contributions are working and do not break anything.
-3. Documents and examples will be very appreciated.
+3. Documentation and examples will be very appreciated.
 
 
 ## Release Process
