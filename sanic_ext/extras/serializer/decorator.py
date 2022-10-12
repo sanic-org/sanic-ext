@@ -1,10 +1,14 @@
+from ast import Call
 from functools import wraps
 from inspect import isawaitable, signature
+from typing import Callable, TypeVar
 
 from sanic import response
 
+T = TypeVar("T")
 
-def serializer(func, *, status: int = 200):
+
+def serializer(func, *, status: int = 200) -> Callable[[T], T]:
     sig = signature(func)
     simple = len(sig.parameters) == 2 or (
         func

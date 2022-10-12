@@ -112,7 +112,10 @@ def exclude(flag: bool = True, *, bp: Optional[Blueprint] = None):
     return inner
 
 
-def operation(name: str):
+T = TypeVar("T")
+
+
+def operation(name: str) -> Callable[[T], T]:
     def inner(func):
         OperationStore()[func].name(name)
         return func
@@ -120,7 +123,7 @@ def operation(name: str):
     return inner
 
 
-def summary(text: str):
+def summary(text: str) -> Callable[[T], T]:
     def inner(func):
         OperationStore()[func].describe(summary=text)
         return func
@@ -128,7 +131,7 @@ def summary(text: str):
     return inner
 
 
-def description(text: str):
+def description(text: str) -> Callable[[T], T]:
     def inner(func):
         OperationStore()[func].describe(description=text)
         return func
@@ -138,7 +141,7 @@ def description(text: str):
 
 def document(
     url: Union[str, definitions.ExternalDocumentation], description: str = None
-):
+) -> Callable[[T], T]:
     if isinstance(url, definitions.ExternalDocumentation):
         description = url.fields["description"]
         url = url.fields["url"]
@@ -150,7 +153,7 @@ def document(
     return inner
 
 
-def tag(*args: Union[str, definitions.Tag]):
+def tag(*args: Union[str, definitions.Tag]) -> Callable[[T], T]:
     def inner(func):
         OperationStore()[func].tag(*args)
         return func
@@ -158,7 +161,7 @@ def tag(*args: Union[str, definitions.Tag]):
     return inner
 
 
-def deprecated(maybe_func=None):
+def deprecated(maybe_func=None) -> Callable[[T], T]:
     def inner(func):
         OperationStore()[func].deprecate()
         return func
@@ -166,7 +169,7 @@ def deprecated(maybe_func=None):
     return inner(maybe_func) if maybe_func else inner
 
 
-def no_autodoc(maybe_func=None):
+def no_autodoc(maybe_func=None) -> Callable[[T], T]:
     def inner(func):
         OperationStore()[func].disable_autodoc()
         return func
@@ -180,7 +183,7 @@ def body(
     validate: bool = False,
     body_argument: str = "body",
     **kwargs,
-):
+) -> Callable[[T], T]:
     body_content = _content_or_component(content)
     params = {**kwargs}
     validation_schema = None
@@ -239,7 +242,7 @@ def parameter(
     *,
     parameter: definitions.Parameter,
     **kwargs,
-) -> Callable:
+) -> Callable[[T], T]:
     ...
 
 
@@ -250,7 +253,7 @@ def parameter(
     location: None,
     parameter: definitions.Parameter,
     **kwargs,
-) -> Callable:
+) -> Callable[[T], T]:
     ...
 
 
@@ -261,7 +264,7 @@ def parameter(
     location: Optional[str] = None,
     parameter: None = None,
     **kwargs,
-) -> Callable:
+) -> Callable[[T], T]:
     ...
 
 
@@ -271,7 +274,7 @@ def parameter(
     location: Optional[str] = None,
     parameter: Optional[definitions.Parameter] = None,
     **kwargs,
-):
+) -> Callable[[T], T]:
     if parameter:
         if name or schema or location:
             raise SanicException(
@@ -305,7 +308,7 @@ def response(
     *,
     response: Optional[definitions.Response] = None,
     **kwargs,
-):
+) -> Callable[[T], T]:
     if response:
         if status != "default" or content != str or description is not None:
             raise SanicException(
@@ -324,7 +327,7 @@ def response(
     return inner
 
 
-def secured(*args, **kwargs):
+def secured(*args, **kwargs) -> Callable[[T], T]:
     def inner(func):
         OperationStore()[func].secured(*args, **kwargs)
         return func
@@ -340,7 +343,7 @@ def component(
     *,
     name: Optional[str] = None,
     field: str = "schemas",
-):
+) -> Callable[[T], T]:
     def wrap(m):
         return component(m, name=name, field=field)
 
@@ -385,7 +388,7 @@ def definition(
     secured: Optional[Dict[str, Any]] = None,
     validate: bool = False,
     body_argument: str = "body",
-):
+) -> Callable[[T], T]:
     validation_schema = None
     body_content = None
 
