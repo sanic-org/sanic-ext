@@ -34,16 +34,21 @@ def add_injection(app: Sanic, injection_registry: InjectionRegistry) -> None:
     injection_signal: Event = app.ext.config.INJECTION_SIGNAL
 
     @app.signal(injection_signal)
-    async def inject_kwargs(request, route, kwargs, **_):
+    async def inject_kwargs(request, **_):
         nonlocal signature_registry
 
-        for name in (route.name, f"{route.name}_{request.method.lower()}"):
+        for name in (
+            request.route.name,
+            f"{request.route.name}_{request.method.lower()}",
+        ):
             injections = signature_registry.get(name)
             if injections:
                 break
 
         if injections:
-            injected_args = await gather_args(injections, request, **kwargs)
+            injected_args = await gather_args(
+                injections, request, **request.match_info
+            )
             request.match_info.update(injected_args)
 
 
