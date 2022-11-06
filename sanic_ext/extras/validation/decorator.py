@@ -1,6 +1,6 @@
 from functools import wraps
 from inspect import isawaitable
-from typing import Callable, Optional, Type, Union
+from typing import Callable, Optional, Type, TypeVar, Union
 
 from sanic import Request
 
@@ -9,6 +9,8 @@ from sanic_ext.utils.extraction import extract_request
 
 from .setup import do_validation, generate_schema
 
+T = TypeVar("T")
+
 
 def validate(
     json: Optional[Union[Callable[[Request], bool], Type[object]]] = None,
@@ -16,7 +18,7 @@ def validate(
     query: Optional[Union[Callable[[Request], bool], Type[object]]] = None,
     body_argument: str = "body",
     query_argument: str = "query",
-):
+) -> Callable[[T], T]:
 
     schemas = {
         key: generate_schema(param)
