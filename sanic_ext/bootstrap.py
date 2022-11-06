@@ -82,7 +82,6 @@ class Extend:
         self.config = add_fallback_config(app, config, **kwargs)
 
         extensions = extensions or []
-        extensions.extend(Extend._pre_registry)
         if built_in_extensions:
             extensions.extend(
                 [
@@ -96,6 +95,7 @@ class Extend:
 
             if TEMPLATING_ENABLED:
                 extensions.append(TemplatingExtension)
+        extensions.extend(Extend._pre_registry)
 
         started = set()
         for ext in extensions:
