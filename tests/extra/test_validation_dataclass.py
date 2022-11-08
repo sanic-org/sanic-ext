@@ -3,7 +3,8 @@ from dataclasses import dataclass
 from typing import List, Optional
 
 import pytest
-from sanic import json
+from pydantic import BaseModel
+from sanic import Sanic, json
 from sanic.views import HTTPMethodView
 
 from sanic_ext import validate
@@ -295,26 +296,40 @@ def test_modeling_union_type_ModelUnionTypeStrInt():
         check_data(models.ModelUnionTypeStrInt, {"foo": 1.1}, schema)
 
 
-def test_validate_decorator(app):
-    @dataclass
-    class Pet:
-        name: str
+@dataclass
+class DataClassPet:
+    name: str
 
+
+class PydanticPet(BaseModel):
+    name: str
+
+
+@pytest.mark.parametrize("data_cls", (DataClassPet, PydanticPet))
+@pytest.mark.parametrize("content_type", ("json", "form"))
+def test_validate_decorator_json(
+    app: Sanic, data_cls: type, content_type: str
+):
     @app.post("/function")
-    @validate(json=Pet)
-    async def handler(_, body: Pet):
-        return json({"is_pet": isinstance(body, Pet)})
+    @validate(**{content_type: data_cls})
+    async def handler_validated_with_dataclass(_, body: data_cls):
+        return json({"is_pet": isinstance(body, data_cls)})
 
     class MethodView(HTTPMethodView, attach=app, uri="/method"):
-        decorators = [validate(json=Pet)]
+        decorators = [validate(**{content_type: data_cls})]
 
-        async def post(self, _, body: Pet):
-            return json({"is_pet": isinstance(body, Pet)})
+        async def post(self, _, body: data_cls):
+            return json({"is_pet": isinstance(body, data_cls)})
 
-    _, response = app.test_client.post("/function", json={"name": "Snoopy"})
+    content_type_map = {
+        "json": "json",
+        "form": "data",
+    }
+    data = {content_type_map.get(content_type): {"name": "Snoopy"}}
+    _, response = app.test_client.post("/function", **data)
     assert response.status == 200
     assert response.json["is_pet"]
 
-    _, response = app.test_client.post("/method", json={"name": "Snoopy"})
+    _, response = app.test_client.post("/method", **data)
     assert response.status == 200
     assert response.json["is_pet"]
