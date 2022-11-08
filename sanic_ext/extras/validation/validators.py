@@ -28,8 +28,24 @@ def validate_body(
         )
 
 
+def has_length(value):
+    return hasattr(value, "__len__")
+
+
+def length_is_one(value):
+    return has_length(value) and len(value) == 1
+
+
 def _validate_instance(model, body):
-    return model(**body)
+    try:
+        return model(**body)
+    except VALIDATION_ERROR as e:
+        if any(length_is_one(v) for v in body.values()):
+            return model(
+                **{k: v[0] if length_is_one(v) else v for k, v in body.items()}
+            )
+        else:
+            raise e
 
 
 def _validate_annotations(model, body, schema, allow_multiple, allow_coerce):
