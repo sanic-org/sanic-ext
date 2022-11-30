@@ -79,8 +79,10 @@ def _setup_signature_registry(
                     )
                 ]
             for name, handler in handlers:
-                if hasattr(handler, "__auto_handler__"):
-                    continue
+                if route_handler := getattr(
+                    handler, "__route_handler__", None
+                ):
+                    handler = route_handler
                 if isinstance(handler, partial):
                     if handler.func == app._websocket_handler:
                         handler = handler.args[0]

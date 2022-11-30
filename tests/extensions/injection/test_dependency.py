@@ -29,3 +29,17 @@ def test_dependency_injection(app):
     _, response = app.test_client.get("/getfoo")
 
     assert response.text == "foobar"
+
+
+def test_dependency_injection_head(app):
+    foo = Foo()
+
+    app.ext.dependency(foo)
+
+    @app.get("/getfoo")
+    async def getfoo(request: Request, foo: Foo):
+        return text(foo.bar())
+
+    _, response = app.test_client.head("/getfoo")
+
+    assert int(response.headers.get("content-length", 0)) == 6
