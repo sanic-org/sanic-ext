@@ -84,6 +84,7 @@ def add_auto_handlers(
                                 description="Retrieve HEAD details",
                             )(partial(head_handler, get_handler=route.handler))
                             handler.__auto_handler__ = True
+                            handler.__route_handler__ = route.handler
                             app.add_route(
                                 handler=handler,
                                 uri=group.uri,
