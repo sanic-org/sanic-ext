@@ -5,6 +5,8 @@ from typing import Any, Dict, List, Optional, Sequence, Union
 
 from sanic import Sanic
 from sanic.config import Config as SanicConfig
+from sanic.exceptions import SanicException
+from sanic.signals import Event
 
 
 class Config(SanicConfig):
@@ -21,10 +23,21 @@ class Config(SanicConfig):
         cors_send_wildcard: bool = False,
         cors_supports_credentials: bool = False,
         cors_vary_header: bool = True,
+        health: bool = False,
+        health_endpoint: bool = False,
+        health_max_misses: int = 3,
+        health_missed_threshhold: int = 10,
+        health_monitor: bool = True,
+        health_report_interval: int = 5,
+        health_uri_to_info: str = "",
+        health_url_prefix: str = "/__health__",
         http_all_methods: bool = True,
         http_auto_head: bool = True,
         http_auto_options: bool = True,
         http_auto_trace: bool = False,
+        injection_signal: Union[str, Event] = Event.HTTP_ROUTING_AFTER,
+        logging: bool = False,
+        logging_queue_max_size: int = 4096,
         oas: bool = True,
         oas_autodoc: bool = True,
         oas_ignore_head: bool = True,
@@ -59,10 +72,21 @@ class Config(SanicConfig):
         self.CORS_SEND_WILDCARD = cors_send_wildcard
         self.CORS_SUPPORTS_CREDENTIALS = cors_supports_credentials
         self.CORS_VARY_HEADER = cors_vary_header
+        self.HEALTH = health
+        self.HEALTH_ENDPOINT = health_endpoint
+        self.HEALTH_MAX_MISSES = health_max_misses
+        self.HEALTH_MISSED_THRESHHOLD = health_missed_threshhold
+        self.HEALTH_MONITOR = health_monitor
+        self.HEALTH_REPORT_INTERVAL = health_report_interval
+        self.HEALTH_URI_TO_INFO = health_uri_to_info
+        self.HEALTH_URL_PREFIX = health_url_prefix
         self.HTTP_ALL_METHODS = http_all_methods
         self.HTTP_AUTO_HEAD = http_auto_head
         self.HTTP_AUTO_OPTIONS = http_auto_options
         self.HTTP_AUTO_TRACE = http_auto_trace
+        self.INJECTION_SIGNAL = injection_signal
+        self.LOGGING = logging
+        self.LOGGING_QUEUE_MAX_SIZE = logging_queue_max_size
         self.OAS = oas
         self.OAS_AUTODOC = oas_autodoc
         self.OAS_IGNORE_HEAD = oas_ignore_head
@@ -90,6 +114,15 @@ class Config(SanicConfig):
         if isinstance(self.TRACE_EXCLUDED_HEADERS, str):
             self.TRACE_EXCLUDED_HEADERS = tuple(
                 self.TRACE_EXCLUDED_HEADERS.split(",")
+            )
+
+        if isinstance(self.INJECTION_SIGNAL, str):
+            self.INJECTION_SIGNAL = Event(self.INJECTION_SIGNAL)
+
+        valid_signals = ("http.handler.before", "http.routing.after")
+        if self.INJECTION_SIGNAL.value not in valid_signals:
+            raise SanicException(
+                f"Injection signal may only be one of {valid_signals}"
             )
 
         self.load({key.upper(): value for key, value in kwargs.items()})

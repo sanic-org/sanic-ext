@@ -1,13 +1,15 @@
 from functools import wraps
 from inspect import isawaitable
-from typing import Callable, Optional, Type, Union
+from typing import Callable, Optional, Type, TypeVar, Union
 
 from sanic import Request
-from sanic.exceptions import SanicException
 
 from sanic_ext.exceptions import InitError
+from sanic_ext.utils.extraction import extract_request
 
 from .setup import do_validation, generate_schema
+
+T = TypeVar("T")
 
 
 def validate(
@@ -16,7 +18,7 @@ def validate(
     query: Optional[Union[Callable[[Request], bool], Type[object]]] = None,
     body_argument: str = "body",
     query_argument: str = "query",
-):
+) -> Callable[[T], T]:
 
     schemas = {
         key: generate_schema(param)
@@ -33,13 +35,7 @@ def validate(
     def decorator(f):
         @wraps(f)
         async def decorated_function(*args, **kwargs):
-
-            if args and isinstance(args[0], Request):
-                request: Request = args[0]
-            elif len(args) > 1:
-                request: Request = args[1]
-            else:
-                raise SanicException("Request could not be found")
+            request = extract_request(*args)
 
             if schemas["json"]:
                 await do_validation(

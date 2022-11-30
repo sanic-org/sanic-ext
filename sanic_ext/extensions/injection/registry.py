@@ -22,8 +22,8 @@ class InjectionRegistry:
     def register(
         self, _type: Type, constructor: Optional[Callable[..., Any]]
     ) -> None:
-        if constructor:
-            constructor = Constructor(constructor)
+        constructor = constructor or _type
+        constructor = Constructor(constructor)
         self._registry[_type] = constructor
 
     def finalize(self, allowed_types):

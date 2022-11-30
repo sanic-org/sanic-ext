@@ -18,6 +18,8 @@ def test_trace_and_connect_available(app: Sanic):
 
 
 def test_auto_head(app: Sanic, get_docs):
+    app.config.TOUCHUP = False
+
     @app.get("/foo")
     async def foo_handler(_):
         return text("...")

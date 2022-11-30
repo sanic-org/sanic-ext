@@ -13,9 +13,9 @@ from typing import (
     get_type_hints,
 )
 
-from sanic_ext.utils.typing import is_generic
+from sanic_ext.utils.typing import is_attrs, is_generic
 
-from .check import Hint, is_attrs
+from .check import Hint
 
 try:
     UnionType = types.UnionType  # type: ignore

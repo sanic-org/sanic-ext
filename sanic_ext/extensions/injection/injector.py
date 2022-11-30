@@ -6,6 +6,7 @@ from typing import Any, Callable, Dict, Optional, Tuple, Type, get_type_hints
 
 from sanic import Sanic
 from sanic.constants import HTTP_METHODS
+from sanic.signals import Event
 
 from sanic_ext.extensions.injection.constructor import gather_args
 
@@ -30,17 +31,24 @@ def add_injection(app: Sanic, injection_registry: InjectionRegistry) -> None:
                     router_types.add(return_type)
         injection_registry.finalize(router_types)
 
-    @app.signal("http.routing.after")
-    async def inject_kwargs(request, route, kwargs, **_):
+    injection_signal: Event = app.ext.config.INJECTION_SIGNAL
+
+    @app.signal(injection_signal)
+    async def inject_kwargs(request, **_):
         nonlocal signature_registry
 
-        for name in (route.name, f"{route.name}_{request.method.lower()}"):
+        for name in (
+            request.route.name,
+            f"{request.route.name}_{request.method.lower()}",
+        ):
             injections = signature_registry.get(name)
             if injections:
                 break
 
         if injections:
-            injected_args = await gather_args(injections, request, **kwargs)
+            injected_args = await gather_args(
+                injections, request, **request.match_info
+            )
             request.match_info.update(injected_args)
 
 
@@ -71,8 +79,10 @@ def _setup_signature_registry(
                     )
                 ]
             for name, handler in handlers:
-                if hasattr(handler, "__auto_handler__"):
-                    continue
+                if route_handler := getattr(
+                    handler, "__route_handler__", None
+                ):
+                    handler = route_handler
                 if isinstance(handler, partial):
                     if handler.func == app._websocket_handler:
                         handler = handler.args[0]
