@@ -49,6 +49,7 @@ class Constructor:
         try:
             args = await gather_args(self.injections, request, **kwargs)
             args.update(self.constants)
+            print(self.pass_kwargs)
             if self.pass_kwargs:
                 args.update(kwargs)
 
@@ -80,7 +81,6 @@ class Constructor:
         for param, annotation in hints.items():
             if param in constant_registry:
                 self.constants[param] = getattr(app.config, param.upper())
-                continue
             if annotation in allowed_types:
                 self.pass_kwargs = True
             if is_optional(annotation):
