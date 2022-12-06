@@ -106,9 +106,6 @@ class Extend:
             self.extensions.append(extension)
             started.add(ext)
 
-        if built_in_extensions and TEMPLATING_ENABLED:
-            app.ext.templating.environment.globals["url_for"] = app.url_for
-
     def _display(self):
         init_logs = ["Sanic Extensions:"]
         for extension in self.extensions:
