@@ -96,3 +96,17 @@ def test_config_templating_dir():
     assert app.ext.templating.environment.get_template(
         "foo.html"
     ).filename == str(Path(__file__).parent / "templates" / "foo.html")
+
+
+def test_url_for():
+    app = Sanic("templating-from-string")
+    app.extend()
+
+    template = r"url: {{ url_for('handler') }}"
+
+    @app.get("/one/two/three")
+    async def handler(_):
+        return await render(template_source=template)
+
+    _, response = app.test_client.get("/one/two/three")
+    assert response.text == "url: /one/two/three"
