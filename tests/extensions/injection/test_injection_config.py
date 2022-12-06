@@ -35,6 +35,6 @@ def test_add_injection_uses_signal_config():
 
     app.signal = Mock(return_value=Mock())
     app.ext.config.INJECTION_SIGNAL = "random_string"
-    add_injection(app, Mock())
+    add_injection(app, Mock(), Mock())
 
     app.signal.assert_called_once_with("random_string")
