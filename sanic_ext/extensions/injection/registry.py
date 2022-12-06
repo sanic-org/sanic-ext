@@ -1,4 +1,9 @@
-from typing import Any, Callable, Dict, Optional, Tuple, Type
+from __future__ import annotations
+
+from typing import Any, Callable, Dict, Optional, Set, Tuple, Type
+
+from sanic.app import Sanic
+from sanic.config import Config
 
 from .constructor import Constructor
 
@@ -26,10 +31,14 @@ class InjectionRegistry:
         constructor = Constructor(constructor)
         self._registry[_type] = constructor
 
-    def finalize(self, allowed_types):
+    def finalize(
+        self, app: Sanic, constant_registry: ConstantRegistry, allowed_types
+    ):
         for constructor in self._registry.values():
             if isinstance(constructor, Constructor):
-                constructor.prepare(self, allowed_types)
+                constructor.prepare(
+                    app, self, constant_registry, allowed_types
+                )
 
     @property
     def length(self):
@@ -57,3 +66,32 @@ class SignatureRegistry:
         injections: Dict[str, Tuple[Type, Optional[Callable[..., Any]]]],
     ) -> None:
         self._registry[route_name] = injections
+
+
+class ConstantRegistry:
+    def __init__(self, config: Config):
+        self._config = config
+        self._registry: Set[str] = set()
+
+    def __str__(self) -> str:
+        return str(self._registry)
+
+    def __iter__(self):
+        return iter(self._registry)
+
+    def register(self, key: str, value: Any, overwrite: bool):
+        attribute = key.upper()
+        if attribute in self._config and not overwrite:
+            raise ValueError(
+                f"A value for {attribute} has already been assigned"
+            )
+        key = key.lower()
+        setattr(self._config, attribute, value)
+        return self._registry.add(key)
+
+    def get(self, key: str):
+        key = key.lower()
+        if key not in self._registry:
+            raise ValueError
+        attribute = key.upper()
+        return getattr(self._config, attribute)

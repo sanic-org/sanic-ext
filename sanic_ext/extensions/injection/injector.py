@@ -10,10 +10,14 @@ from sanic.signals import Event
 
 from sanic_ext.extensions.injection.constructor import gather_args
 
-from .registry import InjectionRegistry, SignatureRegistry
+from .registry import ConstantRegistry, InjectionRegistry, SignatureRegistry
 
 
-def add_injection(app: Sanic, injection_registry: InjectionRegistry) -> None:
+def add_injection(
+    app: Sanic,
+    injection_registry: InjectionRegistry,
+    constant_registry: ConstantRegistry,
+) -> None:
     signature_registry = _setup_signature_registry(app, injection_registry)
 
     @app.after_server_start
@@ -29,7 +33,7 @@ def add_injection(app: Sanic, injection_registry: InjectionRegistry) -> None:
                 hints = get_type_hints(converter)
                 if return_type := hints.get("return"):
                     router_types.add(return_type)
-        injection_registry.finalize(router_types)
+        injection_registry.finalize(app, constant_registry, router_types)
 
     injection_signal: Event = app.ext.config.INJECTION_SIGNAL
 
