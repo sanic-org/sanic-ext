@@ -56,7 +56,7 @@ def generate_schema(param):
 
 def _get_validator(model, schema, allow_multiple, allow_coerce):
     if is_pydantic(model):
-        return _validate_instance
+        return partial(_validate_instance, allow_coerce=allow_coerce)
 
     return partial(
         _validate_annotations,
