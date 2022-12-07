@@ -365,10 +365,12 @@ def test_validate_form(app):
     _, response = app.test_client.post("/function", data=SNOOPY_DATA)
     assert response.status == 200
     assert response.json["is_pet"]
+    assert response.json["pet"] == SNOOPY_DATA
 
     _, response = app.test_client.post("/method", data=SNOOPY_DATA)
     assert response.status == 200
     assert response.json["is_pet"]
+    assert response.json["pet"] == SNOOPY_DATA
 
 
 def test_validate_query(app):
