@@ -318,3 +318,30 @@ def test_validate_decorator(app):
     _, response = app.test_client.post("/method", json={"name": "Snoopy"})
     assert response.status == 200
     assert response.json["is_pet"]
+
+
+def test_validate_query(app):
+    @dataclass
+    class Search:
+        q: str
+
+    @app.get("/function")
+    @validate(query=Search)
+    async def handler(_, query: Search):
+        return json({"q": query.q, "is_search": isinstance(query, Search)})
+
+    class MethodView(HTTPMethodView, attach=app, uri="/method"):
+        decorators = [validate(query=Search)]
+
+        async def get(self, _, query: Search):
+            return json({"q": query.q, "is_search": isinstance(query, Search)})
+
+    _, response = app.test_client.get("/function", params={"q": "Snoopy"})
+    assert response.status == 200
+    assert response.json["is_search"]
+    assert response.json["q"] == "Snoopy"
+
+    _, response = app.test_client.get("/method", params={"q": "Snoopy"})
+    assert response.status == 200
+    assert response.json["is_search"]
+    assert response.json["q"] == "Snoopy"
