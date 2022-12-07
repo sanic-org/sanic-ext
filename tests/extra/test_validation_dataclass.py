@@ -12,6 +12,8 @@ from sanic_ext.extras.validation.schema import make_schema, parse_hint
 
 from . import __models__ as models
 
+SNOOPY_DATA = {"name": "Snoopy", "alter_ego": ["Flying Ace", "Joe Cool"]}
+
 
 def test_schema():
     @dataclass
@@ -295,27 +297,76 @@ def test_modeling_union_type_ModelUnionTypeStrInt():
         check_data(models.ModelUnionTypeStrInt, {"foo": 1.1}, schema)
 
 
-def test_validate_decorator(app):
+def test_validate_json(app):
     @dataclass
     class Pet:
         name: str
+        alter_ego: List[str]
 
     @app.post("/function")
     @validate(json=Pet)
     async def handler(_, body: Pet):
-        return json({"is_pet": isinstance(body, Pet)})
+        return json(
+            {
+                "is_pet": isinstance(body, Pet),
+                "pet": {"name": body.name, "alter_ego": body.alter_ego},
+            }
+        )
 
     class MethodView(HTTPMethodView, attach=app, uri="/method"):
         decorators = [validate(json=Pet)]
 
         async def post(self, _, body: Pet):
-            return json({"is_pet": isinstance(body, Pet)})
+            return json(
+                {
+                    "is_pet": isinstance(body, Pet),
+                    "pet": {"name": body.name, "alter_ego": body.alter_ego},
+                }
+            )
 
-    _, response = app.test_client.post("/function", json={"name": "Snoopy"})
+    _, response = app.test_client.post("/function", json=SNOOPY_DATA)
+    assert response.status == 200
+    assert response.json["is_pet"]
+    assert response.json["pet"] == SNOOPY_DATA
+
+    _, response = app.test_client.post("/method", json=SNOOPY_DATA)
+    assert response.status == 200
+    assert response.json["is_pet"]
+    assert response.json["pet"] == SNOOPY_DATA
+
+
+def test_validate_form(app):
+    @dataclass
+    class Pet:
+        name: str
+        alter_ego: List[str]
+
+    @app.post("/function")
+    @validate(form=Pet)
+    async def handler(_, body: Pet):
+        return json(
+            {
+                "is_pet": isinstance(body, Pet),
+                "pet": {"name": body.name, "alter_ego": body.alter_ego},
+            }
+        )
+
+    class MethodView(HTTPMethodView, attach=app, uri="/method"):
+        decorators = [validate(form=Pet)]
+
+        async def post(self, _, body: Pet):
+            return json(
+                {
+                    "is_pet": isinstance(body, Pet),
+                    "pet": {"name": body.name, "alter_ego": body.alter_ego},
+                }
+            )
+
+    _, response = app.test_client.post("/function", data=SNOOPY_DATA)
     assert response.status == 200
     assert response.json["is_pet"]
 
-    _, response = app.test_client.post("/method", json={"name": "Snoopy"})
+    _, response = app.test_client.post("/method", data=SNOOPY_DATA)
     assert response.status == 200
     assert response.json["is_pet"]
 
