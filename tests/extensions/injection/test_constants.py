@@ -32,6 +32,8 @@ def test_constant_is_injected(app: Sanic):
 
 def test_load_config(app: Sanic):
     app.ext.load_constants()
+    assert len(app.ext._constant_registry._registry) == 0
+    app.ext.load_constants({**app.config}, overwrite=True)
     assert len(app.ext._constant_registry._registry) == len(
         [k for k in app.config.keys() if k.isupper()]
     )
