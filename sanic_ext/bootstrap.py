@@ -143,6 +143,8 @@ class Extend:
         self._injection_registry.register(type, constructor)
 
     def add_constant(self, name: str, value: Any, overwrite: bool = False):
+        if not self._constant_registry:
+            raise ValueError("Cannot add constant. No registry created.")
         self._constant_registry.register(name, value, overwrite)
 
     def load_constants(
