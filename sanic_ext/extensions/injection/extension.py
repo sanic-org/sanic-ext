@@ -12,6 +12,7 @@ class InjectionExtension(Extension):
         add_injection(self.app, self.registry, self.constant_registry)
         bootstrap._injection_registry = self.registry
         bootstrap._constant_registry = self.constant_registry
+        self.app.ext.load_constants()
 
     def label(self):
         return f"{self.registry.length} added"

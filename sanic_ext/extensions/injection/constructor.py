@@ -49,7 +49,6 @@ class Constructor:
         try:
             args = await gather_args(self.injections, request, **kwargs)
             args.update(self.constants)
-            print(self.pass_kwargs)
             if self.pass_kwargs:
                 args.update(kwargs)
 

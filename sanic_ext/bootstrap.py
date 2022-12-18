@@ -5,6 +5,7 @@ from typing import Any, Callable, Dict, List, Mapping, Optional, Type, Union
 from warnings import warn
 
 from sanic import Sanic, __version__
+from sanic.config import DEFAULT_CONFIG
 from sanic.exceptions import SanicException
 from sanic.helpers import Default, _default
 from sanic.log import logger
@@ -151,7 +152,11 @@ class Extend:
     ):
         if not constants:
             constants = {
-                k: v for k, v in self.app.config.items() if k.isupper()
+                k: v
+                for k, v in self.app.config.items()
+                if k.isupper()
+                and k not in DEFAULT_CONFIG
+                and k not in self.config
             }
             if isinstance(overwrite, Default):
                 overwrite = True
