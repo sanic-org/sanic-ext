@@ -25,7 +25,8 @@ def get_oauth2_redirect_html(version: str):
     import urllib
 
     response = urllib.request.urlopen(
-        f"https://cdn.jsdelivr.net/npm/swagger-ui-dist@{version}/oauth2-redirect.html"
+        f"https://cdn.jsdelivr.net/npm/swagger-ui-dist@{version}/"
+        "oauth2-redirect.html"
     ).read()
 
     return response.decode("utf-8")
