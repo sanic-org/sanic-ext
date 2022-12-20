@@ -1,5 +1,5 @@
 import inspect
-from functools import partial, lru_cache
+from functools import lru_cache, partial
 from os.path import abspath, dirname, realpath
 
 from sanic import Request
@@ -25,7 +25,8 @@ def get_oauth2_redirect_html(version: str):
     import urllib
 
     response = urllib.request.urlopen(
-        f"https://cdn.jsdelivr.net/npm/swagger-ui-dist@{version}/oauth2-redirect.html").read()
+        f"https://cdn.jsdelivr.net/npm/swagger-ui-dist@{version}/oauth2-redirect.html"
+    ).read()
 
     return response.decode("utf-8")
 
@@ -88,10 +89,14 @@ def blueprint_factory(config: Config):
 
             if ui == "swagger":
                 oauth2_redirect_uri = getattr(
-                    config, "OAS_UI_SWAGGER_OAUTH2_REDIRECT")
+                    config, "OAS_UI_SWAGGER_OAUTH2_REDIRECT"
+                )
 
-                bp.add_route(partial(oauth2_handler, version=version),
-                             oauth2_redirect_uri, name="oauth2-redirect")
+                bp.add_route(
+                    partial(oauth2_handler, version=version),
+                    oauth2_redirect_uri,
+                    name="oauth2-redirect",
+                )
 
     @bp.get(config.OAS_URI_TO_JSON)
     def spec(request: Request):
