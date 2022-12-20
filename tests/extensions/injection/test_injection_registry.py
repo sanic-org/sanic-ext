@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from unittest.mock import AsyncMock, call
+from unittest.mock import AsyncMock, Mock, call
 
 import pytest
 from sanic import Request
@@ -8,7 +8,10 @@ from sanic.exceptions import ServerError
 
 from sanic_ext.exceptions import InitError
 from sanic_ext.extensions.injection.constructor import Constructor, gather_args
-from sanic_ext.extensions.injection.registry import InjectionRegistry
+from sanic_ext.extensions.injection.registry import (
+    ConstantRegistry,
+    InjectionRegistry,
+)
 
 
 class Foo:
@@ -82,7 +85,7 @@ async def test_circular_refs():
         f"chain with {Chicken}."
     )
     with pytest.raises(InitError, match=message):
-        injections.finalize([])
+        injections.finalize(Mock(), ConstantRegistry({}), [])
 
 
 @pytest.mark.asyncio
@@ -95,15 +98,15 @@ async def test_finalize_allowed_types(raises, allowed):
         with pytest.raises(
             InitError, match=".Could not find the following dependencies."
         ):
-            injections.finalize(allowed)
+            injections.finalize(Mock(), ConstantRegistry({}), allowed)
     else:
-        injections.finalize(allowed)
+        injections.finalize(Mock(), ConstantRegistry({}), allowed)
 
 
 async def test_constructor():
     injections = InjectionRegistry()
     injections.register(Foo, Foo.create)
-    injections.finalize({int})
+    injections.finalize(Mock(), ConstantRegistry({}), {int})
     request = object()
     constructor = injections[Foo]
 
@@ -119,7 +122,7 @@ async def test_constructor_nested():
     injections = InjectionRegistry()
     injections.register(Foo, Foo.create)
     injections.register(Bar, Bar.create)
-    injections.finalize({int})
+    injections.finalize(Mock(), ConstantRegistry({}), {int})
     request = object()
     constructor_bar = injections[Bar]
 
@@ -135,7 +138,7 @@ async def test_constructor_nested():
 async def test_constructor_failure_kwargs():
     injections = InjectionRegistry()
     injections.register(Foo, Foo.create)
-    injections.finalize({int})
+    injections.finalize(Mock(), ConstantRegistry({}), {int})
     request = object()
     constructor = injections[Foo]
 
@@ -151,7 +154,7 @@ async def test_constructor_failure_nested():
     injections = InjectionRegistry()
     injections.register(Foo, Foo.create)
     injections.register(Bar, Bar.create)
-    injections.finalize({int})
+    injections.finalize(Mock(), ConstantRegistry({}), {int})
     request = object()
     constructor: Bar = injections[Bar]
 
@@ -166,7 +169,7 @@ async def test_constructor_failure_nested():
 async def test_constructor_with_inherited_request():
     injections = InjectionRegistry()
     injections.register(Baz, Baz.create)
-    injections.finalize([])
+    injections.finalize(Mock(), ConstantRegistry({}), [])
 
     request = object()
     constructor_baz = injections[Baz]

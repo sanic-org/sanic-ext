@@ -1,11 +1,13 @@
 from __future__ import annotations
 
 from types import SimpleNamespace
-from typing import Any, Callable, Dict, List, Optional, Type, Union
+from typing import Any, Callable, Dict, List, Mapping, Optional, Type, Union
 from warnings import warn
 
 from sanic import Sanic, __version__
+from sanic.config import DEFAULT_CONFIG
 from sanic.exceptions import SanicException
+from sanic.helpers import Default, _default
 from sanic.log import logger
 
 from sanic_ext.config import Config, add_fallback_config
@@ -13,7 +15,10 @@ from sanic_ext.extensions.base import Extension
 from sanic_ext.extensions.health.extension import HealthExtension
 from sanic_ext.extensions.http.extension import HTTPExtension
 from sanic_ext.extensions.injection.extension import InjectionExtension
-from sanic_ext.extensions.injection.registry import InjectionRegistry
+from sanic_ext.extensions.injection.registry import (
+    ConstantRegistry,
+    InjectionRegistry,
+)
 from sanic_ext.extensions.logging.extension import LoggingExtension
 from sanic_ext.extensions.openapi.builders import SpecificationBuilder
 from sanic_ext.extensions.openapi.extension import OpenAPIExtension
@@ -70,6 +75,7 @@ class Extend:
             )
 
         self._injection_registry: Optional[InjectionRegistry] = None
+        self._constant_registry: Optional[ConstantRegistry] = None
         self._openapi: Optional[SpecificationBuilder] = None
         self.app = app
         self.extensions: List[Extension] = []
@@ -135,6 +141,32 @@ class Extend:
         if not self._injection_registry:
             raise SanicException("Injection extension not enabled")
         self._injection_registry.register(type, constructor)
+
+    def add_constant(self, name: str, value: Any, overwrite: bool = False):
+        if not self._constant_registry:
+            raise ValueError("Cannot add constant. No registry created.")
+        self._constant_registry.register(name, value, overwrite)
+
+    def load_constants(
+        self,
+        constants: Optional[Mapping[str, Any]] = None,
+        overwrite: Union[Default, bool] = _default,
+    ):
+        if not constants:
+            constants = {
+                k: v
+                for k, v in self.app.config.items()
+                if k.isupper()
+                and k not in DEFAULT_CONFIG
+                and k not in self.config
+                and not k.startswith("_")
+            }
+            if isinstance(overwrite, Default):
+                overwrite = True
+        if isinstance(overwrite, Default):
+            overwrite = False
+        for name, value in constants.items():
+            self.add_constant(name, value, overwrite)
 
     def dependency(self, obj: Any, name: Optional[str] = None) -> None:
         if not name:

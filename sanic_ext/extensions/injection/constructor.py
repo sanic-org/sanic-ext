@@ -16,13 +16,14 @@ from typing import (
 )
 
 from sanic import Request
+from sanic.app import Sanic
 from sanic.exceptions import ServerError
 
 from sanic_ext.exceptions import InitError
 from sanic_ext.utils.typing import is_attrs, is_optional, is_pydantic
 
 if TYPE_CHECKING:
-    from .registry import InjectionRegistry
+    from .registry import ConstantRegistry, InjectionRegistry
 
 
 class Constructor:
@@ -34,6 +35,7 @@ class Constructor:
     ):
         self.func = func
         self.injections: Dict[str, Tuple[Type, Constructor]] = {}
+        self.constants: Dict[str, Any] = {}
         self.pass_kwargs: bool = False
         self.request_arg: Optional[str] = None
 
@@ -46,6 +48,7 @@ class Constructor:
     async def __call__(self, request, **kwargs):
         try:
             args = await gather_args(self.injections, request, **kwargs)
+            args.update(self.constants)
             if self.pass_kwargs:
                 args.update(kwargs)
 
@@ -66,13 +69,17 @@ class Constructor:
 
     def prepare(
         self,
+        app: Sanic,
         injection_registry: InjectionRegistry,
+        constant_registry: ConstantRegistry,
         allowed_types: Set[Type[object]],
     ) -> None:
         hints = self._get_hints()
         hints.pop("return", None)
         missing = []
         for param, annotation in hints.items():
+            if param in constant_registry:
+                self.constants[param] = getattr(app.config, param.upper())
             if annotation in allowed_types:
                 self.pass_kwargs = True
             if is_optional(annotation):
