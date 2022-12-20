@@ -26,6 +26,9 @@ class OpenAPIExtension(Extension):
 
         return ""
 
+    def included(self):
+        return self.config.OAS
+
     def _make_url(self):
         name = f"{self.bp.name}.index"
         _server = (
