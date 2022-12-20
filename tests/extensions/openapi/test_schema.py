@@ -3,7 +3,7 @@ from typing import List
 
 import pytest
 
-from sanic_ext.extensions.openapi.types import Schema
+from sanic_ext.extensions.openapi.types import Schema, String
 
 
 @pytest.mark.skipif(version_info < (3, 9), reason="Not needed on 3.8")
@@ -29,6 +29,9 @@ def test_schema_list():
 
     schema = Schema.make(Foo)
     serialized = schema.serialize()
+    from rich import print
+
+    print(serialized)
     assert "no_show_method" not in serialized
     assert "no_show_classmethod" not in serialized
     assert "no_show_staticmethod" not in serialized
@@ -45,4 +48,35 @@ def test_schema_list():
             },
             "show": {"type": "boolean"},
         },
+    }
+
+
+def test_schema_fields():
+    class Pet:
+        name = String(example="Snoopy")
+
+    class Single:
+        pet = Pet
+
+        class Ignore:
+            ...
+
+    class Multiple:
+        pets = [Pet]
+
+    pet_schema = Schema.make(Pet).serialize()
+    single_schema = Schema.make(Single).serialize()
+    multiple_schema = Schema.make(Multiple).serialize()
+
+    assert pet_schema == {
+        "type": "object",
+        "properties": {"name": {"type": "string", "example": "Snoopy"}},
+    }
+    assert single_schema == {
+        "type": "object",
+        "properties": {"pet": pet_schema},
+    }
+    assert multiple_schema == {
+        "type": "object",
+        "properties": {"pets": {"type": "array", "items": pet_schema}},
     }
