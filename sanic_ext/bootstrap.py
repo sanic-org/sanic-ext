@@ -159,6 +159,7 @@ class Extend:
                 if k.isupper()
                 and k not in DEFAULT_CONFIG
                 and k not in self.config
+                and not k.startswith("_")
             }
             if isinstance(overwrite, Default):
                 overwrite = True

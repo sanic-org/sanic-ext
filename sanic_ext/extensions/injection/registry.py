@@ -48,7 +48,11 @@ class InjectionRegistry:
 class SignatureRegistry:
     def __init__(self):
         self._registry: Dict[
-            str, Dict[str, Tuple[Type, Optional[Callable[..., Any]]]]
+            str,
+            Tuple[
+                Dict[str, Tuple[Type, Optional[Callable[..., Any]]]],
+                Dict[str, Any],
+            ],
         ] = {}
 
     def __getitem__(self, key):
@@ -63,9 +67,10 @@ class SignatureRegistry:
     def register(
         self,
         route_name: str,
-        injections: Dict[str, Tuple[Type, Optional[Callable[..., Any]]]],
+        dependencies: Dict[str, Tuple[Type, Optional[Callable[..., Any]]]],
+        constants: Optional[Dict[str, Any]] = None,
     ) -> None:
-        self._registry[route_name] = injections
+        self._registry[route_name] = (dependencies, constants or {})
 
 
 class ConstantRegistry:
@@ -78,6 +83,12 @@ class ConstantRegistry:
 
     def __iter__(self):
         return iter(self._registry)
+
+    def __getitem__(self, key):
+        return self._registry[key]
+
+    def __contains__(self, other: Any):
+        return other in self._registry
 
     def register(self, key: str, value: Any, overwrite: bool):
         attribute = key.upper()
@@ -95,3 +106,7 @@ class ConstantRegistry:
             raise ValueError
         attribute = key.upper()
         return getattr(self._config, attribute)
+
+    @property
+    def length(self):
+        return len(self._registry)

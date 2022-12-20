@@ -18,6 +18,19 @@ def test_constant_in_registry(app: Sanic):
 
 def test_constant_is_injected(app: Sanic):
     app.ext.add_constant("bar", 999)
+
+    @app.get("/")
+    async def handler(_, bar: int):
+        return json({"bar": bar})
+
+    _, response = app.test_client.get("/")
+
+    assert response.json["bar"] == 999
+    assert app.config.BAR == 999
+
+
+def test_constant_is_injected_into_constructor(app: Sanic):
+    app.ext.add_constant("bar", 999)
     app.ext.add_dependency(Foo)
 
     @app.get("/")

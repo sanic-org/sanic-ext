@@ -6,7 +6,6 @@ from typing import Any, Callable, Dict, Optional, Tuple, Type, get_type_hints
 
 from sanic import Sanic
 from sanic.constants import HTTP_METHODS
-from sanic.signals import Event
 
 from sanic_ext.extensions.injection.constructor import gather_args
 
@@ -18,7 +17,9 @@ def add_injection(
     injection_registry: InjectionRegistry,
     constant_registry: ConstantRegistry,
 ) -> None:
-    signature_registry = _setup_signature_registry(app, injection_registry)
+    signature_registry = _setup_signature_registry(
+        app, injection_registry, constant_registry
+    )
 
     @app.after_server_start
     async def finalize_injections(app: Sanic, _):
@@ -35,7 +36,7 @@ def add_injection(
                     router_types.add(return_type)
         injection_registry.finalize(app, constant_registry, router_types)
 
-    injection_signal: Event = app.ext.config.INJECTION_SIGNAL
+    injection_signal = app.ext.config.INJECTION_SIGNAL
 
     @app.signal(injection_signal)
     async def inject_kwargs(request, **_):
@@ -45,15 +46,19 @@ def add_injection(
             request.route.name,
             f"{request.route.name}_{request.method.lower()}",
         ):
-            injections = signature_registry.get(name)
-            if injections:
+            dependencies, constants = signature_registry.get(
+                name, (None, None)
+            )
+            if dependencies or constants:
                 break
 
-        if injections:
+        if dependencies:
             injected_args = await gather_args(
-                injections, request, **request.match_info
+                dependencies, request, **request.match_info
             )
             request.match_info.update(injected_args)
+        if constants:
+            request.match_info.update(constants)
 
 
 def _http_method_predicate(member):
@@ -63,6 +68,7 @@ def _http_method_predicate(member):
 def _setup_signature_registry(
     app: Sanic,
     injection_registry: InjectionRegistry,
+    constant_registry: ConstantRegistry,
 ) -> SignatureRegistry:
     registry = SignatureRegistry()
 
@@ -97,16 +103,19 @@ def _setup_signature_registry(
                 except TypeError:
                     continue
 
-                injections: Dict[
+                dependencies: Dict[
                     str, Tuple[Type, Optional[Callable[..., Any]]]
-                ] = {
-                    param: (
-                        annotation,
-                        injection_registry[annotation],
-                    )
-                    for param, annotation in hints.items()
-                    if annotation in injection_registry
-                }
-                registry.register(name, injections)
+                ] = {}
+                constants: Dict[str, Any] = {}
+                for param, annotation in hints.items():
+                    if annotation in injection_registry:
+                        dependencies[param] = (
+                            annotation,
+                            injection_registry[annotation],
+                        )
+                    if param in constant_registry:
+                        constants[param] = app.config[param.upper()]
+
+                registry.register(name, dependencies, constants)
 
     return registry
