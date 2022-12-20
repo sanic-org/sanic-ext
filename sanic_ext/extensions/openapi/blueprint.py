@@ -5,6 +5,7 @@ from os.path import abspath, dirname, realpath
 from sanic import Request
 from sanic.blueprints import Blueprint
 from sanic.config import Config
+from sanic.log import logger
 from sanic.response import html, json
 
 from sanic_ext.extensions.openapi.builders import (
@@ -44,21 +45,46 @@ def blueprint_factory(config: Config):
             path = getattr(config, f"OAS_PATH_TO_{ui}_HTML".upper())
             uri = getattr(config, f"OAS_URI_TO_{ui}".upper())
             version = getattr(config, f"OAS_UI_{ui}_VERSION".upper(), "")
+            html_title = getattr(config, f"OAS_UI_{ui}_HTML_TITLE".upper())
+            custom_css = getattr(config, f"OAS_UI_{ui}_CUSTOM_CSS".upper())
             html_path = path if path else f"{dir_path}/{ui}.html"
 
             with open(html_path, "r") as f:
                 page = f.read()
 
-            def index(request: Request, page: str):
+            def index(
+                request: Request, page: str, html_title: str, custom_css: str
+            ):
                 return html(
-                    page.replace("__VERSION__", version).replace(
+                    page.replace("__VERSION__", version)
+                    .replace(
                         "__URL_PREFIX__", getattr(config, "OAS_URL_PREFIX")
                     )
+                    .replace("__HTML_TITLE__", html_title)
+                    .replace("__HTML_CUSTOM_CSS__", custom_css)
                 )
 
-            bp.add_route(partial(index, page=page), uri, name=ui)
+            bp.add_route(
+                partial(
+                    index,
+                    page=page,
+                    html_title=html_title,
+                    custom_css=custom_css,
+                ),
+                uri,
+                name=ui,
+            )
             if config.OAS_UI_DEFAULT and config.OAS_UI_DEFAULT == ui:
-                bp.add_route(partial(index, page=page), "", name="index")
+                bp.add_route(
+                    partial(
+                        index,
+                        page=page,
+                        html_title=html_title,
+                        custom_css=custom_css,
+                    ),
+                    "",
+                    name="index",
+                )
 
             if ui == "swagger":
                 oauth2_redirect_uri = getattr(
@@ -153,13 +179,23 @@ def blueprint_factory(config: Config):
                     if operation._autodoc and (
                         parameters := operation._autodoc.get("parameters")
                     ):
-                        description = None
                         for param in parameters:
-                            if param["name"] == _parameter.name:
-                                description = param.get("description")
+                            if param.pop("name", None) == _parameter.name:
+                                kwargs["description"] = param.get(
+                                    "description"
+                                )
+                                kwargs["required"] = param.get("required")
+                                if schema := param.get("schema"):
+                                    logger.warning(
+                                        f"Ignoring the schema {schema} in "
+                                        f"'{route_name}' for "
+                                        f"'{_parameter.name}'. "
+                                        "Instead of using the definition in "
+                                        "docstring definition, Sanic will use "
+                                        "the actual schema defined for this "
+                                        "parameter on the route."
+                                    )
                                 break
-                        if description:
-                            kwargs["description"] = description
 
                     operation.parameter(
                         _parameter.name, _parameter.cast, "path", **kwargs

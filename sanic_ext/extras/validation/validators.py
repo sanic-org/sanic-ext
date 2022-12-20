@@ -3,6 +3,7 @@ from typing import Any, Callable, Dict, Tuple, Type
 from sanic_ext.exceptions import ValidationError
 
 from .check import check_data
+from .clean import clean_data
 
 try:
     from pydantic import ValidationError as PydanticValidationError
@@ -28,8 +29,9 @@ def validate_body(
         )
 
 
-def _validate_instance(model, body):
-    return model(**body)
+def _validate_instance(model, body, allow_coerce):
+    data = clean_data(model, body) if allow_coerce else body
+    return model(**data)
 
 
 def _validate_annotations(model, body, schema, allow_multiple, allow_coerce):

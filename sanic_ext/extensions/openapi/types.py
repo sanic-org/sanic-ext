@@ -2,7 +2,7 @@ import json
 import uuid
 from datetime import date, datetime, time
 from enum import Enum
-from inspect import getmembers, isfunction, ismethod
+from inspect import getmembers, isclass, isfunction, ismethod
 from typing import (
     Any,
     Dict,
@@ -13,6 +13,8 @@ from typing import (
     get_origin,
     get_type_hints,
 )
+
+from sanic_routing.patterns import nonemptystr
 
 from sanic_ext.utils.typing import is_generic
 
@@ -42,7 +44,7 @@ class Definition:
             if (
                 k not in self.__ignore__
                 and (
-                    v
+                    v is not None
                     or (
                         isinstance(self.__nullable__, list)
                         and (not self.__nullable__ or k in self.__nullable__)
@@ -111,7 +113,7 @@ class Schema(Definition):
             return Integer(**kwargs)
         elif value == float:
             return Float(**kwargs)
-        elif value == str:
+        elif value == str or value is nonemptystr:
             return String(**kwargs)
         elif value == bytes:
             return Byte(**kwargs)
@@ -333,4 +335,4 @@ def _extract(item):
 
 
 def _is_property(item):
-    return not isfunction(item) and not ismethod(item)
+    return not isfunction(item) and not ismethod(item) and not isclass(item)

@@ -12,6 +12,8 @@ from sanic_ext.extras.validation.schema import make_schema, parse_hint
 
 from . import __models__ as models
 
+SNOOPY_DATA = {"name": "Snoopy", "alter_ego": ["Flying Ace", "Joe Cool"]}
+
 
 def test_schema():
     @dataclass
@@ -122,6 +124,26 @@ def test_should_not_hydrate(data):
         (models.ModelUnionModels, False, {"foo": 1}),
         (models.ModelUnionModels, False, {"foo": 1.1}),
         (models.ModelUnionModels, False, {"foo": None}),
+        (models.ModelUnionStrInt, True, {"foo": "1"}),
+        (models.ModelUnionStrInt, True, {"foo": "1q"}),
+        (models.ModelUnionStrInt, True, {"foo": 1}),
+        (models.ModelUnionStrInt, False, {"foo": 1.1}),
+        (models.ModelUnionStrInt, False, {"foo": None}),
+        (models.ModelUnionIntStr, True, {"foo": "1"}),
+        (models.ModelUnionIntStr, True, {"foo": "1q"}),
+        (models.ModelUnionIntStr, True, {"foo": 1}),
+        (models.ModelUnionIntStr, False, {"foo": 1.1}),
+        (models.ModelUnionIntStr, False, {"foo": None}),
+        (models.ModelOptionalUnionStrInt, True, {"foo": "1"}),
+        (models.ModelOptionalUnionStrInt, True, {"foo": "1q"}),
+        (models.ModelOptionalUnionStrInt, True, {"foo": 1}),
+        (models.ModelOptionalUnionStrInt, False, {"foo": 1.1}),
+        (models.ModelOptionalUnionStrInt, True, {"foo": None}),
+        (models.ModelOptionalUnionIntStr, True, {"foo": "1"}),
+        (models.ModelOptionalUnionIntStr, True, {"foo": "1q"}),
+        (models.ModelOptionalUnionIntStr, True, {"foo": 1}),
+        (models.ModelOptionalUnionIntStr, False, {"foo": 1.1}),
+        (models.ModelOptionalUnionIntStr, True, {"foo": None}),
         (models.ModelListStr, True, {"foo": ["bar"]}),
         (models.ModelListStr, True, {"foo": ["one", "two"]}),
         (models.ModelListStr, False, {"foo": "bar"}),
@@ -235,7 +257,7 @@ def test_modeling(model, okay, data):
 @pytest.mark.skipif(
     sys.version_info < (3, 10), reason="UnionType added in 3.10"
 )
-def test_modeling_union_type():
+def test_modeling_union_type_ModelUnionTypeStrNone():
     schema = make_schema({}, models.ModelUnionTypeStrNone)
 
     check_data(models.ModelUnionTypeStrNone, {"foo": "bar"}, schema)
@@ -244,26 +266,135 @@ def test_modeling_union_type():
         check_data(models.ModelUnionTypeStrNone, {"foo": 0}, schema)
 
 
-def test_validate_decorator(app):
+@pytest.mark.skipif(
+    sys.version_info < (3, 10), reason="UnionType added in 3.10"
+)
+def test_modeling_union_type_ModelUnionTypeStrIntNone():
+    schema = make_schema({}, models.ModelUnionTypeStrIntNone)
+
+    check_data(models.ModelUnionTypeStrIntNone, {"foo": "1"}, schema)
+    check_data(models.ModelUnionTypeStrIntNone, {"foo": "bar"}, schema)
+    check_data(models.ModelUnionTypeStrIntNone, {"foo": None}, schema)
+    check_data(models.ModelUnionTypeStrIntNone, {"foo": 1}, schema)
+    check_data(models.ModelUnionTypeStrIntNone, {"foo": 0}, schema)
+    with pytest.raises(TypeError):
+        check_data(models.ModelUnionTypeStrIntNone, {"foo": 1.1}, schema)
+
+
+@pytest.mark.skipif(
+    sys.version_info < (3, 10), reason="UnionType added in 3.10"
+)
+def test_modeling_union_type_ModelUnionTypeStrInt():
+    schema = make_schema({}, models.ModelUnionTypeStrInt)
+
+    check_data(models.ModelUnionTypeStrInt, {"foo": "1"}, schema)
+    check_data(models.ModelUnionTypeStrInt, {"foo": "bar"}, schema)
+    check_data(models.ModelUnionTypeStrInt, {"foo": 1}, schema)
+    check_data(models.ModelUnionTypeStrInt, {"foo": 0}, schema)
+    with pytest.raises(TypeError):
+        check_data(models.ModelUnionTypeStrInt, {"foo": None}, schema)
+    with pytest.raises(TypeError):
+        check_data(models.ModelUnionTypeStrInt, {"foo": 1.1}, schema)
+
+
+def test_validate_json(app):
     @dataclass
     class Pet:
         name: str
+        alter_ego: List[str]
 
     @app.post("/function")
     @validate(json=Pet)
     async def handler(_, body: Pet):
-        return json({"is_pet": isinstance(body, Pet)})
+        return json(
+            {
+                "is_pet": isinstance(body, Pet),
+                "pet": {"name": body.name, "alter_ego": body.alter_ego},
+            }
+        )
 
     class MethodView(HTTPMethodView, attach=app, uri="/method"):
         decorators = [validate(json=Pet)]
 
         async def post(self, _, body: Pet):
-            return json({"is_pet": isinstance(body, Pet)})
+            return json(
+                {
+                    "is_pet": isinstance(body, Pet),
+                    "pet": {"name": body.name, "alter_ego": body.alter_ego},
+                }
+            )
 
-    _, response = app.test_client.post("/function", json={"name": "Snoopy"})
+    _, response = app.test_client.post("/function", json=SNOOPY_DATA)
     assert response.status == 200
     assert response.json["is_pet"]
+    assert response.json["pet"] == SNOOPY_DATA
 
-    _, response = app.test_client.post("/method", json={"name": "Snoopy"})
+    _, response = app.test_client.post("/method", json=SNOOPY_DATA)
     assert response.status == 200
     assert response.json["is_pet"]
+    assert response.json["pet"] == SNOOPY_DATA
+
+
+def test_validate_form(app):
+    @dataclass
+    class Pet:
+        name: str
+        alter_ego: List[str]
+
+    @app.post("/function")
+    @validate(form=Pet)
+    async def handler(_, body: Pet):
+        return json(
+            {
+                "is_pet": isinstance(body, Pet),
+                "pet": {"name": body.name, "alter_ego": body.alter_ego},
+            }
+        )
+
+    class MethodView(HTTPMethodView, attach=app, uri="/method"):
+        decorators = [validate(form=Pet)]
+
+        async def post(self, _, body: Pet):
+            return json(
+                {
+                    "is_pet": isinstance(body, Pet),
+                    "pet": {"name": body.name, "alter_ego": body.alter_ego},
+                }
+            )
+
+    _, response = app.test_client.post("/function", data=SNOOPY_DATA)
+    assert response.status == 200
+    assert response.json["is_pet"]
+    assert response.json["pet"] == SNOOPY_DATA
+
+    _, response = app.test_client.post("/method", data=SNOOPY_DATA)
+    assert response.status == 200
+    assert response.json["is_pet"]
+    assert response.json["pet"] == SNOOPY_DATA
+
+
+def test_validate_query(app):
+    @dataclass
+    class Search:
+        q: str
+
+    @app.get("/function")
+    @validate(query=Search)
+    async def handler(_, query: Search):
+        return json({"q": query.q, "is_search": isinstance(query, Search)})
+
+    class MethodView(HTTPMethodView, attach=app, uri="/method"):
+        decorators = [validate(query=Search)]
+
+        async def get(self, _, query: Search):
+            return json({"q": query.q, "is_search": isinstance(query, Search)})
+
+    _, response = app.test_client.get("/function", params={"q": "Snoopy"})
+    assert response.status == 200
+    assert response.json["is_search"]
+    assert response.json["q"] == "Snoopy"
+
+    _, response = app.test_client.get("/method", params={"q": "Snoopy"})
+    assert response.status == 200
+    assert response.json["is_search"]
+    assert response.json["q"] == "Snoopy"

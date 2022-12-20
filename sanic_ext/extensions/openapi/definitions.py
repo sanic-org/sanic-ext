@@ -84,6 +84,12 @@ class MediaType(Definition):
 
     @staticmethod
     def make(value: Any):
+        if isinstance(value, dict):
+            kwargs = {}
+            if "schema" in value:
+                kwargs = {**value}
+                value = kwargs.pop("schema")
+            return MediaType(value, **kwargs)
         return MediaType(Schema.make(value))
 
     @staticmethod
@@ -230,7 +236,7 @@ class Parameter(Definition):
 
     @staticmethod
     def make(name: str, schema: type, location: str, **kwargs):
-        if location == "path":
+        if location == "path" and "required" not in kwargs:
             kwargs["required"] = True
 
         return Parameter(name, Schema.make(schema), location, **kwargs)

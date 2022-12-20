@@ -22,6 +22,7 @@ def reset_globals():
     OperationStore.reset()
     Extend.reset()
     Extension.reset()
+    Sanic._app_registry.clear()
 
 
 @pytest.fixture(autouse=True)
