@@ -29,9 +29,7 @@ def test_schema_list():
 
     schema = Schema.make(Foo)
     serialized = schema.serialize()
-    from rich import print
 
-    print(serialized)
     assert "no_show_method" not in serialized
     assert "no_show_classmethod" not in serialized
     assert "no_show_staticmethod" not in serialized
