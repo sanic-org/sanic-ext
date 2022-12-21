@@ -92,6 +92,7 @@ def add_auto_handlers(
                                 strict_slashes=group.strict,
                                 name=name,
                                 host=host,
+                                unquote=group.unquote,
                             )
             app.finalize()
 
@@ -138,5 +139,6 @@ def add_auto_handlers(
                             strict_slashes=group.strict,
                             name=name,
                             host=host,
+                            unquote=group.unquote,
                         )
             app.finalize()
