@@ -453,6 +453,25 @@ def test_definition_decorator_body_dict_only_schema_head(app):
     }
 
 
+def test_definition_decorator_body_dict_types_schema_head(app):
+    @app.route("/")
+    @openapi.definition(body={"application/json": {"schema": {"name": str}}})
+    async def handler(_):
+        ...
+
+    body = get_path(app, "/")["requestBody"]
+    assert body == {
+        "content": {
+            "application/json": {
+                "schema": {
+                    "type": "object",
+                    "properties": {"name": {"type": "string"}},
+                }
+            }
+        }
+    }
+
+
 def test_definition_decorator_body_dict_only_schema_root(app):
     @app.route("/")
     @openapi.definition(
@@ -465,6 +484,37 @@ def test_definition_decorator_body_dict_only_schema_root(app):
     )
     async def handler(_):
         ...
+
+    body = get_path(app, "/")["requestBody"]
+    assert body == {
+        "content": {
+            "application/json": {
+                "schema": {
+                    "type": "object",
+                    "properties": {"name": {"type": "string"}},
+                }
+            }
+        }
+    }
+
+
+def test_definition_decorator_body_dict_types_schema_root(app):
+    @app.route("/")
+    @openapi.definition(body={"application/json": {"name": str}})
+    async def handler(_):
+        ...
+
+    body = get_path(app, "/")["requestBody"]
+    assert body == {
+        "content": {
+            "application/json": {
+                "schema": {
+                    "type": "object",
+                    "properties": {"name": {"type": "string"}},
+                }
+            }
+        }
+    }
 
 
 def test_definition_decorator_httpmethodview(app):
