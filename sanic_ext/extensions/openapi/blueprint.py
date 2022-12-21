@@ -6,7 +6,7 @@ from sanic import Request
 from sanic.blueprints import Blueprint
 from sanic.config import Config
 from sanic.log import logger
-from sanic.response import html, json
+from sanic.response import file, html, json
 
 from sanic_ext.extensions.openapi.builders import (
     OperationStore,
@@ -100,7 +100,9 @@ def blueprint_factory(config: Config):
                 )
 
     @bp.get(config.OAS_URI_TO_JSON)
-    def spec(request: Request):
+    async def spec(request: Request):
+        if config.OAS_CUSTOM_FILE:
+            return await file(config.OAS_CUSTOM_FILE)
         return json(SpecificationBuilder().build(request.app).serialize())
 
     if config.OAS_UI_SWAGGER:
