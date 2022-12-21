@@ -1,3 +1,4 @@
+import sys
 from typing import List, Optional
 
 import pytest
@@ -31,16 +32,17 @@ def test_dict_values_nested():
     assert values == {999, 888, 777, 666, None, True}
 
 
-@pytest.mark.parametrize(
-    "item,expected",
-    (
-        ({"foo": str}, True),
-        ({"foo": List[str]}, True),
-        ({"foo": list[str]}, True),
-        ({"foo": Optional[str]}, True),
-        ({"foo": Foo}, True),
-        ({"foo": "str"}, False),
-    ),
-)
+params = [
+    ({"foo": str}, True),
+    ({"foo": List[str]}, True),
+    ({"foo": Optional[str]}, True),
+    ({"foo": Foo}, True),
+    ({"foo": "str"}, False),
+]
+if sys.version_info >= (3, 9):
+    params.append(({"foo": list[str]}, True))
+
+
+@pytest.mark.parametrize("item,expected", params)
 def test_contains_annotations(item, expected):
     assert contains_annotations(item) == expected
