@@ -41,6 +41,7 @@ class Config(SanicConfig):
         logging_queue_max_size: int = 4096,
         oas: bool = True,
         oas_autodoc: bool = True,
+        oas_custom_file: Optional[os.PathLike] = None,
         oas_ignore_head: bool = True,
         oas_ignore_options: bool = True,
         oas_path_to_redoc_html: Optional[str] = None,
@@ -96,6 +97,7 @@ class Config(SanicConfig):
         self.LOGGING_QUEUE_MAX_SIZE = logging_queue_max_size
         self.OAS = oas
         self.OAS_AUTODOC = oas_autodoc
+        self.OAS_CUSTOM_FILE = oas_custom_file
         self.OAS_IGNORE_HEAD = oas_ignore_head
         self.OAS_IGNORE_OPTIONS = oas_ignore_options
         self.OAS_PATH_TO_REDOC_HTML = oas_path_to_redoc_html
