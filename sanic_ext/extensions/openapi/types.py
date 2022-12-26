@@ -323,7 +323,7 @@ def _properties(value: object) -> Dict:
     extra = value if isinstance(value, dict) else {}
     return {
         k: v
-        for k, v in {**get_type_hints(cls), **fields, **extra}.items()
+        for k, v in {**fields, **get_type_hints(cls), **extra}.items()
         if not k.startswith("_")
     }
 
