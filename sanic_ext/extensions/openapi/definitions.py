@@ -20,6 +20,8 @@ from typing import (
 
 from sanic.exceptions import SanicException
 
+from sanic_ext.utils.typing import is_pydantic
+
 from .types import Definition, Schema
 
 
@@ -90,6 +92,8 @@ class MediaType(Definition):
                 kwargs = {**value}
                 value = kwargs.pop("schema")
             return MediaType(value, **kwargs)
+        elif isclass(value) and is_pydantic(value):
+            return MediaType(Component(value))
         return MediaType(Schema.make(value))
 
     @staticmethod
@@ -397,7 +401,20 @@ def Component(
     if not spec.has_component(field, name):
         prop_info = hints[field]
         type_ = prop_info.__args__[1]
-        component = type_.make(obj) if hasattr(type_, "make") else type_(obj)
+        if is_pydantic(obj):
+            try:
+                schema = obj.schema
+            except AttributeError:
+                schema = obj.__pydantic_model__.schema
+            component = schema(ref_template="#/components/schemas/{model}")
+            definitions = component.pop("definitions", None)
+            if definitions:
+                for key, value in definitions.items():
+                    spec.add_component(field, key, value)
+        else:
+            component = (
+                type_.make(obj) if hasattr(type_, "make") else type_(obj)
+            )
 
         spec.add_component(field, name, component)
 
