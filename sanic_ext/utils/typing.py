@@ -1,10 +1,11 @@
 import types
 import typing
+from inspect import isclass
 
 try:
     UnionType = types.UnionType  # type: ignore
 except AttributeError:
-    UnionType = type("UnionType", (), {})
+    UnionType = type("UnionType", (), {})  # type: ignore
 
 try:
     from pydantic import BaseModel
@@ -44,3 +45,24 @@ def is_pydantic(model):
 
 def is_attrs(model):
     return ATTRS and (hasattr(model, "__attrs_attrs__"))
+
+
+def flat_values(
+    item: typing.Union[
+        typing.Dict[str, typing.Any], typing.Iterable[typing.Any]
+    ]
+) -> typing.Set[typing.Any]:
+    values = set()
+    if isinstance(item, dict):
+        item = item.values()
+    for value in item:
+        if isinstance(value, dict) or isinstance(value, list):
+            values.update(flat_values(value))
+        else:
+            values.add(value)
+    return values
+
+
+def contains_annotations(d: typing.Dict[str, typing.Any]) -> bool:
+    values = flat_values(d)
+    return any(isclass(q) or is_generic(q) for q in values)

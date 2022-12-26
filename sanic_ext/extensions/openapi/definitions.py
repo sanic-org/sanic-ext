@@ -20,7 +20,7 @@ from typing import (
 
 from sanic.exceptions import SanicException
 
-from sanic_ext.utils.typing import is_pydantic
+from sanic_ext.utils.typing import contains_annotations, is_pydantic
 
 from .types import Definition, Schema
 
@@ -81,7 +81,9 @@ class MediaType(Definition):
     schema: Schema
     example: Any
 
-    def __init__(self, schema: Schema, **kwargs):
+    def __init__(self, schema: Union[Schema, Dict[str, Any]], **kwargs):
+        if isinstance(schema, dict) and contains_annotations(schema):
+            schema = Schema.make(schema)
         super().__init__(schema=schema, **kwargs)
 
     @staticmethod
