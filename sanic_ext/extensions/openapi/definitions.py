@@ -92,8 +92,12 @@ class MediaType(Definition):
                 kwargs = {**value}
                 value = kwargs.pop("schema")
             return MediaType(value, **kwargs)
-        elif isclass(value) and is_pydantic(value):
-            return MediaType(Component(value))
+        # See https://github.com/sanic-org/sanic-ext/issues/152
+        # The following lines will automatically inject pydantic models as
+        # components if that feature is desired. Until that decision is made
+        # this commented out code will remain.
+        # elif isclass(value) and is_pydantic(value):
+        #     return MediaType(Component(value))
         return MediaType(Schema.make(value))
 
     @staticmethod
@@ -128,7 +132,7 @@ class Response(Definition):
         )
 
     @staticmethod
-    def make(content, description: str = None, **kwargs):
+    def make(content, description: Optional[str] = None, **kwargs):
         if not description:
             description = "Default Response"
 
@@ -179,7 +183,7 @@ class ExternalDocumentation(Definition):
         super().__init__(url=url, description=description)
 
     @staticmethod
-    def make(url: str, description: str = None):
+    def make(url: str, description: Optional[str] = None):
         return ExternalDocumentation(url, description)
 
 
@@ -192,7 +196,7 @@ class Header(Definition):
         super().__init__(url=url, description=description)
 
     @staticmethod
-    def make(url: str, description: str = None):
+    def make(url: str, description: Optional[str] = None):
         return Header(url, description)
 
 
@@ -319,8 +323,7 @@ class SecurityScheme(Definition):
 
     @staticmethod
     def make(_type: str, cls: Type, **kwargs):
-        params = cls.__dict__ if hasattr(cls, "__dict__") else {}
-
+        params: Dict[str, Any] = getattr(cls, "__dict__", {})
         return SecurityScheme(_type, **params, **kwargs)
 
 
@@ -341,7 +344,10 @@ class Server(Definition):
     __nullable__ = None
 
     def __init__(
-        self, url: str, description: str = None, variables: dict = None
+        self,
+        url: str,
+        description: Optional[str] = None,
+        variables: Optional[Dict[str, Any]] = None,
     ):
         super().__init__(
             url=url, description=description, variables=variables or []

@@ -322,7 +322,7 @@ def _properties(value: object) -> Dict:
     cls = value if callable(value) else value.__class__
     return {
         k: v
-        for k, v in {**get_type_hints(cls), **fields}.items()
+        for k, v in {**fields, **get_type_hints(cls)}.items()
         if not k.startswith("_")
     }
 
