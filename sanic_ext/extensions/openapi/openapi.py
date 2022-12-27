@@ -27,6 +27,7 @@ from sanic_ext.extensions.openapi.builders import (
     OperationStore,
     SpecificationBuilder,
 )
+from sanic_ext.extensions.openapi.definitions import Component
 from sanic_ext.extensions.openapi.types import (
     Array,
     Binary,
@@ -67,6 +68,7 @@ __all__ = (
     "Binary",
     "Boolean",
     "Byte",
+    "Component",
     "Date",
     "DateTime",
     "Double",
@@ -140,7 +142,8 @@ def description(text: str) -> Callable[[T], T]:
 
 
 def document(
-    url: Union[str, definitions.ExternalDocumentation], description: str = None
+    url: Union[str, definitions.ExternalDocumentation],
+    description: Optional[str] = None,
 ) -> Callable[[T], T]:
     if isinstance(url, definitions.ExternalDocumentation):
         description = url.fields["description"]
