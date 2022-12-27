@@ -58,12 +58,14 @@ def blueprint_factory(config: Config):
             def index(
                 request: Request, page: str, html_title: str, custom_css: str
             ):
+                prefix = (
+                    request.app.url_for("openapi.index", _external=True)
+                    if getattr(request.app.config, "SERVER_NAME", None)
+                    else getattr(request.app.config, "OAS_URL_PREFIX")
+                )
                 return html(
                     page.replace("__VERSION__", version)
-                    .replace(
-                        "__URL_PREFIX__",
-                        request.app.url_for("openapi.index", _external=True),
-                    )
+                    .replace("__URL_PREFIX__", prefix)
                     .replace("__HTML_TITLE__", html_title)
                     .replace("__HTML_CUSTOM_CSS__", custom_css)
                 )
