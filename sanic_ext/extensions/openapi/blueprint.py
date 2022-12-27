@@ -61,7 +61,7 @@ def blueprint_factory(config: Config):
                     request.app.url_for("openapi.index", _external=True)
                     if getattr(request.app.config, "SERVER_NAME", None)
                     else getattr(request.app.config, "OAS_URL_PREFIX")
-                )
+                ).rstrip("/")
                 return html(
                     page.replace("__VERSION__", version)
                     .replace("__URL_PREFIX__", prefix)
