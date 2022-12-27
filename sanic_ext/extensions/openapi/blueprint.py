@@ -1,6 +1,7 @@
 import inspect
 from functools import lru_cache, partial
-from os.path import abspath, dirname, realpath
+from os.path import abspath, dirname, join, realpath
+from urllib.parse import urlparse
 
 from sanic import Request
 from sanic.blueprints import Blueprint
@@ -37,6 +38,17 @@ def oauth2_handler(request: Request, version: str):
 
 
 def blueprint_factory(config: Config):
+    prefix = config.OAS_URL_PREFIX
+    if config.SERVER_NAME:
+        parsed = urlparse(
+            ""
+            if config.SERVER_NAME.startswith("http")
+            else "http://" + config.SERVER_NAME
+        )
+        if parsed.path:
+            prefix = "/" + join(
+                parsed.path.strip("/"), config.OAS_URL_PREFIX.strip("/")
+            )
     bp = Blueprint("openapi", url_prefix=config.OAS_URL_PREFIX)
 
     dir_path = dirname(realpath(__file__))
@@ -59,9 +71,7 @@ def blueprint_factory(config: Config):
             ):
                 return html(
                     page.replace("__VERSION__", version)
-                    .replace(
-                        "__URL_PREFIX__", getattr(config, "OAS_URL_PREFIX")
-                    )
+                    .replace("__URL_PREFIX__", prefix)
                     .replace("__HTML_TITLE__", html_title)
                     .replace("__HTML_CUSTOM_CSS__", custom_css)
                 )
