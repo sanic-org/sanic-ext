@@ -1,5 +1,6 @@
 import json
 import uuid
+from dataclasses import MISSING, is_dataclass
 from datetime import date, datetime, time
 from enum import Enum
 from inspect import getmembers, isclass, isfunction, ismethod
@@ -16,7 +17,14 @@ from typing import (
 
 from sanic_routing.patterns import nonemptystr
 
-from sanic_ext.utils.typing import is_generic
+from sanic_ext.utils.typing import is_attrs, is_generic, is_pydantic
+
+try:
+    import attrs
+
+    NOTHING = attrs.NOTHING
+except ImportError:
+    NOTHING = object()
 
 
 class Definition:
@@ -103,7 +111,9 @@ class Schema(Definition):
             return Schema(
                 oneOf=[Schema.make(arg) for arg in filtered], **kwargs
             )
-            # return Schema.make(value, **kwargs)
+
+        for field in ("type", "format"):
+            kwargs.pop(field, None)
 
         if isinstance(value, Schema):
             return value
@@ -277,8 +287,40 @@ class Object(Schema):
 
     @classmethod
     def make(cls, value: Any, **kwargs):
+        extra: Dict[str, Any] = {}
+
+        # Extract from field metadata if pydantic, attrs, or dataclass
+        if isclass(value):
+            fields = ()
+            if is_pydantic(value):
+                try:
+                    value = value.__pydantic_model__
+                except AttributeError:
+                    ...
+                extra = value.schema()["properties"]
+            elif is_attrs(value):
+                fields = value.__attrs_attrs__
+            elif is_dataclass(value):
+                fields = value.__dataclass_fields__.values()
+            if fields:
+                extra = {
+                    field.name: {
+                        "title": field.name.title(),
+                        **(
+                            {"default": field.default}
+                            if field.default not in (MISSING, NOTHING)
+                            else {}
+                        ),
+                        **dict(field.metadata).get("openapi", {}),
+                    }
+                    for field in fields
+                }
+
         return cls(
-            {k: Schema.make(v) for k, v in _properties(value).items()},
+            {
+                k: Schema.make(v, **extra.get(k, {}))
+                for k, v in _properties(value).items()
+            },
             **kwargs,
         )
 
