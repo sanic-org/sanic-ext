@@ -1,7 +1,6 @@
 import inspect
 from functools import lru_cache, partial
-from os.path import abspath, dirname, join, realpath
-from urllib.parse import urlparse
+from os.path import abspath, dirname, realpath
 
 from sanic import Request
 from sanic.blueprints import Blueprint
