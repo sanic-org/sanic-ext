@@ -112,9 +112,11 @@ class Hint(NamedTuple):
 
     def coerce(self, value):
         if is_generic(self.coerce_type):
-            if get_origin(self.coerce_type) == Literal:
-                return value
             args = get_args(self.coerce_type)
+            if get_origin(self.coerce_type) == Literal or (
+                all(get_origin(arg) == Literal for arg in args)
+            ):
+                return value
             if type(None) in args and value is None:
                 return None
             coerce_types = [arg for arg in args if not isinstance(None, arg)]
