@@ -32,8 +32,8 @@ def test_literal(app, annotation):
     assert response.text == "foo"
 
 
-@pytest.mark.skipif(version_info < (3, 9), reason="Not needed on 3.8")
-def test_literal_3_9(app):
+@pytest.mark.skipif(version_info < (3, 10), reason="Not needed on 3.10")
+def test_literal_3_10(app):
     @dataclass
     class Spec:
         name: Literal["foo"] | Literal["bar"]
