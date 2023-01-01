@@ -72,7 +72,7 @@ async def render(
         except AttributeError:
             raise ExtensionNotFound(
                 "The Templating extension does not appear to be enabled. "
-                "Perhaps jinja2 is not appear to be installed."
+                "Perhaps jinja2 is not installed."
             )
 
     kwargs = context if context else {}
