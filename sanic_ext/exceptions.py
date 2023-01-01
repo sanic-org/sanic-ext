@@ -7,3 +7,7 @@ class ValidationError(SanicException):
 
 class InitError(SanicException):
     ...
+
+
+class ExtensionNotFound(SanicException):
+    ...
