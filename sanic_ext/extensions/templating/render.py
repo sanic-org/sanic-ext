@@ -65,7 +65,10 @@ async def render(
         )
 
     if environment is None:
-        environment = app.ext.environment
+        try:
+            environment = app.ext.environment
+        except AttributeError:
+            raise ModuleNotFoundError("jinja2 does not appear to be installed")
 
     kwargs = context if context else {}
     if template_name or template_source:
