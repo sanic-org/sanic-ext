@@ -115,7 +115,7 @@ class Extend:
     def _display(self):
         init_logs = ["Sanic Extensions:"]
         for extension in self.extensions:
-            label = extension.render_label()
+            label = extension.render_label
             if extension.included():
                 init_logs.append(f"  > {extension.name} {label}")
 

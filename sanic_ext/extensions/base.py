@@ -49,13 +49,15 @@ class Extension(ABC):
     def startup(self, bootstrap) -> None:
         ...
 
+    @property
     def label(self):
         return ""
 
+    @property
     def render_label(self):
         if not self.included:
             return "~~disabled~~"
-        label = self.label()
+        label = self.label
         if not label:
             return ""
         return f"[{label}]"

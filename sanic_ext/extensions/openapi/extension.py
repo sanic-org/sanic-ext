@@ -20,6 +20,7 @@ class OpenAPIExtension(Extension):
             self.app.blueprint(self.bp)
             bootstrap._openapi = SpecificationBuilder()
 
+    @property
     def label(self):
         if self.app.config.OAS:
             return self._make_url()

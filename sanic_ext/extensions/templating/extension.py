@@ -41,6 +41,7 @@ class TemplatingExtension(Extension):
             )
         bootstrap.templating.environment.globals["url_for"] = self.app.url_for
 
+    @property
     def label(self):
         return f"jinja2=={__version__}"
 
