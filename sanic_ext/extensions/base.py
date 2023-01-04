@@ -50,11 +50,11 @@ class Extension(ABC):
         ...
 
     @property
-    def label(self):
+    def label(self) -> str:
         return ""
 
     @property
-    def render_label(self):
+    def render_label(self) -> str:
         if not self.included:
             return "~~disabled~~"
         label = self.label
@@ -62,7 +62,8 @@ class Extension(ABC):
             return ""
         return f"[{label}]"
 
-    def included(self):
+    @property
+    def included(self) -> bool:
         return True
 
     @classmethod

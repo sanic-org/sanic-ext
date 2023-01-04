@@ -20,5 +20,6 @@ class LoggingExtension(Extension):
                 )
             Logger.setup(self.app)
 
-    def included(self):
+    @property
+    def included(self) -> bool:
         return self.config.LOGGING

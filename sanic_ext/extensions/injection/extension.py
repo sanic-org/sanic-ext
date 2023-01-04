@@ -15,7 +15,7 @@ class InjectionExtension(Extension):
         if self.config.INJECTION_LOAD_CUSTOM_CONSTANTS:
             self.app.ext.load_constants()
 
-    def label(self):
+    def label(self) -> str:
         return (
             f"{self.registry.length} dependencies; "
             f"{self.constant_registry.length} constants"

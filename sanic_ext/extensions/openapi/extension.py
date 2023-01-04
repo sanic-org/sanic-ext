@@ -21,13 +21,14 @@ class OpenAPIExtension(Extension):
             bootstrap._openapi = SpecificationBuilder()
 
     @property
-    def label(self):
+    def label(self) -> str:
         if self.app.config.OAS:
             return self._make_url()
 
         return ""
 
-    def included(self):
+    @property
+    def included(self) -> bool:
         return self.config.OAS
 
     def _make_url(self):

@@ -42,7 +42,7 @@ class TemplatingExtension(Extension):
         bootstrap.templating.environment.globals["url_for"] = self.app.url_for
 
     @property
-    def label(self):
+    def label(self) -> str:
         return f"jinja2=={__version__}"
 
     def _add_template_paths_to_reloader(
