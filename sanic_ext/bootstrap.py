@@ -116,7 +116,7 @@ class Extend:
         init_logs = ["Sanic Extensions:"]
         for extension in self.extensions:
             label = extension.render_label
-            if extension.included():
+            if extension.included:
                 init_logs.append(f"  > {extension.name} {label}")
 
         list(map(logger.info, init_logs))

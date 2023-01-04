@@ -9,7 +9,7 @@ class LoggingExtension(Extension):
     MIN_VERSION = (22, 9)
 
     def startup(self, bootstrap) -> None:
-        if self.included():
+        if self.included:
             if self.MIN_VERSION > bootstrap.sanic_version:
                 min_version = ".".join(map(str, self.MIN_VERSION))
                 sanic_version = ".".join(map(str, bootstrap.sanic_version))
