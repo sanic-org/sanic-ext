@@ -39,6 +39,7 @@ class Config(SanicConfig):
         injection_load_custom_constants: bool = False,
         logging: bool = False,
         logging_queue_max_size: int = 4096,
+        loggers: List[str] = ["sanic.access", "sanic.error", "sanic.root"],
         oas: bool = True,
         oas_autodoc: bool = True,
         oas_custom_file: Optional[os.PathLike] = None,
@@ -95,6 +96,7 @@ class Config(SanicConfig):
         self.INJECTION_LOAD_CUSTOM_CONSTANTS = injection_load_custom_constants
         self.LOGGING = logging
         self.LOGGING_QUEUE_MAX_SIZE = logging_queue_max_size
+        self.LOGGERS = loggers
         self.OAS = oas
         self.OAS_AUTODOC = oas_autodoc
         self.OAS_CUSTOM_FILE = oas_custom_file
