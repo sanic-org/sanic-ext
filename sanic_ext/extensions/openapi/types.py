@@ -364,11 +364,14 @@ def _properties(value: object) -> Dict:
 
     cls = value if callable(value) else value.__class__
     extra = value if isinstance(value, dict) else {}
-    return {
-        k: v
-        for k, v in {**fields, **get_type_hints(cls), **extra}.items()
-        if not k.startswith("_")
-    }
+    try:
+        return {
+            k: v
+            for k, v in {**fields, **get_type_hints(cls), **extra}.items()
+            if not k.startswith("_")
+        }
+    except TypeError:
+        return {}
 
 
 def _extract(item):

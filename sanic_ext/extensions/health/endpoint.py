@@ -8,6 +8,6 @@ def setup_health_endpoint(app: Sanic) -> None:
 
     @bp.get(app.config.HEALTH_URI_TO_INFO)
     async def info(request: Request):
-        return json(Inspector.make_safe(dict(request.app.m.workers)))
+        return json(Inspector._make_safe(dict(request.app.m.workers)))
 
     app.blueprint(bp)
