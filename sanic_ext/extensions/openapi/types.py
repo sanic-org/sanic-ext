@@ -369,6 +369,11 @@ def _properties(value: object) -> Dict:
             k: v
             for k, v in {**fields, **get_type_hints(cls), **extra}.items()
             if not k.startswith("_")
+            and not (
+                isclass(v)
+                and isclass(cls)
+                and v.__qualname__.endswith(f"{cls.__name__}.{v.__name__}")
+            )
         }
     except TypeError:
         return {}
@@ -382,4 +387,4 @@ def _extract(item):
 
 
 def _is_property(item):
-    return not isfunction(item) and not ismethod(item) and not isclass(item)
+    return not isfunction(item) and not ismethod(item)
