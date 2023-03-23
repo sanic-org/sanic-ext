@@ -8,7 +8,7 @@ from sanic.compat import Header
 from sanic.exceptions import SanicException
 from sanic.response import HTTPResponse
 
-from sanic_ext import ExtensionNotFound
+from sanic_ext.exceptions import ExtensionNotFound
 
 if TYPE_CHECKING:
     from jinja2 import Environment
