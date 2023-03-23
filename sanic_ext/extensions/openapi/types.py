@@ -179,6 +179,7 @@ class Schema(Definition):
             kwargs["additionalProperties"] = Schema.make(args[1])
             return Object(**kwargs)
         elif (is_generic(value) or is_generic(_type)) and origin == list:
+            kwargs.pop("items", None)
             return Array(Schema.make(args[0]), **kwargs)
         elif _type is type(Enum):
             available = [item.value for item in value.__members__.values()]
