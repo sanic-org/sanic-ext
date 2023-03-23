@@ -1,7 +1,16 @@
 from __future__ import annotations
 
 from dataclasses import _HAS_DEFAULT_FACTORY  # type: ignore
-from typing import Any, Literal, NamedTuple, Optional, Tuple, Union, get_args
+from typing import (
+    Any,
+    Literal,
+    NamedTuple,
+    Optional,
+    Tuple,
+    Union,
+    get_args,
+    get_origin,
+)
 
 from sanic_ext.utils.typing import UnionType, is_generic, is_optional
 
@@ -104,6 +113,10 @@ class Hint(NamedTuple):
     def coerce(self, value):
         if is_generic(self.coerce_type):
             args = get_args(self.coerce_type)
+            if get_origin(self.coerce_type) == Literal or (
+                all(get_origin(arg) == Literal for arg in args)
+            ):
+                return value
             if type(None) in args and value is None:
                 return None
             coerce_types = [arg for arg in args if not isinstance(None, arg)]

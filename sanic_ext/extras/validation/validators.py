@@ -25,7 +25,8 @@ def validate_body(
         return validator(model, body)
     except VALIDATION_ERROR as e:
         raise ValidationError(
-            f"Invalid request body: {model.__name__}. Error: {e}"
+            f"Invalid request body: {model.__name__}. Error: {e}",
+            extra={"exception": e},
         )
 
 

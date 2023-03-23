@@ -39,8 +39,10 @@ class Config(SanicConfig):
         injection_load_custom_constants: bool = False,
         logging: bool = False,
         logging_queue_max_size: int = 4096,
+        loggers: List[str] = ["sanic.access", "sanic.error", "sanic.root"],
         oas: bool = True,
         oas_autodoc: bool = True,
+        oas_custom_file: Optional[os.PathLike] = None,
         oas_ignore_head: bool = True,
         oas_ignore_options: bool = True,
         oas_path_to_redoc_html: Optional[str] = None,
@@ -53,6 +55,7 @@ class Config(SanicConfig):
         oas_ui_swagger_html_title: str = "OpenAPI Swagger",
         oas_ui_swagger_custom_css: str = "",
         oas_ui_swagger_version: str = "4.10.3",
+        oas_ui_swagger_oauth2_redirect: str = "/oauth2-redirect.html",
         oas_uri_to_config: str = "/swagger-config",
         oas_uri_to_json: str = "/openapi.json",
         oas_uri_to_redoc: str = "/redoc",
@@ -93,8 +96,10 @@ class Config(SanicConfig):
         self.INJECTION_LOAD_CUSTOM_CONSTANTS = injection_load_custom_constants
         self.LOGGING = logging
         self.LOGGING_QUEUE_MAX_SIZE = logging_queue_max_size
+        self.LOGGERS = loggers
         self.OAS = oas
         self.OAS_AUTODOC = oas_autodoc
+        self.OAS_CUSTOM_FILE = oas_custom_file
         self.OAS_IGNORE_HEAD = oas_ignore_head
         self.OAS_IGNORE_OPTIONS = oas_ignore_options
         self.OAS_PATH_TO_REDOC_HTML = oas_path_to_redoc_html
@@ -107,6 +112,7 @@ class Config(SanicConfig):
         self.OAS_UI_SWAGGER_HTML_TITLE = oas_ui_swagger_html_title
         self.OAS_UI_SWAGGER_CUSTOM_CSS = oas_ui_swagger_custom_css
         self.OAS_UI_SWAGGER_VERSION = oas_ui_swagger_version
+        self.OAS_UI_SWAGGER_OAUTH2_REDIRECT = oas_ui_swagger_oauth2_redirect
         self.OAS_URI_TO_CONFIG = oas_uri_to_config
         self.OAS_URI_TO_JSON = oas_uri_to_json
         self.OAS_URI_TO_REDOC = oas_uri_to_redoc

@@ -8,6 +8,8 @@ from sanic.compat import Header
 from sanic.exceptions import SanicException
 from sanic.response import HTTPResponse
 
+from sanic_ext.exceptions import ExtensionNotFound
+
 if TYPE_CHECKING:
     from jinja2 import Environment
 
@@ -65,7 +67,13 @@ async def render(
         )
 
     if environment is None:
-        environment = app.ext.environment
+        try:
+            environment = app.ext.environment
+        except AttributeError:
+            raise ExtensionNotFound(
+                "The Templating extension does not appear to be enabled. "
+                "Perhaps jinja2 is not installed."
+            )
 
     kwargs = context if context else {}
     if template_name or template_source:

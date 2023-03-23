@@ -103,6 +103,7 @@ async def test_finalize_allowed_types(raises, allowed):
         injections.finalize(Mock(), ConstantRegistry({}), allowed)
 
 
+@pytest.mark.asyncio
 async def test_constructor():
     injections = InjectionRegistry()
     injections.register(Foo, Foo.create)
@@ -118,6 +119,7 @@ async def test_constructor():
     foo.mock.assert_awaited_once_with(request, 999)
 
 
+@pytest.mark.asyncio
 async def test_constructor_nested():
     injections = InjectionRegistry()
     injections.register(Foo, Foo.create)
@@ -135,6 +137,7 @@ async def test_constructor_nested():
     bar.foo.mock.assert_awaited_once_with(request, 999)
 
 
+@pytest.mark.asyncio
 async def test_constructor_failure_kwargs():
     injections = InjectionRegistry()
     injections.register(Foo, Foo.create)
@@ -150,6 +153,7 @@ async def test_constructor_failure_kwargs():
         await constructor(request)
 
 
+@pytest.mark.asyncio
 async def test_constructor_failure_nested():
     injections = InjectionRegistry()
     injections.register(Foo, Foo.create)
@@ -166,6 +170,7 @@ async def test_constructor_failure_nested():
         await constructor(request)
 
 
+@pytest.mark.asyncio
 async def test_constructor_with_inherited_request():
     injections = InjectionRegistry()
     injections.register(Baz, Baz.create)

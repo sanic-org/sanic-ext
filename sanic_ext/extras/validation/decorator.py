@@ -19,7 +19,6 @@ def validate(
     body_argument: str = "body",
     query_argument: str = "query",
 ) -> Callable[[T], T]:
-
     schemas = {
         key: generate_schema(param)
         for key, param in (
@@ -59,7 +58,7 @@ def validate(
                     allow_multiple=True,
                     allow_coerce=True,
                 )
-            elif schemas["query"]:
+            if schemas["query"]:
                 await do_validation(
                     model=query,
                     data=request.args,

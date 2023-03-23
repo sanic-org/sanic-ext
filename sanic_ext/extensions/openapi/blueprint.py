@@ -1,12 +1,12 @@
 import inspect
-from functools import partial
+from functools import lru_cache, partial
 from os.path import abspath, dirname, realpath
 
 from sanic import Request
 from sanic.blueprints import Blueprint
 from sanic.config import Config
 from sanic.log import logger
-from sanic.response import html, json
+from sanic.response import file, html, json
 
 from sanic_ext.extensions.openapi.builders import (
     OperationStore,
@@ -18,6 +18,22 @@ from ...utils.route import (
     get_all_routes,
     get_blueprinted_routes,
 )
+
+
+@lru_cache
+def get_oauth2_redirect_html(version: str):
+    import urllib
+
+    response = urllib.request.urlopen(
+        f"https://cdn.jsdelivr.net/npm/swagger-ui-dist@{version}/"
+        "oauth2-redirect.html"
+    ).read()
+
+    return response.decode("utf-8")
+
+
+def oauth2_handler(request: Request, version: str):
+    return html(get_oauth2_redirect_html(version))
 
 
 def blueprint_factory(config: Config):
@@ -41,11 +57,14 @@ def blueprint_factory(config: Config):
             def index(
                 request: Request, page: str, html_title: str, custom_css: str
             ):
+                prefix = (
+                    request.app.url_for("openapi.index", _external=True)
+                    if getattr(request.app.config, "SERVER_NAME", None)
+                    else getattr(request.app.config, "OAS_URL_PREFIX")
+                ).rstrip("/")
                 return html(
                     page.replace("__VERSION__", version)
-                    .replace(
-                        "__URL_PREFIX__", getattr(config, "OAS_URL_PREFIX")
-                    )
+                    .replace("__URL_PREFIX__", prefix)
                     .replace("__HTML_TITLE__", html_title)
                     .replace("__HTML_CUSTOM_CSS__", custom_css)
                 )
@@ -72,8 +91,21 @@ def blueprint_factory(config: Config):
                     name="index",
                 )
 
+            if ui == "swagger":
+                oauth2_redirect_uri = getattr(
+                    config, "OAS_UI_SWAGGER_OAUTH2_REDIRECT"
+                )
+
+                bp.add_route(
+                    partial(oauth2_handler, version=version),
+                    oauth2_redirect_uri,
+                    name="oauth2-redirect",
+                )
+
     @bp.get(config.OAS_URI_TO_JSON)
-    def spec(request: Request):
+    async def spec(request: Request):
+        if config.OAS_CUSTOM_FILE:
+            return await file(config.OAS_CUSTOM_FILE)
         return json(SpecificationBuilder().build(request.app).serialize())
 
     if config.OAS_UI_SWAGGER:
@@ -111,7 +143,6 @@ def blueprint_factory(config: Config):
             uri = uri if uri == "/" else uri.rstrip("/")
 
             for method, _handler in method_handlers:
-
                 if (
                     (method == "OPTIONS" and app.config.OAS_IGNORE_OPTIONS)
                     or (method == "HEAD" and app.config.OAS_IGNORE_HEAD)

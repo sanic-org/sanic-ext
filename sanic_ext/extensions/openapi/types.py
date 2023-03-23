@@ -1,5 +1,6 @@
 import json
 import uuid
+from dataclasses import MISSING, is_dataclass
 from datetime import date, datetime, time
 from enum import Enum
 from inspect import getmembers, isclass, isfunction, ismethod
@@ -14,9 +15,15 @@ from typing import (
     get_type_hints,
 )
 
+from sanic_ext.utils.typing import is_attrs, is_generic, is_pydantic
 from sanic_routing.patterns import nonemptystr
 
-from sanic_ext.utils.typing import is_generic
+try:
+    import attrs
+
+    NOTHING = attrs.NOTHING
+except ImportError:
+    NOTHING = object()
 
 
 class Definition:
@@ -103,7 +110,9 @@ class Schema(Definition):
             return Schema(
                 oneOf=[Schema.make(arg) for arg in filtered], **kwargs
             )
-            # return Schema.make(value, **kwargs)
+
+        for field in ("type", "format"):
+            kwargs.pop(field, None)
 
         if isinstance(value, Schema):
             return value
@@ -169,6 +178,7 @@ class Schema(Definition):
             kwargs["additionalProperties"] = Schema.make(args[1])
             return Object(**kwargs)
         elif (is_generic(value) or is_generic(_type)) and origin == list:
+            kwargs.pop("items", None)
             return Array(Schema.make(args[0]), **kwargs)
         elif _type is type(Enum):
             available = [item.value for item in value.__members__.values()]
@@ -277,8 +287,40 @@ class Object(Schema):
 
     @classmethod
     def make(cls, value: Any, **kwargs):
+        extra: Dict[str, Any] = {}
+
+        # Extract from field metadata if pydantic, attrs, or dataclass
+        if isclass(value):
+            fields = ()
+            if is_pydantic(value):
+                try:
+                    value = value.__pydantic_model__
+                except AttributeError:
+                    ...
+                extra = value.schema()["properties"]
+            elif is_attrs(value):
+                fields = value.__attrs_attrs__
+            elif is_dataclass(value):
+                fields = value.__dataclass_fields__.values()
+            if fields:
+                extra = {
+                    field.name: {
+                        "title": field.name.title(),
+                        **(
+                            {"default": field.default}
+                            if field.default not in (MISSING, NOTHING)
+                            else {}
+                        ),
+                        **dict(field.metadata).get("openapi", {}),
+                    }
+                    for field in fields
+                }
+
         return cls(
-            {k: Schema.make(v) for k, v in _properties(value).items()},
+            {
+                k: Schema.make(v, **extra.get(k, {}))
+                for k, v in _properties(value).items()
+            },
             **kwargs,
         )
 
@@ -320,16 +362,20 @@ def _properties(value: object) -> Dict:
         fields = {}
 
     cls = value if callable(value) else value.__class__
-    return {
-        k: v
-        for k, v in {**get_type_hints(cls), **fields}.items()
-        if not k.startswith("_")
-        and not (
-            isclass(v)
-            and isclass(cls)
-            and v.__qualname__.endswith(f"{cls.__name__}.{v.__name__}")
-        )
-    }
+    extra = value if isinstance(value, dict) else {}
+    try:
+        return {
+            k: v
+            for k, v in {**fields, **get_type_hints(cls), **extra}.items()
+            if not k.startswith("_")
+            and not (
+                isclass(v)
+                and isclass(cls)
+                and v.__qualname__.endswith(f"{cls.__name__}.{v.__name__}")
+            )
+        }
+    except TypeError:
+        return {}
 
 
 def _extract(item):
