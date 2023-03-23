@@ -1,10 +1,12 @@
 from typing import List
 
+import pydantic
 from pydantic.dataclasses import dataclass
 from sanic import json
 from sanic.views import HTTPMethodView
 
 from sanic_ext import validate
+from sanic_ext.exceptions import ValidationError
 
 SNOOPY_DATA = {"name": "Snoopy", "alter_ego": ["Flying Ace", "Joe Cool"]}
 
@@ -110,3 +112,38 @@ def test_validate_query(app):
     assert response.status == 200
     assert response.json["is_search"]
     assert response.json["q"] == "Snoopy"
+
+
+class User(pydantic.BaseModel):
+    name: str
+    age: int
+    email: str
+
+
+def test_success_validate_form_custom_message(app):
+    @app.post("/user")
+    @validate(form=User)
+    async def create_user(request, body: User):
+        return json(body.dict())
+
+    user = {"name": "Alison", "age": 25, "email": "alison@almeida.com"}
+    _, response = app.test_client.post("/user", data=user)
+    assert response.status == 200
+
+
+def test_error_validate_form_custom_message(app):
+    async def server_error_validate_form(request, exception: ValidationError):
+        error = exception.extra["exception"]
+        assert isinstance(error, pydantic.ValidationError)
+        return json(error.json(), status=400)
+
+    @app.post("/user")
+    @validate(form=User)
+    async def create_user(request, body: User):
+        return json(body.dict())
+
+    user = {"name": "Alison", "age": 25}
+
+    app.error_handler.add(ValidationError, server_error_validate_form)
+    _, response = app.test_client.post("/user", data=user)
+    assert response.status == 400
