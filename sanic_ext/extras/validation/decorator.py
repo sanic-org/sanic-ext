@@ -19,7 +19,6 @@ def validate(
     body_argument: str = "body",
     query_argument: str = "query",
 ) -> Callable[[T], T]:
-
     schemas = {
         key: generate_schema(param)
         for key, param in (
