@@ -15,8 +15,9 @@ from typing import (
     get_type_hints,
 )
 
-from sanic_ext.utils.typing import is_attrs, is_generic, is_pydantic
 from sanic_routing.patterns import alpha, ext, nonemptystr, parse_date, slug
+
+from sanic_ext.utils.typing import is_attrs, is_generic, is_pydantic
 
 try:
     import attrs

@@ -1,7 +1,7 @@
+from sanic import Request, Sanic, text
+
 from sanic_ext.extensions.openapi import openapi
 from sanic_ext.extensions.openapi.definitions import Parameter
-
-from sanic import Request, Sanic, text
 
 from .utils import get_spec
 
