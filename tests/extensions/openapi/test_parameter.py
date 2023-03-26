@@ -1,7 +1,7 @@
-from sanic import Request, Sanic, text
-
 from sanic_ext.extensions.openapi import openapi
 from sanic_ext.extensions.openapi.definitions import Parameter
+
+from sanic import Request, Sanic, text
 
 from .utils import get_spec
 
@@ -93,6 +93,42 @@ def test_parameter(app: Sanic):
         """
         return text("ok")
 
+    @app.route("/test7/<val1:ext>")
+    @openapi.parameter(
+        parameter=Parameter(
+            name="val1",
+            location=LOCATION,
+            description=DESCRIPTION,
+            required=True,
+        )
+    )
+    async def handler7(request: Request, val1: int):
+        return text("ok")
+
+    @app.route("/test8/<val1:alpha>")
+    @openapi.parameter(
+        parameter=Parameter(
+            name="val1",
+            location=LOCATION,
+            description=DESCRIPTION,
+            required=True,
+        )
+    )
+    async def handler8(request: Request, val1: int):
+        return text("ok")
+
+    @app.route("/test9/<val1:slug>")
+    @openapi.parameter(
+        parameter=Parameter(
+            name="val1",
+            location=LOCATION,
+            description=DESCRIPTION,
+            required=True,
+        )
+    )
+    async def handler9(request: Request, val1: int):
+        return text("ok")
+
     spec = get_spec(app)
     for i in range(1, 6):
         assert f"/test{i}/{{val1}}" in spec["paths"]
@@ -103,9 +139,11 @@ def test_parameter(app: Sanic):
         assert parameter["schema"]["type"] == TYPE
         assert parameter["description"] == DESCRIPTION
 
-    assert "/test6/{val1}" in spec["paths"]
-    parameter = spec["paths"]["/test6/{val1}"]["get"]["parameters"][0]
-    assert parameter["name"] == NAME
-    assert parameter["in"] == LOCATION
-    assert parameter["required"] is False
-    assert parameter["description"] == DESCRIPTION
+    for i in range(6, 10):
+        assert f"/test{i}/{{val1}}" in spec["paths"]
+        parameter = spec["paths"][f"/test{i}/{{val1}}"]["get"]["parameters"][0]
+        assert parameter["name"] == NAME
+        assert parameter["in"] == LOCATION
+        assert parameter["required"] is not (i == 6)
+        assert parameter["schema"]["type"] == "string"
+        assert parameter["description"] == DESCRIPTION
