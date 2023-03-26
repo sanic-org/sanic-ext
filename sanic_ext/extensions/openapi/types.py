@@ -15,7 +15,7 @@ from typing import (
     get_type_hints,
 )
 
-from sanic_routing.patterns import nonemptystr
+from sanic_routing.patterns import alpha, ext, nonemptystr, parse_date, slug
 
 from sanic_ext.utils.typing import is_attrs, is_generic, is_pydantic
 
@@ -123,7 +123,7 @@ class Schema(Definition):
             return Integer(**kwargs)
         elif value == float:
             return Float(**kwargs)
-        elif value == str or value is nonemptystr:
+        elif value == str or value in (nonemptystr, ext, slug, alpha):
             return String(**kwargs)
         elif value == bytes:
             return Byte(**kwargs)
@@ -133,7 +133,7 @@ class Schema(Definition):
             return Date(**kwargs)
         elif value == time:
             return Time(**kwargs)
-        elif value == datetime:
+        elif value == datetime or value is parse_date:
             return DateTime(**kwargs)
         elif value == uuid.UUID:
             return UUID(**kwargs)
