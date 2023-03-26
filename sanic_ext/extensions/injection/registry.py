@@ -25,10 +25,13 @@ class InjectionRegistry:
         return self._registry.get(key, default)
 
     def register(
-        self, _type: Type, constructor: Optional[Callable[..., Any]]
+        self,
+        _type: Type,
+        constructor: Optional[Callable[..., Any]],
+        request_arg: Optional[str] = None,
     ) -> None:
         constructor = constructor or _type
-        constructor = Constructor(constructor)
+        constructor = Constructor(constructor, request_arg=request_arg)
         self._registry[_type] = constructor
 
     def finalize(
