@@ -1,8 +1,8 @@
 import pytest
-from sanic_ext.bootstrap import Extend
-
 from sanic import Sanic
 from sanic.response import empty, text
+
+from sanic_ext.bootstrap import Extend
 
 
 def test_trace_and_connect_available(app: Sanic):
