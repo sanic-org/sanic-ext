@@ -65,11 +65,11 @@ def test_auto_trace(bare_app: Sanic):
 
 
 def test_auto_head_with_vhosts(app: Sanic, get_docs):
-    @app.get("/foo", host="one.com")
+    @app.get("/foo", host="one.com", name="one")
     async def foo_handler_one(_):
         return text(".")
 
-    @app.get("/foo", host="two.com")
+    @app.get("/foo", host="two.com", name="two")
     async def foo_handler_two(_):
         return text("..")
 
@@ -86,6 +86,29 @@ def test_auto_head_with_vhosts(app: Sanic, get_docs):
 
     schema = get_docs()
     assert "get" in schema["paths"]["/foo"]
+
+
+def test_auto_options_with_vhosts(app: Sanic, get_docs):
+    @app.post("/foo", host="one.com", name="one")
+    async def foo_handler_one(_):
+        return text(".")
+
+    @app.post("/foo", host="two.com", name="two")
+    async def foo_handler_two(_):
+        return text("..")
+
+    assert app.config.HTTP_AUTO_OPTIONS
+    _, response = app.test_client.options("/foo", headers={"host": "one.com"})
+    assert response.status == 204
+    assert len(response.body) == 0
+    assert "POST" in response.headers["allow"]
+    assert "OPTIONS" in response.headers["allow"]
+
+    _, response = app.test_client.options("/foo", headers={"host": "two.com"})
+    assert response.status == 204
+    assert len(response.body) == 0
+    assert "POST" in response.headers["allow"]
+    assert "OPTIONS" in response.headers["allow"]
 
 
 # This test also appears in Core Sanic tests but is added here as well

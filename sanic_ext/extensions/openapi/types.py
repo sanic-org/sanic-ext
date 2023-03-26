@@ -22,7 +22,7 @@ from sanic_ext.utils.typing import is_attrs, is_generic, is_pydantic
 try:
     import attrs
 
-    NOTHING = attrs.NOTHING
+    NOTHING: Any = attrs.NOTHING
 except ImportError:
     NOTHING = object()
 
@@ -365,18 +365,31 @@ def _properties(value: object) -> Dict:
     cls = value if callable(value) else value.__class__
     extra = value if isinstance(value, dict) else {}
     try:
-        return {
+        annotations = get_type_hints(cls)
+    except NameError:
+        if hasattr(value, "__annotations__"):
+            annotations = value.__annotations__
+        else:
+            annotations = {}
+    annotations.pop("return", None)
+    try:
+        output = {
             k: v
-            for k, v in {**fields, **get_type_hints(cls), **extra}.items()
+            for k, v in {**fields, **annotations, **extra}.items()
             if not k.startswith("_")
             and not (
                 isclass(v)
                 and isclass(cls)
-                and v.__qualname__.endswith(f"{cls.__name__}.{v.__name__}")
+                and v.__qualname__.endswith(
+                    f"{getattr(cls, '__name__', '<unknown>')}."
+                    f"{getattr(v, '__name__', '<unknown>')}"
+                )
             )
         }
     except TypeError:
         return {}
+
+    return output
 
 
 def _extract(item):
