@@ -139,6 +139,24 @@ class Extend:
         constructor: Optional[Callable[..., Any]] = None,
         request_arg: Optional[str] = None,
     ) -> None:
+        """
+        Add a dependency for injection
+
+        :param type: The type of the dependency
+        :type type: Type
+        :param constructor: A callable that will return an instance to be
+            injected, when ``False`` it will call the type, defaults to None
+        :type constructor: Optional[Callable[..., Any]], optional
+        :param request_arg: Explicitly state which argument in the
+            constructor (if any) should be a ``Request`` object, when set to
+            ``None`` the constructor will be introspected to check the
+            type annotations looking for a request object. You should really
+            only use this if you **MUST** use a lambda explression, it is
+            otherwise better to use a properly type annotated constructor,
+            defaults to None
+        :type request_arg: Optional[str], optional
+        :raises SanicException: _description_
+        """
         if not self._injection_registry:
             raise SanicException("Injection extension not enabled")
         self._injection_registry.register(
