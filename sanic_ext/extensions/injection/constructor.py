@@ -30,14 +30,13 @@ class Constructor:
     EXEMPT_ANNOTATIONS = (Request,)
 
     def __init__(
-        self,
-        func: Callable[..., Any],
+        self, func: Callable[..., Any], request_arg: Optional[str] = None
     ):
         self.func = func
         self.injections: Dict[str, Tuple[Type, Constructor]] = {}
         self.constants: Dict[str, Any] = {}
         self.pass_kwargs: bool = False
-        self.request_arg: Optional[str] = None
+        self.request_arg = request_arg
 
     def __str__(self) -> str:
         return f"<{self.__class__.__name__}:{self.func.__name__}>"

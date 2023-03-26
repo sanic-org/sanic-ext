@@ -137,10 +137,13 @@ class Extend:
         self,
         type: Type,
         constructor: Optional[Callable[..., Any]] = None,
+        request_arg: Optional[str] = None,
     ) -> None:
         if not self._injection_registry:
             raise SanicException("Injection extension not enabled")
-        self._injection_registry.register(type, constructor)
+        self._injection_registry.register(
+            type, constructor, request_arg=request_arg
+        )
 
     def add_constant(self, name: str, value: Any, overwrite: bool = False):
         if not self._constant_registry:

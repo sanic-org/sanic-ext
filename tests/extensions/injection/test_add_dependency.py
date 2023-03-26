@@ -4,6 +4,7 @@ import asyncio
 from dataclasses import dataclass
 from itertools import count
 from typing import Optional
+from uuid import UUID
 
 import pytest
 from sanic import Request, json, text
@@ -117,6 +118,11 @@ class Delta:
     def __init__(self, gamma: Gamma, request: Request) -> None:
         self.gamma = gamma
         self.request = request
+
+
+@dataclass
+class Foo:
+    ident: UUID
 
 
 def make_gamma_with_request(beta: Beta, request: Request):
@@ -395,3 +401,15 @@ def test_injection_class_constructors_with_func_and_no_request(app):
 
     _, response = app.test_client.get("/")
     assert response.json == {"is_gamma": True, "has_request": False}
+
+
+def test_injection_of_lambda_properties(app):
+    @app.get("/foo")
+    def handler(request, foo: Foo):
+        return json(request.id == foo.ident and isinstance(foo.ident, UUID))
+
+    app.ext.add_dependency(Foo, lambda request: Foo(request.id), "request")
+
+    _, response = app.test_client.get("/foo")
+
+    assert response.body == b"true"
