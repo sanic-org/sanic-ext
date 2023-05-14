@@ -6,6 +6,7 @@ from typing import TYPE_CHECKING, Any, Dict, Optional, Union
 from sanic import Sanic
 from sanic.compat import Header
 from sanic.exceptions import SanicException
+from sanic.request import Request
 from sanic.response import HTTPResponse
 
 from sanic_ext.exceptions import ExtensionNotFound
@@ -76,6 +77,9 @@ async def render(
             )
 
     kwargs = context if context else {}
+
+    kwargs["request"] = Request.get_current()
+
     if template_name or template_source:
         template = (
             environment.get_template(template_name)
