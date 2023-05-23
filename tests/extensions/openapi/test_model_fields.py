@@ -1,9 +1,10 @@
 from dataclasses import dataclass, field
-from typing import List
+from typing import List, Annotated
 from uuid import UUID
 
 import attrs
 import pytest
+from msgspec import Struct, Meta
 from pydantic import BaseModel, Field
 from pydantic.dataclasses import dataclass as pydataclass
 
@@ -47,6 +48,12 @@ class FooPydanticDataclass:
     ident: str = Field("XXXX", example="ABC123")
 
 
+class FooStruct(Struct):
+    links: List[UUID]
+    priority: Annotated[int, Meta(extra={"openapi": {"exclusiveMinimum": 1, "exclusiveMaximum": 10}})]
+    ident: Annotated[str, Meta(extra={"openapi": {"example": "ABC123"}})] = "XXXX"
+
+
 @pytest.mark.parametrize(
     "Foo",
     (
@@ -54,6 +61,7 @@ class FooPydanticDataclass:
         FooAttrs,
         FooPydanticBaseModel,
         FooPydanticDataclass,
+        FooStruct,
     ),
 )
 def test_pydantic_base_model(app, Foo):

@@ -21,6 +21,13 @@ try:
 except ImportError:
     ATTRS = False
 
+try:
+    from msgspec import Struct
+
+    MSGSPEC = True
+except ImportError:
+    MSGSPEC = False
+
 
 def is_generic(item):
     return (
@@ -42,9 +49,12 @@ def is_pydantic(model):
         issubclass(model, BaseModel) or hasattr(model, "__pydantic_model__")
     )
 
-
 def is_attrs(model):
     return ATTRS and (hasattr(model, "__attrs_attrs__"))
+
+
+def is_msgspec(model):
+    return MSGSPEC and issubclass(model, Struct)
 
 
 def flat_values(

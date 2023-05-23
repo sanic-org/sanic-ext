@@ -20,7 +20,7 @@ from sanic.app import Sanic
 from sanic.exceptions import ServerError
 
 from sanic_ext.exceptions import InitError
-from sanic_ext.utils.typing import is_attrs, is_optional, is_pydantic
+from sanic_ext.utils.typing import is_attrs, is_optional, is_pydantic, is_msgspec
 
 if TYPE_CHECKING:
     from .registry import ConstantRegistry, InjectionRegistry
@@ -153,6 +153,7 @@ class Constructor:
             or is_dataclass(self.func)
             or is_attrs(self.func)
             or is_pydantic(self.func)
+            or is_msgspec(self.func)
         ):
             return get_type_hints(self.func)
         elif isclass(self.func):
