@@ -179,7 +179,7 @@ def check_data(model, data, schema, allow_multiple=False, allow_coerce=False):
 
     if MSGSPEC and is_msgspec(model):
         try:
-            return msgspec.from_builtins(hydration_values, model)
+            return msgspec.from_builtins(hydration_values, model, str_values=True, str_keys=True)
         except msgspec.ValidationError as e:
             raise TypeError(e)
     else:
