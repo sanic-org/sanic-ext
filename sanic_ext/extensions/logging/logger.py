@@ -72,7 +72,7 @@ class Logger:
 
         while self.run:
             try:
-                record: LogRecord = queue.get_nowait()
+                record: LogRecord = queue.get(timeout=0.05)
             except Empty:
                 continue
             logger = self.loggers.get(record.name)
