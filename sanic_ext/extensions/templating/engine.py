@@ -6,6 +6,7 @@ from typing import TYPE_CHECKING, Dict, Optional, Union
 
 from jinja2 import Environment
 from sanic.compat import Header
+from sanic.request import Request
 from sanic.response import HTTPResponse
 
 from sanic_ext.extensions.templating.render import (
@@ -62,6 +63,8 @@ class Templating:
                         if value:
                             params[attr] = value
                     context = context.context
+
+                context["request"] = Request.get_current()
 
                 content = render(**context)
                 if isawaitable(content):
