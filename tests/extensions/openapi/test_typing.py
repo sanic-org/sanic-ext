@@ -2,6 +2,7 @@ import sys
 from typing import List, Optional
 
 import pytest
+
 from sanic_ext.utils.typing import contains_annotations, flat_values
 
 
