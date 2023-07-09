@@ -41,6 +41,8 @@ params = [
 ]
 if sys.version_info >= (3, 9):
     params.append(({"foo": list[str]}, True))
+if sys.version_info >= (3, 10):
+    params.append(({"foo": str | None}, True))
 
 
 @pytest.mark.parametrize("item,expected", params)

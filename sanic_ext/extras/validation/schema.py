@@ -31,6 +31,7 @@ except ModuleNotFoundError:
 try:
     from msgspec.inspect import type_info as msgspec_type_info
 except ModuleNotFoundError:
+
     def msgspec_type_info(val):
         pass
 
@@ -42,7 +43,9 @@ def make_schema(agg, item):
     if is_generic(item) and (args := get_args(item)):
         for arg in args:
             make_schema(agg, arg)
-    elif item.__name__ not in agg and (is_dataclass(item) or is_attrs(item) or is_msgspec(item)):
+    elif item.__name__ not in agg and (
+        is_dataclass(item) or is_attrs(item) or is_msgspec(item)
+    ):
         if is_dataclass(item):
             fields = item.__dataclass_fields__
         elif is_msgspec(item):

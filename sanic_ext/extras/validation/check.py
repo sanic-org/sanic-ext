@@ -13,7 +13,12 @@ from typing import (
     get_origin,
 )
 
-from sanic_ext.utils.typing import UnionType, is_generic, is_optional, is_msgspec
+from sanic_ext.utils.typing import (
+    UnionType,
+    is_generic,
+    is_msgspec,
+    is_optional,
+)
 
 MISSING: Tuple[Any, ...] = (_HAS_DEFAULT_FACTORY,)
 
@@ -32,6 +37,7 @@ except ImportError:
 
 try:
     import msgspec
+
     MSGSPEC = True
 except ImportError:
     MSGSPEC = False
@@ -179,7 +185,9 @@ def check_data(model, data, schema, allow_multiple=False, allow_coerce=False):
 
     if MSGSPEC and is_msgspec(model):
         try:
-            return msgspec.from_builtins(hydration_values, model, str_values=True, str_keys=True)
+            return msgspec.from_builtins(
+                hydration_values, model, str_values=True, str_keys=True
+            )
         except msgspec.ValidationError as e:
             raise TypeError(e)
     else:

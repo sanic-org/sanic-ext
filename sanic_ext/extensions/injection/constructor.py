@@ -20,7 +20,12 @@ from sanic.app import Sanic
 from sanic.exceptions import ServerError
 
 from sanic_ext.exceptions import InitError
-from sanic_ext.utils.typing import is_attrs, is_optional, is_pydantic, is_msgspec
+from sanic_ext.utils.typing import (
+    is_attrs,
+    is_msgspec,
+    is_optional,
+    is_pydantic,
+)
 
 if TYPE_CHECKING:
     from .registry import ConstantRegistry, InjectionRegistry

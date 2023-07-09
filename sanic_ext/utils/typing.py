@@ -49,6 +49,7 @@ def is_pydantic(model):
         issubclass(model, BaseModel) or hasattr(model, "__pydantic_model__")
     )
 
+
 def is_attrs(model):
     return ATTRS and (hasattr(model, "__attrs_attrs__"))
 

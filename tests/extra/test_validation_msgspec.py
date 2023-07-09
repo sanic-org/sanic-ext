@@ -1,9 +1,8 @@
 import sys
-
-from msgspec import Struct
 from typing import List, Optional
 
 import pytest
+from msgspec import Struct
 from sanic import json
 from sanic.views import HTTPMethodView
 
