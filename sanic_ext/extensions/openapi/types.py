@@ -17,7 +17,13 @@ from typing import (
 
 from sanic_routing.patterns import alpha, ext, nonemptystr, parse_date, slug
 
-from sanic_ext.utils.typing import is_attrs, is_generic, is_pydantic
+from sanic_ext.utils.typing import (
+    UnionType,
+    is_attrs,
+    is_generic,
+    is_msgspec,
+    is_pydantic,
+)
 
 try:
     import attrs
@@ -25,6 +31,32 @@ try:
     NOTHING: Any = attrs.NOTHING
 except ImportError:
     NOTHING = object()
+
+try:
+    import msgspec
+    from msgspec.inspect import Metadata as MsgspecMetadata
+    from msgspec.inspect import type_info as msgspec_type_info
+
+    MsgspecMetadata: Any = MsgspecMetadata
+    NODEFAULT: Any = msgspec.NODEFAULT
+    UNSET: Any = msgspec.UNSET
+
+    class MsgspecAdapter(msgspec.Struct):
+        name: str
+        default: Any
+        metadata: dict
+
+except ImportError:
+
+    def msgspec_type_info(struct):
+        pass
+
+    class MsgspecAdapter:
+        pass
+
+    MsgspecMetadata = object()
+    NODEFAULT = object()
+    UNSET = object()
 
 
 class Definition:
@@ -100,7 +132,7 @@ class Schema(Definition):
         _type = type(value)
         origin = get_origin(value)
         args = get_args(value)
-        if origin is Union:
+        if origin in (Union, UnionType):
             if type(None) in args:
                 kwargs["nullable"] = True
 
@@ -290,7 +322,7 @@ class Object(Schema):
     def make(cls, value: Any, **kwargs):
         extra: Dict[str, Any] = {}
 
-        # Extract from field metadata if pydantic, attrs, or dataclass
+        # Extract from field metadata if msgspec, pydantic, attrs, or dataclass
         if isclass(value):
             fields = ()
             if is_pydantic(value):
@@ -303,6 +335,20 @@ class Object(Schema):
                 fields = value.__attrs_attrs__
             elif is_dataclass(value):
                 fields = value.__dataclass_fields__.values()
+            elif is_msgspec(value):
+                # adapt to msgspec metadata layout -- annotated type --
+                # to match dataclass "metadata" attribute
+                fields = [
+                    MsgspecAdapter(
+                        name=f.name,
+                        default=MISSING
+                        if f.default in (UNSET, NODEFAULT)
+                        else f.default,
+                        metadata=getattr(f.type, "extra", {}),
+                    )
+                    for f in msgspec_type_info(value).fields
+                ]
+
             if fields:
                 extra = {
                     field.name: {

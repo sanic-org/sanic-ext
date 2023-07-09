@@ -4,6 +4,7 @@ from dataclasses import _HAS_DEFAULT_FACTORY  # type: ignore
 from typing import (
     Any,
     Literal,
+    Mapping,
     NamedTuple,
     Optional,
     Tuple,
@@ -12,7 +13,12 @@ from typing import (
     get_origin,
 )
 
-from sanic_ext.utils.typing import UnionType, is_generic, is_optional
+from sanic_ext.utils.typing import (
+    UnionType,
+    is_generic,
+    is_msgspec,
+    is_optional,
+)
 
 MISSING: Tuple[Any, ...] = (_HAS_DEFAULT_FACTORY,)
 
@@ -27,6 +33,14 @@ try:
     )
 except ImportError:
     ATTRS = False
+
+
+try:
+    import msgspec
+
+    MSGSPEC = True
+except ImportError:
+    MSGSPEC = False
 
 
 class Hint(NamedTuple):
@@ -169,7 +183,15 @@ def check_data(model, data, schema, allow_multiple=False, allow_coerce=False):
     except ValueError as e:
         raise TypeError(e)
 
-    return model(**hydration_values)
+    if MSGSPEC and is_msgspec(model):
+        try:
+            return msgspec.from_builtins(
+                hydration_values, model, str_values=True, str_keys=True
+            )
+        except msgspec.ValidationError as e:
+            raise TypeError(e)
+    else:
+        return model(**hydration_values)
 
 
 def _check_types(value, literal, expected):
@@ -179,7 +201,12 @@ def _check_types(value, literal, expected):
         elif value != expected:
             raise ValueError(f"Value '{value}' must be {expected}")
     else:
-        if not isinstance(value, expected):
+        if MSGSPEC and is_msgspec(expected) and isinstance(value, Mapping):
+            try:
+                expected(**value)
+            except (TypeError, msgspec.ValidationError):
+                raise ValueError(f"Value '{value}' is not of type {expected}")
+        elif not isinstance(value, expected):
             raise ValueError(f"Value '{value}' is not of type {expected}")
 
 
