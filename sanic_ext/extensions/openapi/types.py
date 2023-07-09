@@ -17,7 +17,7 @@ from typing import (
 
 from sanic_routing.patterns import alpha, ext, nonemptystr, parse_date, slug
 
-from sanic_ext.utils.typing import is_attrs, is_generic, is_pydantic
+from sanic_ext.utils.typing import UnionType, is_attrs, is_generic, is_pydantic
 
 try:
     import attrs
@@ -100,7 +100,7 @@ class Schema(Definition):
         _type = type(value)
         origin = get_origin(value)
         args = get_args(value)
-        if origin is Union:
+        if origin in (Union, UnionType):
             if type(None) in args:
                 kwargs["nullable"] = True
 
