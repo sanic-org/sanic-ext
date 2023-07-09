@@ -8,6 +8,7 @@ import pytest
 from msgspec import Meta, Struct
 from pydantic import BaseModel, Field
 from pydantic.dataclasses import dataclass as pydataclass
+
 from sanic_ext import openapi
 
 from .utils import get_spec
