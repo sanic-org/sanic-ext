@@ -2,7 +2,6 @@ import sys
 from typing import List, Optional
 
 import pytest
-
 from sanic_ext.utils.typing import contains_annotations, flat_values
 
 
@@ -41,6 +40,8 @@ params = [
 ]
 if sys.version_info >= (3, 9):
     params.append(({"foo": list[str]}, True))
+if sys.version_info >= (3, 10):
+    params.append(({"foo": str | None}, True))
 
 
 @pytest.mark.parametrize("item,expected", params)
