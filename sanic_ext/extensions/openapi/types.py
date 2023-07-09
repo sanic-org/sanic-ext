@@ -336,7 +336,8 @@ class Object(Schema):
             elif is_dataclass(value):
                 fields = value.__dataclass_fields__.values()
             elif is_msgspec(value):
-                # adapt to msgspec metadata layout -- annotated type -- to match dataclass "metadata" attribute
+                # adapt to msgspec metadata layout -- annotated type --
+                # to match dataclass "metadata" attribute
                 fields = [
                     MsgspecAdapter(
                         name=f.name,
