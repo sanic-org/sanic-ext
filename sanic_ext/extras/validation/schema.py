@@ -13,7 +13,7 @@ from typing import (
     get_type_hints,
 )
 
-from sanic_ext.utils.typing import is_attrs, is_generic
+from sanic_ext.utils.typing import is_attrs, is_generic, is_msgspec
 
 from .check import Hint
 
@@ -28,6 +28,13 @@ except ModuleNotFoundError:
     NOTHING = object()  # type: ignore
     Attribute = type("Attribute", (), {})  # type: ignore
 
+try:
+    from msgspec.inspect import type_info as msgspec_type_info
+except ModuleNotFoundError:
+
+    def msgspec_type_info(val):
+        pass
+
 
 def make_schema(agg, item):
     if type(item) in (bool, str, int, float):
@@ -36,12 +43,16 @@ def make_schema(agg, item):
     if is_generic(item) and (args := get_args(item)):
         for arg in args:
             make_schema(agg, arg)
-    elif item.__name__ not in agg and (is_dataclass(item) or is_attrs(item)):
-        fields = (
-            item.__dataclass_fields__
-            if is_dataclass(item)
-            else {attr.name: attr for attr in item.__attrs_attrs__}
-        )
+    elif item.__name__ not in agg and (
+        is_dataclass(item) or is_attrs(item) or is_msgspec(item)
+    ):
+        if is_dataclass(item):
+            fields = item.__dataclass_fields__
+        elif is_msgspec(item):
+            fields = {f.name: f.type for f in msgspec_type_info(item).fields}
+        else:
+            fields = {attr.name: attr for attr in item.__attrs_attrs__}
+
         sig = signature(item)
         hints = parse_hints(get_type_hints(item), fields)
 

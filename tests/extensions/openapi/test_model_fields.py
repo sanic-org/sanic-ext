@@ -1,15 +1,20 @@
+import sys
 from dataclasses import dataclass, field
 from typing import List
 from uuid import UUID
 
 import attrs
 import pytest
+from msgspec import Meta, Struct
 from pydantic import BaseModel, Field
 from pydantic.dataclasses import dataclass as pydataclass
 
 from sanic_ext import openapi
 
 from .utils import get_spec
+
+if sys.version_info >= (3, 9):
+    from typing import Annotated
 
 
 @dataclass
@@ -47,16 +52,36 @@ class FooPydanticDataclass:
     ident: str = Field("XXXX", example="ABC123")
 
 
-@pytest.mark.parametrize(
-    "Foo",
-    (
-        FooDataclass,
-        FooAttrs,
-        FooPydanticBaseModel,
-        FooPydanticDataclass,
-    ),
-)
-def test_pydantic_base_model(app, Foo):
+if sys.version_info >= (3, 9):
+
+    class FooStruct(Struct):
+        links: List[UUID]
+        priority: Annotated[
+            int,
+            Meta(
+                extra={
+                    "openapi": {"exclusiveMinimum": 1, "exclusiveMaximum": 10}
+                }
+            ),
+        ]
+        ident: Annotated[
+            str, Meta(extra={"openapi": {"example": "ABC123"}})
+        ] = "XXXX"
+
+
+models = [
+    FooDataclass,
+    FooAttrs,
+    FooPydanticBaseModel,
+    FooPydanticDataclass,
+]
+
+if sys.version_info >= (3, 9):
+    models.append(FooStruct)
+
+
+@pytest.mark.parametrize("Foo", models)
+def test_models(app, Foo):
     @app.get("/")
     @openapi.definition(body={"application/json": Foo})
     async def handler(_):
