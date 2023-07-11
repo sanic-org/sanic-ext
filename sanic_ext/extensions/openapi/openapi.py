@@ -42,6 +42,7 @@ from sanic_ext.extensions.openapi.types import (
     Long,
     Object,
     Password,
+    Schema,
     String,
     Time,
 )
@@ -263,7 +264,7 @@ def parameter(
 @overload
 def parameter(
     name: str,
-    schema: Optional[Type] = None,
+    schema: Optional[Union[Type, Schema]] = None,
     location: Optional[str] = None,
     parameter: None = None,
     **kwargs,
@@ -273,7 +274,7 @@ def parameter(
 
 def parameter(
     name: Optional[str] = None,
-    schema: Optional[Type] = None,
+    schema: Optional[Union[Type, Schema]] = None,
     location: Optional[str] = None,
     parameter: Optional[definitions.Parameter] = None,
     **kwargs,
