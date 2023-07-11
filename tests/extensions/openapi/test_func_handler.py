@@ -1,7 +1,7 @@
-from sanic_ext import openapi
-
 from sanic import Sanic
 from sanic.response import text
+
+from sanic_ext import openapi
 
 from .utils import get_spec
 
