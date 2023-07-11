@@ -120,7 +120,7 @@ class HealthMonitor:
         }
         while self.run:
             try:
-                name, timestamp = health_queue.get_nowait()
+                name, timestamp = health_queue.get(timeout=0.05)
             except Empty:
                 ...
             else:
