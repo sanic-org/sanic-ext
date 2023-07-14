@@ -140,8 +140,6 @@ def blueprint_factory(config: Config):
             # Methods
             # --------------------------------------------------------------- #
 
-            uri = uri if uri == "/" else uri.rstrip("/")
-
             for method, _handler in method_handlers:
                 if (
                     (method == "OPTIONS" and app.config.OAS_IGNORE_OPTIONS)
