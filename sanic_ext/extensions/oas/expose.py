@@ -18,7 +18,7 @@ from .decorators.objects import (
     tag,
     tags,
 )
-from .decorators.signature import Schema
+from .signature import Schema
 
 __all__ = (
     "Schema",

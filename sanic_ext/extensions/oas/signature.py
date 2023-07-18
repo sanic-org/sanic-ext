@@ -7,7 +7,7 @@ from uuid import UUID
 
 from sanic.helpers import Default, _default
 
-from ..definition import (
+from .definition import (
     Extendable,
     ParameterInChoice,
     ParameterStyleChoice,
@@ -57,7 +57,7 @@ class Required(Serializable):
 
 @dataclass
 class Deprecated(Serializable):
-    deprecated: Union[bool, Default] = _default
+    deprecated: bool = True
 
 
 @dataclass
@@ -408,6 +408,33 @@ class Response(Description, Headers, Content, Links, Status):
 @dataclass
 class ResponseReference(Reference, Status):
     ...
+
+
+@dataclass
+class Callback(Serializable):
+    ...
+
+
+@dataclass
+class SecurityScheme(Extendable):
+    scheme: Union[Dict[str, List[str]], Default] = _default
+    schemes: Union[List[Dict[str, List[str]]], Default] = _default
+
+    def __post_init__(self):
+        if isinstance(self.schemes, Default) and isinstance(
+            self.scheme, Default
+        ):
+            raise ValueError("SecurityScheme must have a scheme")
+        if not isinstance(self.schemes, Default) and not isinstance(
+            self.scheme, Default
+        ):
+            raise ValueError("Cannot have both scheme and schemes")
+        if not isinstance(self.scheme, Default):
+            self.schemes = [self.scheme]
+            self.scheme = _default
+
+    def serialize(self) -> Dict[str, Any]:
+        return {"security": self.schemes}
 
 
 # !!!!!!! DICTS !!!!!!! #

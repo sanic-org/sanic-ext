@@ -4,7 +4,8 @@ from dataclasses import dataclass, field
 from typing import Any, Dict, List, Optional, Type, Union, get_type_hints
 
 from ..definition import Definition
-from .signature import (
+from ..signature import (
+    Deprecated,
     ExternalDocument,
     Parameter,
     ParameterDict,
@@ -12,6 +13,7 @@ from .signature import (
     RequestBody,
     Response,
     ResponseReference,
+    SecurityScheme,
     Text,
 )
 
@@ -178,12 +180,12 @@ class callbacks(Definition):  # TODO
 
 
 @dataclass
-class deprecated(Definition):  # TODO
+class deprecated(Deprecated, Definition):
     ...
 
 
 @dataclass
-class security(Definition):  # TODO
+class security(SecurityScheme, Definition):
     ...
 
 

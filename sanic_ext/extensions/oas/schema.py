@@ -3,12 +3,13 @@ from dataclasses import dataclass, field
 from functools import cached_property
 from typing import Any, List
 
-from sanic.constants import HTTPMethod
 from sanic_routing.route import Route
 
+from sanic.constants import HTTPMethod
+
 from .decorators.objects import parameters
-from .decorators.signature import Parameter, ParameterInChoice
 from .definition import Definition, Serializable
+from .signature import Parameter, ParameterInChoice, SecurityScheme
 
 
 @dataclass
@@ -84,7 +85,33 @@ class Paths:
 
 
 @dataclass
+class Components:
+    schemas: dict[str, Any] = field(default_factory=dict)
+    security_schemes: list[dict[str, Any]] = field(default_factory=list)
+    parameters: dict[str, Any] = field(default_factory=dict)
+    responses: dict[str, Any] = field(default_factory=dict)
+    requestBodies: dict[str, Any] = field(default_factory=dict)
+    headers: dict[str, Any] = field(default_factory=dict)
+    examples: dict[str, Any] = field(default_factory=dict)
+    links: dict[str, Any] = field(default_factory=dict)
+    callbacks: dict[str, Any] = field(default_factory=dict)
+    path_items: dict[str, Any] = field(default_factory=dict)
+
+    def serialize(self) -> dict[str, Any]:
+        output: dict[str, Any] = {}
+        for key, value in self.__dict__.items():
+            if value:
+                output[key] = (
+                    value.serialize()
+                    if isinstance(value, Serializable)
+                    else value
+                )
+        return output
+
+
+@dataclass
 class OpenAPI(Serializable):
     openapi: str = "3.0.3"
     info: dict[str, Any] = field(default_factory=dict)
     paths: Paths = field(default_factory=Paths)
+    components: Components = field(default_factory=Components)
