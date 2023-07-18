@@ -4,10 +4,10 @@ from functools import partial, wraps
 
 class BaseDecorator(ABC):
     def __get__(self, instance, _):
-        return wraps(self.func)(partial(self.__call__, instance))
+        return wraps(self._func)(partial(self.__call__, instance))
 
     def __call__(self, func):
-        self.func = func
+        self._func = func
         self.setup()
 
         def decorator(f):
@@ -23,4 +23,4 @@ class BaseDecorator(ABC):
         ...
 
     def execute(self, args, kwargs):
-        return self.func(*args, **kwargs)
+        return self._func(*args, **kwargs)

@@ -1,4 +1,4 @@
-from .decorators import (  # parameter,
+from .decorators.objects import (
     body,
     callbacks,
     deprecated,
@@ -10,6 +10,7 @@ from .decorators import (  # parameter,
     parameter,
     parameters,
     request_body,
+    response,
     responses,
     security,
     servers,
@@ -17,8 +18,10 @@ from .decorators import (  # parameter,
     tag,
     tags,
 )
+from .decorators.signature import Schema
 
 __all__ = (
+    "Schema",
     "body",
     "callbacks",
     "deprecated",
@@ -29,6 +32,7 @@ __all__ = (
     "operation_id",
     "parameters",
     "request_body",
+    "response",
     "responses",
     "security",
     "servers",

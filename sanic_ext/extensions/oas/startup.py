@@ -1,6 +1,6 @@
-from rich import print
-from sanic import Sanic
+from sanic import Sanic  # type: ignore
 
+from sanic_ext.extensions.oas.builder import OASBuilder
 from sanic_ext.extensions.oas.registry import DefinitionRegistry
 
 from .schema import Path, Paths
@@ -24,7 +24,8 @@ async def _build(app: Sanic):
             if definition := registry.get(key):
                 for method in route.methods:
                     paths.register(Path(route, method, definition))
-    print(paths)
+    app.ctx._oas_builder = OASBuilder(app, paths)
+    app.ctx._oas_builder.build()
 
 
 def build_spec(app: Sanic):

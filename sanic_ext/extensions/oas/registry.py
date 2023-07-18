@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, List, Type, TypeVar
 
 if TYPE_CHECKING:
-    from .decorators import Definition
+    from .decorators import Definition  # type: ignore
 else:
     Definition = TypeVar("Operation")
 
@@ -33,5 +33,5 @@ class DefinitionRegistry(dict[str, List[Definition]]):
     ) -> DefinitionRegistry:
         if existing := getattr(cls, "_registry", None):
             return existing
-        cls._registry = super().__new__(cls)
+        cls._registry = super().__new__(cls)  # type: ignore
         return cls._registry
