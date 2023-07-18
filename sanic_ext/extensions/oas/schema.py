@@ -3,9 +3,8 @@ from dataclasses import dataclass, field
 from functools import cached_property
 from typing import Any, List
 
-from sanic_routing.route import Route
-
 from sanic.constants import HTTPMethod
+from sanic_routing.route import Route
 
 from .decorators.objects import parameters
 from .definition import Definition, Serializable
