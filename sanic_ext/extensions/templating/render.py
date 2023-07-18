@@ -6,7 +6,10 @@ from typing import TYPE_CHECKING, Any, Dict, Optional, Union
 from sanic import Sanic
 from sanic.compat import Header
 from sanic.exceptions import SanicException
+from sanic.request import Request
 from sanic.response import HTTPResponse
+
+from sanic_ext.exceptions import ExtensionNotFound
 
 if TYPE_CHECKING:
     from jinja2 import Environment
@@ -65,9 +68,18 @@ async def render(
         )
 
     if environment is None:
-        environment = app.ext.environment
+        try:
+            environment = app.ext.environment
+        except AttributeError:
+            raise ExtensionNotFound(
+                "The Templating extension does not appear to be enabled. "
+                "Perhaps jinja2 is not installed."
+            )
 
     kwargs = context if context else {}
+
+    kwargs["request"] = Request.get_current()
+
     if template_name or template_source:
         template = (
             environment.get_template(template_name)

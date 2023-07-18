@@ -1,5 +1,6 @@
 import json
 import uuid
+from dataclasses import MISSING, is_dataclass
 from datetime import date, datetime, time
 from enum import Enum
 from inspect import getmembers, isclass, isfunction, ismethod
@@ -14,9 +15,48 @@ from typing import (
     get_type_hints,
 )
 
-from sanic_routing.patterns import nonemptystr
+from sanic_routing.patterns import alpha, ext, nonemptystr, parse_date, slug
 
-from sanic_ext.utils.typing import is_generic
+from sanic_ext.utils.typing import (
+    UnionType,
+    is_attrs,
+    is_generic,
+    is_msgspec,
+    is_pydantic,
+)
+
+try:
+    import attrs
+
+    NOTHING: Any = attrs.NOTHING
+except ImportError:
+    NOTHING = object()
+
+try:
+    import msgspec
+    from msgspec.inspect import Metadata as MsgspecMetadata
+    from msgspec.inspect import type_info as msgspec_type_info
+
+    MsgspecMetadata: Any = MsgspecMetadata
+    NODEFAULT: Any = msgspec.NODEFAULT
+    UNSET: Any = msgspec.UNSET
+
+    class MsgspecAdapter(msgspec.Struct):
+        name: str
+        default: Any
+        metadata: dict
+
+except ImportError:
+
+    def msgspec_type_info(struct):
+        pass
+
+    class MsgspecAdapter:
+        pass
+
+    MsgspecMetadata = object()
+    NODEFAULT = object()
+    UNSET = object()
 
 
 class Definition:
@@ -92,7 +132,7 @@ class Schema(Definition):
         _type = type(value)
         origin = get_origin(value)
         args = get_args(value)
-        if origin is Union:
+        if origin in (Union, UnionType):
             if type(None) in args:
                 kwargs["nullable"] = True
 
@@ -103,7 +143,9 @@ class Schema(Definition):
             return Schema(
                 oneOf=[Schema.make(arg) for arg in filtered], **kwargs
             )
-            # return Schema.make(value, **kwargs)
+
+        for field in ("type", "format"):
+            kwargs.pop(field, None)
 
         if isinstance(value, Schema):
             return value
@@ -113,7 +155,7 @@ class Schema(Definition):
             return Integer(**kwargs)
         elif value == float:
             return Float(**kwargs)
-        elif value == str or value is nonemptystr:
+        elif value == str or value in (nonemptystr, ext, slug, alpha):
             return String(**kwargs)
         elif value == bytes:
             return Byte(**kwargs)
@@ -123,7 +165,7 @@ class Schema(Definition):
             return Date(**kwargs)
         elif value == time:
             return Time(**kwargs)
-        elif value == datetime:
+        elif value == datetime or value is parse_date:
             return DateTime(**kwargs)
         elif value == uuid.UUID:
             return UUID(**kwargs)
@@ -169,6 +211,7 @@ class Schema(Definition):
             kwargs["additionalProperties"] = Schema.make(args[1])
             return Object(**kwargs)
         elif (is_generic(value) or is_generic(_type)) and origin == list:
+            kwargs.pop("items", None)
             return Array(Schema.make(args[0]), **kwargs)
         elif _type is type(Enum):
             available = [item.value for item in value.__members__.values()]
@@ -277,8 +320,54 @@ class Object(Schema):
 
     @classmethod
     def make(cls, value: Any, **kwargs):
+        extra: Dict[str, Any] = {}
+
+        # Extract from field metadata if msgspec, pydantic, attrs, or dataclass
+        if isclass(value):
+            fields = ()
+            if is_pydantic(value):
+                try:
+                    value = value.__pydantic_model__
+                except AttributeError:
+                    ...
+                extra = value.schema()["properties"]
+            elif is_attrs(value):
+                fields = value.__attrs_attrs__
+            elif is_dataclass(value):
+                fields = value.__dataclass_fields__.values()
+            elif is_msgspec(value):
+                # adapt to msgspec metadata layout -- annotated type --
+                # to match dataclass "metadata" attribute
+                fields = [
+                    MsgspecAdapter(
+                        name=f.name,
+                        default=MISSING
+                        if f.default in (UNSET, NODEFAULT)
+                        else f.default,
+                        metadata=getattr(f.type, "extra", {}),
+                    )
+                    for f in msgspec_type_info(value).fields
+                ]
+
+            if fields:
+                extra = {
+                    field.name: {
+                        "title": field.name.title(),
+                        **(
+                            {"default": field.default}
+                            if field.default not in (MISSING, NOTHING)
+                            else {}
+                        ),
+                        **dict(field.metadata).get("openapi", {}),
+                    }
+                    for field in fields
+                }
+
         return cls(
-            {k: Schema.make(v) for k, v in _properties(value).items()},
+            {
+                k: Schema.make(v, **extra.get(k, {}))
+                for k, v in _properties(value).items()
+            },
             **kwargs,
         )
 
@@ -320,11 +409,33 @@ def _properties(value: object) -> Dict:
         fields = {}
 
     cls = value if callable(value) else value.__class__
-    return {
-        k: v
-        for k, v in {**get_type_hints(cls), **fields}.items()
-        if not k.startswith("_")
-    }
+    extra = value if isinstance(value, dict) else {}
+    try:
+        annotations = get_type_hints(cls)
+    except NameError:
+        if hasattr(value, "__annotations__"):
+            annotations = value.__annotations__
+        else:
+            annotations = {}
+    annotations.pop("return", None)
+    try:
+        output = {
+            k: v
+            for k, v in {**fields, **annotations, **extra}.items()
+            if not k.startswith("_")
+            and not (
+                isclass(v)
+                and isclass(cls)
+                and v.__qualname__.endswith(
+                    f"{getattr(cls, '__name__', '<unknown>')}."
+                    f"{getattr(v, '__name__', '<unknown>')}"
+                )
+            )
+        }
+    except TypeError:
+        return {}
+
+    return output
 
 
 def _extract(item):
@@ -335,4 +446,4 @@ def _extract(item):
 
 
 def _is_property(item):
-    return not isfunction(item) and not ismethod(item) and not isclass(item)
+    return not isfunction(item) and not ismethod(item)

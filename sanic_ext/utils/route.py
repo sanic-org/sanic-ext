@@ -107,7 +107,7 @@ def get_all_routes(app, skip_prefix):
                 )
 
             for route in group:
-                if route.name and "static" in route.name:
+                if getattr(route.extra, "static", False):
                     continue
 
                 method_handlers = [

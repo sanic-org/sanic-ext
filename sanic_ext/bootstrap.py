@@ -1,11 +1,13 @@
 from __future__ import annotations
 
 from types import SimpleNamespace
-from typing import Any, Callable, Dict, List, Optional, Type, Union
+from typing import Any, Callable, Dict, List, Mapping, Optional, Type, Union
 from warnings import warn
 
 from sanic import Sanic, __version__
+from sanic.config import DEFAULT_CONFIG
 from sanic.exceptions import SanicException
+from sanic.helpers import Default, _default
 from sanic.log import logger
 
 from sanic_ext.config import Config, add_fallback_config
@@ -13,7 +15,10 @@ from sanic_ext.extensions.base import Extension
 from sanic_ext.extensions.health.extension import HealthExtension
 from sanic_ext.extensions.http.extension import HTTPExtension
 from sanic_ext.extensions.injection.extension import InjectionExtension
-from sanic_ext.extensions.injection.registry import InjectionRegistry
+from sanic_ext.extensions.injection.registry import (
+    ConstantRegistry,
+    InjectionRegistry,
+)
 from sanic_ext.extensions.logging.extension import LoggingExtension
 from sanic_ext.extensions.oas.extension import OASExtension
 from sanic_ext.extensions.openapi.builders import SpecificationBuilder
@@ -71,6 +76,7 @@ class Extend:
             )
 
         self._injection_registry: Optional[InjectionRegistry] = None
+        self._constant_registry: Optional[ConstantRegistry] = None
         self._openapi: Optional[SpecificationBuilder] = None
         self.app = app
         self.extensions: List[Extension] = []
@@ -133,10 +139,57 @@ class Extend:
         self,
         type: Type,
         constructor: Optional[Callable[..., Any]] = None,
+        request_arg: Optional[str] = None,
     ) -> None:
+        """
+        Add a dependency for injection
+
+        :param type: The type of the dependency
+        :type type: Type
+        :param constructor: A callable that will return an instance to be
+            injected, when ``False`` it will call the type, defaults to None
+        :type constructor: Optional[Callable[..., Any]], optional
+        :param request_arg: Explicitly state which argument in the
+            constructor (if any) should be a ``Request`` object, when set to
+            ``None`` the constructor will be introspected to check the
+            type annotations looking for a request object. You should really
+            only use this if you **MUST** use a lambda explression, it is
+            otherwise better to use a properly type annotated constructor,
+            defaults to None
+        :type request_arg: Optional[str], optional
+        :raises SanicException: _description_
+        """
         if not self._injection_registry:
             raise SanicException("Injection extension not enabled")
-        self._injection_registry.register(type, constructor)
+        self._injection_registry.register(
+            type, constructor, request_arg=request_arg
+        )
+
+    def add_constant(self, name: str, value: Any, overwrite: bool = False):
+        if not self._constant_registry:
+            raise ValueError("Cannot add constant. No registry created.")
+        self._constant_registry.register(name, value, overwrite)
+
+    def load_constants(
+        self,
+        constants: Optional[Mapping[str, Any]] = None,
+        overwrite: Union[Default, bool] = _default,
+    ):
+        if not constants:
+            constants = {
+                k: v
+                for k, v in self.app.config.items()
+                if k.isupper()
+                and k not in DEFAULT_CONFIG
+                and k not in self.config
+                and not k.startswith("_")
+            }
+            if isinstance(overwrite, Default):
+                overwrite = True
+        if isinstance(overwrite, Default):
+            overwrite = False
+        for name, value in constants.items():
+            self.add_constant(name, value, overwrite)
 
     def dependency(self, obj: Any, name: Optional[str] = None) -> None:
         if not name:

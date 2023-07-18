@@ -1,8 +1,8 @@
 import sys
-from dataclasses import dataclass
 from typing import List, Optional
 
 import pytest
+from msgspec import Struct
 from sanic import json
 from sanic.views import HTTPMethodView
 
@@ -16,12 +16,10 @@ SNOOPY_DATA = {"name": "Snoopy", "alter_ego": ["Flying Ace", "Joe Cool"]}
 
 
 def test_schema():
-    @dataclass
-    class Pet:
+    class Pet(Struct):
         name: str
 
-    @dataclass
-    class Person:
+    class Person(Struct):
         name: str
         age: int
         pets: Optional[List[Pet]]
@@ -38,12 +36,10 @@ def test_schema():
 
 
 def test_should_hydrate():
-    @dataclass
-    class Pet:
+    class Pet(Struct):
         name: str
 
-    @dataclass
-    class Person:
+    class Person(Struct):
         name: str
         age: int
         pets: List[Pet]
@@ -70,12 +66,10 @@ def test_should_hydrate():
     ),
 )
 def test_should_not_hydrate(data):
-    @dataclass
-    class Pet:
+    class Pet(Struct):
         name: str
 
-    @dataclass
-    class Person:
+    class Person(Struct):
         name: str
         age: int
         pets: List[Pet]
@@ -298,8 +292,7 @@ def test_modeling_union_type_ModelUnionTypeStrInt():
 
 
 def test_validate_json(app):
-    @dataclass
-    class Pet:
+    class Pet(Struct):
         name: str
         alter_ego: List[str]
 
@@ -336,8 +329,7 @@ def test_validate_json(app):
 
 
 def test_validate_form(app):
-    @dataclass
-    class Pet:
+    class Pet(Struct):
         name: str
         alter_ego: List[str]
 
@@ -374,8 +366,7 @@ def test_validate_form(app):
 
 
 def test_validate_query(app):
-    @dataclass
-    class Search:
+    class Search(Struct):
         q: str
 
     @app.get("/function")

@@ -92,6 +92,7 @@ def add_auto_handlers(
                                 strict_slashes=group.strict,
                                 name=name,
                                 host=host,
+                                unquote=group.unquote,
                             )
             app.finalize()
 
@@ -124,19 +125,20 @@ def add_auto_handlers(
                         )
                     except StopIteration:
                         base_route = group[0]
-                    for host in hosts:
-                        name = f"{base_route.name}_options"
-                        handler = openapi.definition(
-                            summary=clean_route_name(base_route.name).title(),
-                            description="Retrieve OPTIONS details",
-                        )(partial(options_handler, methods=group.methods))
-                        handler.__auto_handler__ = True
-                        app.add_route(
-                            handler=handler,
-                            uri=group.uri,
-                            methods=["OPTIONS"],
-                            strict_slashes=group.strict,
-                            name=name,
-                            host=host,
-                        )
+
+                    name = f"{base_route.name}_options"
+                    handler = openapi.definition(
+                        summary=clean_route_name(base_route.name).title(),
+                        description="Retrieve OPTIONS details",
+                    )(partial(options_handler, methods=group.methods))
+                    handler.__auto_handler__ = True
+                    app.add_route(
+                        handler=handler,
+                        uri=group.uri,
+                        methods=["OPTIONS"],
+                        strict_slashes=group.strict,
+                        name=name,
+                        host=hosts,
+                        unquote=group.unquote,
+                    )
             app.finalize()

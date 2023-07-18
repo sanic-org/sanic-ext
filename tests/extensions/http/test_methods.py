@@ -1,3 +1,4 @@
+import pytest
 from sanic import Sanic
 from sanic.response import empty, text
 
@@ -64,11 +65,11 @@ def test_auto_trace(bare_app: Sanic):
 
 
 def test_auto_head_with_vhosts(app: Sanic, get_docs):
-    @app.get("/foo", host="one.com")
+    @app.get("/foo", host="one.com", name="one")
     async def foo_handler_one(_):
         return text(".")
 
-    @app.get("/foo", host="two.com")
+    @app.get("/foo", host="two.com", name="two")
     async def foo_handler_two(_):
         return text("..")
 
@@ -85,3 +86,43 @@ def test_auto_head_with_vhosts(app: Sanic, get_docs):
 
     schema = get_docs()
     assert "get" in schema["paths"]["/foo"]
+
+
+def test_auto_options_with_vhosts(app: Sanic, get_docs):
+    @app.post("/foo", host="one.com", name="one")
+    async def foo_handler_one(_):
+        return text(".")
+
+    @app.post("/foo", host="two.com", name="two")
+    async def foo_handler_two(_):
+        return text("..")
+
+    assert app.config.HTTP_AUTO_OPTIONS
+    _, response = app.test_client.options("/foo", headers={"host": "one.com"})
+    assert response.status == 204
+    assert len(response.body) == 0
+    assert "POST" in response.headers["allow"]
+    assert "OPTIONS" in response.headers["allow"]
+
+    _, response = app.test_client.options("/foo", headers={"host": "two.com"})
+    assert response.status == 204
+    assert len(response.body) == 0
+    assert "POST" in response.headers["allow"]
+    assert "OPTIONS" in response.headers["allow"]
+
+
+# This test also appears in Core Sanic tests but is added here as well
+# because of: https://github.com/sanic-org/sanic-ext/issues/148
+@pytest.mark.parametrize("unquote", [True, False, None])
+def test_unquote_add_route(app, unquote):
+    async def handler1(_, foo):
+        return text(foo)
+
+    app.add_route(handler1, "/<foo>", unquote=unquote)
+    value = "啊" if unquote else r"%E5%95%8A"
+
+    _, response = app.test_client.get("/啊")
+    assert response.text == value
+
+    _, response = app.test_client.get(r"/%E5%95%8A")
+    assert response.text == value

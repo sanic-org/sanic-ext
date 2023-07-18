@@ -96,3 +96,58 @@ def test_config_templating_dir():
     assert app.ext.templating.environment.get_template(
         "foo.html"
     ).filename == str(Path(__file__).parent / "templates" / "foo.html")
+
+
+def test_url_for():
+    app = Sanic("templating-from-string")
+    app.extend()
+
+    template = r"url: {{ url_for('handler') }}"
+
+    @app.get("/one/two/three")
+    async def handler(_):
+        return await render(template_source=template)
+
+    _, response = app.test_client.get("/one/two/three")
+    assert response.text == "url: /one/two/three"
+
+
+def test_default_context():
+    app = Sanic("templating-from-string")
+    app.extend(
+        config={
+            "templating_path_to_templates": Path(__file__).parent / "templates"
+        }
+    )
+
+    template = r"{{ request.args.get('test') }}"
+
+    @app.get("/1")
+    async def handler1(_):
+        return await render(template_source=template)
+
+    @app.get("/2")
+    @app.ext.template("request_test.html")
+    async def handler2(_):
+        return {}
+
+    @app.get("/3")
+    async def handler3(_):
+        return await render("request_test.html", context={}, app=app)
+
+    @app.get("/4")
+    @app.ext.template("request_test.html")
+    async def handler4(_):
+        return await render(context={}, app=app)
+
+    _, response = app.test_client.get("/1?test=passing")
+    assert response.text == "passing"
+
+    _, response = app.test_client.get("/2?test=passing")
+    assert response.text == "passing"
+
+    _, response = app.test_client.get("/3?test=passing")
+    assert response.text == "passing"
+
+    _, response = app.test_client.get("/4?test=passing")
+    assert response.text == "passing"

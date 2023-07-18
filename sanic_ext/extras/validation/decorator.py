@@ -56,9 +56,9 @@ def validate(
                     kwargs=kwargs,
                     body_argument=body_argument,
                     allow_multiple=True,
-                    allow_coerce=False,
+                    allow_coerce=True,
                 )
-            elif schemas["query"]:
+            if schemas["query"]:
                 await do_validation(
                     model=query,
                     data=request.args,
