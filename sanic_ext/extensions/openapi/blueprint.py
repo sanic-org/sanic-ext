@@ -150,7 +150,14 @@ def blueprint_factory(config: Config):
 
                 if hasattr(_handler, "view_class"):
                     _handler = getattr(_handler.view_class, method.lower())
-                operation = OperationStore()[_handler]
+                store = OperationStore()
+                if (
+                    _handler not in store
+                    and (func := getattr(_handler, "__func__", None))
+                    and func in store
+                ):
+                    _handler = func
+                operation = store[_handler]
 
                 if operation._exclude or "openapi" in operation.tags:
                     continue
