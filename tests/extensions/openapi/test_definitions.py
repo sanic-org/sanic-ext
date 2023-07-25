@@ -2,6 +2,7 @@ from typing import Optional
 
 import pytest
 
+from sanic_ext.extensions.openapi.definitions import Server
 from sanic_ext.extensions.openapi.types import Definition
 
 
@@ -45,3 +46,11 @@ def test_serialize_no_nullable(Thing):
     assert serialized["name"] == "ok"
     assert "foo" not in serialized
     assert "bar" not in serialized
+
+
+def test_server_definitions_defaults():
+    assert Server(url="url").fields == {
+        "url": "url",
+        "description": None,
+        "variables": {},
+    }
