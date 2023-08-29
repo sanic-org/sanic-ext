@@ -19,6 +19,7 @@ from sanic_ext.extensions.injection.registry import (
     ConstantRegistry,
     InjectionRegistry,
 )
+from sanic_ext.extensions.livereload.extension import LivereloadExtension
 from sanic_ext.extensions.logging.extension import LoggingExtension
 from sanic_ext.extensions.openapi.builders import SpecificationBuilder
 from sanic_ext.extensions.openapi.extension import OpenAPIExtension
@@ -96,6 +97,7 @@ class Extend:
                     HTTPExtension,
                     HealthExtension,
                     LoggingExtension,
+                    LivereloadExtension,
                 ]
             )
 
