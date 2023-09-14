@@ -10,6 +10,7 @@ from .schema import make_schema
 from .validators import (
     _validate_annotations,
     _validate_instance,
+    _msgspec_validate_instance,
     validate_body,
 )
 
@@ -56,18 +57,7 @@ def generate_schema(param):
 
 def _get_validator(model, schema, allow_multiple, allow_coerce):
     if is_msgspec(model):
-        import msgspec
-
-        def msgspec_validate_instance(*args, **kwargs):
-            try:
-                kwargs["allow_coerce"] = allow_coerce
-                return _validate_instance(*args, **kwargs)
-            except msgspec.ValidationError as e:
-                # Convert msgspec.ValidationError into TypeError for consistent
-                # behaviour with pydantic, attrs, etc..
-                raise TypeError(str(e))
-
-        return msgspec_validate_instance
+        return partial(_msgspec_validate_instance, allow_coerce=allow_coerce)
     elif is_pydantic(model):
         return partial(_validate_instance, allow_coerce=allow_coerce)
 
