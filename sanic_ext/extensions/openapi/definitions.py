@@ -22,8 +22,8 @@ from sanic.exceptions import SanicException
 
 from sanic_ext.utils.typing import (
     contains_annotations,
-    is_pydantic,
     is_msgspec,
+    is_pydantic,
 )
 
 from .types import Definition, Schema

@@ -8,9 +8,9 @@ from sanic_ext.utils.typing import is_msgspec, is_pydantic
 
 from .schema import make_schema
 from .validators import (
+    _msgspec_validate_instance,
     _validate_annotations,
     _validate_instance,
-    _msgspec_validate_instance,
     validate_body,
 )
 
