@@ -63,7 +63,8 @@ def _get_validator(model, schema, allow_multiple, allow_coerce):
                 kwargs['allow_coerce'] = allow_coerce
                 return _validate_instance(*args, **kwargs)
             except msgspec.ValidationError as e:
-                # Convert msgspec.ValidationError into TypeError for consistent behaviour with pydantic, attrs, etc..
+                # Convert msgspec.ValidationError into TypeError for consistent
+                # behaviour with pydantic, attrs, etc..
                 raise TypeError(str(e))
         return msgspec_validate_instance
     elif is_pydantic(model):

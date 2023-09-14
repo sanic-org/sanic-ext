@@ -20,7 +20,11 @@ from typing import (
 
 from sanic.exceptions import SanicException
 
-from sanic_ext.utils.typing import contains_annotations, is_pydantic, is_msgspec
+from sanic_ext.utils.typing import (
+    contains_annotations,
+    is_pydantic,
+    is_msgspec
+)
 
 from .types import Definition, Schema
 
@@ -412,7 +416,10 @@ def Component(
         if is_msgspec(obj):
             import msgspec
 
-            _, definitions = msgspec.json.schema_components([obj], ref_template="#/components/schemas/{name}")
+            _, definitions = msgspec.json.schema_components(
+                [obj],
+                ref_template="#/components/schemas/{name}"
+            )
             if definitions:
                 for key, value in definitions.items():
                     spec.add_component(field, key, value)
