@@ -13,6 +13,7 @@ def _dataclass_spec(annotation):
     @dataclass
     class Spec:
         name: annotation
+
     return Spec
 
 
@@ -22,6 +23,7 @@ def _attrs_spec(annotation):
     @attrs.define
     class Spec:
         name: annotation
+
     return Spec
 
 
@@ -30,6 +32,7 @@ def _msgspec_spec(annotation):
 
     class Spec(Struct):
         name: annotation
+
     return Spec
 
 
@@ -39,6 +42,7 @@ def _pydantic_spec(annotation):
     @pydataclass
     class Spec:
         name: annotation
+
     return Spec
 
 
