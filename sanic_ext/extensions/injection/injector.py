@@ -11,6 +11,7 @@ from sanic_ext.extensions.injection.constructor import gather_args
 
 from .registry import ConstantRegistry, InjectionRegistry, SignatureRegistry
 
+PRIORITY = 1_000_000
 
 def add_injection(
     app: Sanic,
@@ -21,7 +22,7 @@ def add_injection(
         app, injection_registry, constant_registry
     )
 
-    @app.after_server_start
+    @app.listener("before_server_start", priority=PRIORITY-1)
     async def finalize_injections(app: Sanic, _):
         router_converters = set(
             allowed[0] for allowed in app.router.regex_types.values()
@@ -72,7 +73,7 @@ def _setup_signature_registry(
 ) -> SignatureRegistry:
     registry = SignatureRegistry()
 
-    @app.after_server_start
+    @app.listener("before_server_start", priority=PRIORITY)
     async def setup_signatures(app, _):
         nonlocal registry
 
