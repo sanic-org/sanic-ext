@@ -44,7 +44,7 @@ def remove_nulls(dictionary, deep=True):
     Removes all null values from a dictionary.
     """
     return {
-        k: remove_nulls(v, deep) if deep and type(v) is dict else v
+        k: remove_nulls(v, deep) if deep and isinstance(v, dict) else v
         for k, v in dictionary.items()
         if v is not None
     }

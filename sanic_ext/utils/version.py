@@ -1,5 +1,7 @@
 import re
+
 from typing import Tuple
+
 
 # Expression from https://github.com/pypa/packaging
 VERSION_PATTERN = r"""

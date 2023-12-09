@@ -20,6 +20,7 @@ from sanic_ext.utils.typing import (
     is_optional,
 )
 
+
 MISSING: Tuple[Any, ...] = (_HAS_DEFAULT_FACTORY,)
 
 try:

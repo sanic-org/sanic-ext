@@ -2,13 +2,32 @@
 requires = ["setuptools<60.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
-[tool.black]
+[tool.ruff]
+target-version = "py38"
 line-length = 79
-target-version = ['py38', 'py39', 'py310']
 
-[tool.isort]
-profile = "black"
-src_paths = ["sanic_ext", "tests"]
-line_length = 79
-multi_line_output = 3
-include_trailing_comma = true
+[tool.ruff.lint]
+select = [
+    "E",    # pycodestyle
+    "F",    # pyflakes
+    "I",    # isort
+    "W",    # pycodestyle warnings
+]
+ignore = [
+    "E203",
+]
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+skip-magic-trailing-comma = false
+line-ending = "auto"
+
+[tool.ruff.isort]
+known-first-party = ["sanic_ext"]
+known-third-party = ["pytest"]
+lines-after-imports = 2
+lines-between-types = 1
