@@ -1,6 +1,8 @@
 import types
 import typing
+
 from inspect import isclass
+
 
 try:
     UnionType = types.UnionType  # type: ignore
@@ -61,7 +63,7 @@ def is_msgspec(model):
 def flat_values(
     item: typing.Union[
         typing.Dict[str, typing.Any], typing.Iterable[typing.Any]
-    ]
+    ],
 ) -> typing.Set[typing.Any]:
     values = set()
     if isinstance(item, dict):

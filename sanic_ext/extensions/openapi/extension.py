@@ -7,6 +7,7 @@ from sanic_ext.extensions.openapi.builders import SpecificationBuilder
 from ..base import Extension
 from .blueprint import blueprint_factory
 
+
 if TYPE_CHECKING:
     from sanic_ext import Extend
 

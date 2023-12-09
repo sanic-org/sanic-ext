@@ -27,6 +27,7 @@ from sanic_ext.utils.typing import (
     is_pydantic,
 )
 
+
 if TYPE_CHECKING:
     from .registry import ConstantRegistry, InjectionRegistry
 

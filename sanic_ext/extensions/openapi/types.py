@@ -1,5 +1,6 @@
 import json
 import uuid
+
 from dataclasses import MISSING, is_dataclass
 from datetime import date, datetime, time
 from enum import Enum
@@ -25,6 +26,7 @@ from sanic_ext.utils.typing import (
     is_pydantic,
 )
 
+
 try:
     import attrs
 
@@ -34,6 +36,7 @@ except ImportError:
 
 try:
     import msgspec
+
     from msgspec.inspect import Metadata as MsgspecMetadata
     from msgspec.inspect import type_info as msgspec_type_info
 
