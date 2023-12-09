@@ -1,5 +1,6 @@
 import re
 
+
 CAMEL_TO_SNAKE_PATTERNS = (
     re.compile(r"(.)([A-Z][a-z]+)"),
     re.compile(r"([a-z0-9])([A-Z])"),

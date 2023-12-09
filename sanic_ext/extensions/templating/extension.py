@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import os
+
 from collections import abc
 from pathlib import Path
 from typing import TYPE_CHECKING, Sequence, Union
@@ -15,6 +16,7 @@ from jinja2 import (
 from sanic_ext.extensions.templating.engine import Templating
 
 from ..base import Extension
+
 
 if TYPE_CHECKING:
     from sanic_ext import Extend
