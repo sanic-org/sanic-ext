@@ -8,8 +8,9 @@ from sanic.constants import HTTPMethod
 from sanic.exceptions import SanicException
 from sanic.response import empty, raw
 
-from ...utils.route import clean_route_name
-from ..openapi import openapi
+from sanic_ext.config import PRIORITY
+from sanic_ext.extensions.openapi import openapi
+from sanic_ext.utils.route import clean_route_name
 
 
 def add_http_methods(
@@ -66,7 +67,7 @@ def add_auto_handlers(
         )
         return raw(message, content_type="message/http")
 
-    @app.before_server_start
+    @app.before_server_start(priority=PRIORITY + 1)
     def _add_handlers(app, _):
         nonlocal auto_head
         nonlocal auto_options
