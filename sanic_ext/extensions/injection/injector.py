@@ -7,12 +7,10 @@ from typing import Any, Callable, Dict, Optional, Tuple, Type, get_type_hints
 from sanic import Sanic
 from sanic.constants import HTTP_METHODS
 
+from sanic_ext.config import PRIORITY
 from sanic_ext.extensions.injection.constructor import gather_args
 
 from .registry import ConstantRegistry, InjectionRegistry, SignatureRegistry
-
-
-PRIORITY = 1_000_000
 
 
 def add_injection(
@@ -24,7 +22,7 @@ def add_injection(
         app, injection_registry, constant_registry
     )
 
-    @app.listener("before_server_start", priority=PRIORITY - 1)
+    @app.listener("before_server_start", priority=PRIORITY)
     async def finalize_injections(app: Sanic, _):
         router_converters = set(
             allowed[0] for allowed in app.router.regex_types.values()
@@ -40,8 +38,9 @@ def add_injection(
         injection_registry.finalize(app, constant_registry, router_types)
 
     injection_signal = app.ext.config.INJECTION_SIGNAL
+    injection_priority = app.ext.config.INJECTION_PRIORITY
 
-    @app.signal(injection_signal)
+    @app.signal(injection_signal, priority=injection_priority)
     async def inject_kwargs(request, **_):
         nonlocal signature_registry
 
