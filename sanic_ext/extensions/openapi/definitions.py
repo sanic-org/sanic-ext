@@ -352,7 +352,7 @@ class Server(Definition):
         variables: Optional[Dict[str, Any]] = None,
     ):
         super().__init__(
-            url=url, description=description, variables=variables or []
+            url=url, description=description, variables=variables or {}
         )
 
 
