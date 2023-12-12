@@ -1,4 +1,5 @@
 import types
+
 from dataclasses import MISSING, Field, is_dataclass
 from inspect import isclass, signature
 from typing import (
@@ -16,6 +17,7 @@ from typing import (
 from sanic_ext.utils.typing import is_attrs, is_generic, is_msgspec
 
 from .check import Hint
+
 
 try:
     UnionType = types.UnionType  # type: ignore
@@ -88,8 +90,7 @@ def parse_hint(hint, field: Optional[Union[Field, Attribute]] = None):
 
     if field and (
         (
-            isinstance(field, Field)
-            and field.default_factory is not MISSING  # type: ignore
+            isinstance(field, Field) and field.default_factory is not MISSING  # type: ignore
         )
         or (isinstance(field, Attribute) and field.default is not NOTHING)
     ):
