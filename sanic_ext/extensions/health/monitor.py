@@ -12,6 +12,7 @@ from typing import TYPE_CHECKING, Optional
 from sanic.application.constants import ServerStage
 from sanic.log import logger
 
+
 if TYPE_CHECKING:
     from sanic import Sanic
 

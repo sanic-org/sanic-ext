@@ -1,11 +1,5 @@
 from __future__ import annotations
 
-"""
-Builders for the oas3 object types
-
-These are completely internal, so can be refactored if desired without concern
-for breaking user experience
-"""
 from collections import defaultdict
 from typing import TYPE_CHECKING, Optional, Sequence, Union, cast
 
@@ -38,6 +32,7 @@ from .definitions import (
     Server,
     Tag,
 )
+
 
 if TYPE_CHECKING:
     from sanic import Sanic
