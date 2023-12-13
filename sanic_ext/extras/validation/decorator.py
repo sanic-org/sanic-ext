@@ -9,6 +9,7 @@ from sanic_ext.utils.extraction import extract_request
 
 from .setup import do_validation, generate_schema
 
+
 T = TypeVar("T")
 
 

@@ -25,6 +25,7 @@ from sanic_ext.extensions.openapi.extension import OpenAPIExtension
 from sanic_ext.utils.string import camel_to_snake
 from sanic_ext.utils.version import get_version
 
+
 try:
     from jinja2 import Environment
 
