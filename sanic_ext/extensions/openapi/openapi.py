@@ -49,6 +49,7 @@ from sanic_ext.extensions.openapi.types import (
 from sanic_ext.extras.validation.setup import do_validation, generate_schema
 from sanic_ext.utils.extraction import extract_request
 
+
 __all__ = (
     "definitions",
     "body",

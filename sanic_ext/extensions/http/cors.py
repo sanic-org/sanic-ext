@@ -1,4 +1,5 @@
 import re
+
 from dataclasses import dataclass
 from datetime import timedelta
 from types import SimpleNamespace
@@ -8,6 +9,7 @@ from sanic import HTTPResponse, Request, Sanic
 from sanic.exceptions import SanicException
 from sanic.helpers import Default, _default
 from sanic.log import logger
+
 
 WILDCARD_PATTERN = re.compile(r".*")
 ORIGIN_HEADER = "access-control-allow-origin"
@@ -299,7 +301,7 @@ def _get_allow_origins(app: Sanic) -> Tuple[re.Pattern, ...]:
 
 
 def _parse_allow_origins(
-    value: Union[str, re.Pattern, List[Union[str, re.Pattern]]]
+    value: Union[str, re.Pattern, List[Union[str, re.Pattern]]],
 ) -> Tuple[re.Pattern, ...]:
     origins: Optional[
         Union[List[str], List[re.Pattern], List[Union[str, re.Pattern]]]
@@ -308,7 +310,7 @@ def _parse_allow_origins(
         if value == "*":
             origins = [WILDCARD_PATTERN]
         else:
-            origins = value.split(",")
+            origins = [origin.strip() for origin in value.split(",")]
     elif isinstance(value, re.Pattern):
         origins = [value]
     elif isinstance(value, list):

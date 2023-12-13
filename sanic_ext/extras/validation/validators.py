@@ -5,6 +5,7 @@ from sanic_ext.exceptions import ValidationError
 from .check import check_data
 from .clean import clean_data
 
+
 try:
     from pydantic import ValidationError as PydanticValidationError
 

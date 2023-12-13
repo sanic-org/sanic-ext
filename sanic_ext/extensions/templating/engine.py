@@ -14,6 +14,7 @@ from sanic_ext.extensions.templating.render import (
     TemplateResponse,
 )
 
+
 if TYPE_CHECKING:
     from sanic_ext import Config
 
