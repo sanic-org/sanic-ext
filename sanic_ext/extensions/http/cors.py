@@ -10,6 +10,8 @@ from sanic.exceptions import SanicException
 from sanic.helpers import Default, _default
 from sanic.log import logger
 
+from sanic_ext.config import PRIORITY
+
 
 WILDCARD_PATTERN = re.compile(r".*")
 ORIGIN_HEADER = "access-control-allow-origin"
@@ -67,7 +69,7 @@ def add_cors(app: Sanic) -> None:
             _add_allow_header(request, response)
             _add_methods_header(request, response)
 
-    @app.before_server_start
+    @app.before_server_start(priority=PRIORITY)
     async def _assign_cors_settings(app, _):
         for group in app.router.groups.values():
             _cors = SimpleNamespace()

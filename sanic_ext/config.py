@@ -10,7 +10,7 @@ from sanic.exceptions import SanicException
 from sanic.signals import Event
 
 
-PRIORITY = 100_000_000
+PRIORITY = -1_000
 
 
 class Config(SanicConfig):
