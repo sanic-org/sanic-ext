@@ -48,7 +48,9 @@ def add_injection(
             request.route.name,
             f"{request.route.name}_{request.method.lower()}",
         ):
-            dependencies, constants = signature_registry.get(name, (None, None))
+            dependencies, constants = signature_registry.get(
+                name, (None, None)
+            )
             if dependencies or constants:
                 break
 
@@ -84,10 +86,14 @@ def _setup_signature_registry(
             if viewclass:
                 handlers = [
                     (f"{route.name}_{name}", member)
-                    for name, member in getmembers(viewclass, _http_method_predicate)
+                    for name, member in getmembers(
+                        viewclass, _http_method_predicate
+                    )
                 ]
             for name, handler in handlers:
-                if route_handler := getattr(handler, "__route_handler__", None):
+                if route_handler := getattr(
+                    handler, "__route_handler__", None
+                ):
                     handler = route_handler
                 if isinstance(handler, partial):
                     if handler.func == app._websocket_handler:
@@ -99,7 +105,9 @@ def _setup_signature_registry(
                 except TypeError:
                     continue
 
-                dependencies: Dict[str, Tuple[Type, Optional[Callable[..., Any]]]] = {}
+                dependencies: Dict[
+                    str, Tuple[Type, Optional[Callable[..., Any]]]
+                ] = {}
                 constants: Dict[str, Any] = {}
                 for param, annotation in hints.items():
                     if annotation in injection_registry:

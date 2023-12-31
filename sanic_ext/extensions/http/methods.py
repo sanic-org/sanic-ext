@@ -67,11 +67,7 @@ def add_auto_handlers(
         )
         return raw(message, content_type="message/http")
 
-<<<<<<< HEAD
     @app.before_server_start(priority=PRIORITY)
-=======
-    @app.before_server_start(priority=PRIORITY + 1)
->>>>>>> e3ff389a9284a148ddf38413386aaea602edc911
     def _add_handlers(app, _):
         nonlocal auto_head
         nonlocal auto_options
