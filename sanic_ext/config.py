@@ -134,18 +134,14 @@ class Config(SanicConfig):
         self.TRACE_EXCLUDED_HEADERS = trace_excluded_headers
 
         if isinstance(self.TRACE_EXCLUDED_HEADERS, str):
-            self.TRACE_EXCLUDED_HEADERS = tuple(
-                self.TRACE_EXCLUDED_HEADERS.split(",")
-            )
+            self.TRACE_EXCLUDED_HEADERS = tuple(self.TRACE_EXCLUDED_HEADERS.split(","))
 
         if isinstance(self.INJECTION_SIGNAL, str):
             self.INJECTION_SIGNAL = Event(self.INJECTION_SIGNAL)
 
         valid_signals = ("http.handler.before", "http.routing.after")
         if self.INJECTION_SIGNAL.value not in valid_signals:
-            raise SanicException(
-                f"Injection signal may only be one of {valid_signals}"
-            )
+            raise SanicException(f"Injection signal may only be one of {valid_signals}")
 
         self.load({key.upper(): value for key, value in kwargs.items()})
 

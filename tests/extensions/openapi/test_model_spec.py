@@ -4,6 +4,7 @@ from typing import Dict
 
 import attrs
 import pytest
+from msgspec import Struct
 from pydantic import BaseModel
 from pydantic.dataclasses import dataclass as pydataclass
 
@@ -31,6 +32,16 @@ class AlertPydanticBaseModel(BaseModel):
 
 class AlertResponsePydanticBaseModel(BaseModel):
     alert: AlertPydanticBaseModel
+    rule_id: str
+
+
+class AlertMsgspecBaseModel(Struct):
+    hit: Dict[str, int]
+    last_updated: datetime
+
+
+class AlertResponseMsgspecBaseModel(Struct):
+    alert: AlertMsgspecBaseModel
     rule_id: str
 
 
@@ -63,6 +74,7 @@ class AlertResponseAttrs:
     (
         (AlertResponseDataclass, False),
         (AlertResponseAttrs, False),
+        (AlertResponseMsgspecBaseModel, True),
         (AlertResponsePydanticBaseModel, True),
         (AlertResponsePydanticDataclass, True),
     ),

@@ -312,7 +312,7 @@ def _parse_allow_origins(
         if value == "*":
             origins = [WILDCARD_PATTERN]
         else:
-            origins = value.split(",")
+            origins = [origin.strip() for origin in value.split(",")]
     elif isinstance(value, re.Pattern):
         origins = [value]
     elif isinstance(value, list):

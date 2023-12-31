@@ -4,10 +4,11 @@ from inspect import isawaitable, isclass
 from sanic.log import logger
 
 from sanic_ext.exceptions import ValidationError
-from sanic_ext.utils.typing import is_pydantic
+from sanic_ext.utils.typing import is_msgspec, is_pydantic
 
 from .schema import make_schema
 from .validators import (
+    _msgspec_validate_instance,
     _validate_annotations,
     _validate_instance,
     validate_body,
@@ -46,7 +47,7 @@ async def do_validation(
 
 def generate_schema(param):
     try:
-        if param is None or is_pydantic(param):
+        if param is None or is_msgspec(param) or is_pydantic(param):
             return param
     except TypeError:
         ...
@@ -55,7 +56,9 @@ def generate_schema(param):
 
 
 def _get_validator(model, schema, allow_multiple, allow_coerce):
-    if is_pydantic(model):
+    if is_msgspec(model):
+        return partial(_msgspec_validate_instance, allow_coerce=allow_coerce)
+    elif is_pydantic(model):
         return partial(_validate_instance, allow_coerce=allow_coerce)
 
     return partial(
