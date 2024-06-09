@@ -16,8 +16,7 @@ if TYPE_CHECKING:
     from jinja2 import Environment
 
 
-class TemplateResponse(HTTPResponse):
-    ...
+class TemplateResponse(HTTPResponse): ...
 
 
 class LazyResponse(TemplateResponse):

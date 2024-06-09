@@ -4,6 +4,7 @@ Classes defined from the OpenAPI 3.0 specifications.
 I.e., the objects described https://swagger.io/docs/specification
 
 """
+
 from __future__ import annotations
 
 from inspect import isclass
