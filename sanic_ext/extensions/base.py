@@ -46,8 +46,7 @@ class Extension(ABC):
         self._started = True
 
     @abstractmethod
-    def startup(self, bootstrap) -> None:
-        ...
+    def startup(self, bootstrap) -> None: ...
 
     def label(self):
         return ""
