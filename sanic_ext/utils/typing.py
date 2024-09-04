@@ -47,9 +47,12 @@ def is_optional(item):
 
 
 def is_pydantic(model):
-    return PYDANTIC and (
-        issubclass(model, BaseModel) or hasattr(model, "__pydantic_model__")
-    )
+    try:
+        return PYDANTIC and (
+            issubclass(model, BaseModel) or hasattr(model, "__pydantic_model__")
+        )
+    except TypeError:
+        return False
 
 
 def is_attrs(model):
