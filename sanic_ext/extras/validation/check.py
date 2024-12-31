@@ -141,6 +141,8 @@ class Hint(NamedTuple):
             try:
                 if isinstance(value, list):
                     value = [coerce_type(item) for item in value]
+                elif value is None and self.nullable:
+                    value = None
                 else:
                     value = coerce_type(value)
             except (ValueError, TypeError):

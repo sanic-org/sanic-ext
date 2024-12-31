@@ -334,6 +334,7 @@ def test_validate_form(app):
     class Pet:
         name: str
         alter_ego: List[str]
+        description: Optional[str] = None
 
     @app.post("/function")
     @validate(form=Pet)
@@ -342,6 +343,7 @@ def test_validate_form(app):
             {
                 "is_pet": isinstance(body, Pet),
                 "pet": {"name": body.name, "alter_ego": body.alter_ego},
+                "description": body.description if body.description else "",
             }
         )
 
@@ -353,6 +355,7 @@ def test_validate_form(app):
                 {
                     "is_pet": isinstance(body, Pet),
                     "pet": {"name": body.name, "alter_ego": body.alter_ego},
+                    "description": body.description if body.description else "",
                 }
             )
 
@@ -360,11 +363,13 @@ def test_validate_form(app):
     assert response.status == 200
     assert response.json["is_pet"]
     assert response.json["pet"] == SNOOPY_DATA
+    assert response.json["description"] == ""
 
     _, response = app.test_client.post("/method", data=SNOOPY_DATA)
     assert response.status == 200
     assert response.json["is_pet"]
     assert response.json["pet"] == SNOOPY_DATA
+    assert response.json["description"] == ""
 
 
 def test_validate_query(app):
