@@ -69,7 +69,7 @@ async def remove_server_logging(app: Sanic):
 
 
 class Logger:
-    LOGGERS: List[str] = []
+    LOGGERS: list[str] = []
 
     def __init__(self):
         self.run = True
@@ -108,7 +108,7 @@ class Logger:
             self.run = False
 
     @classmethod
-    def update_cls_loggers(cls, logger_names: List[str]):
+    def update_cls_loggers(cls, logger_names: list[str]):
         cls.LOGGERS = logger_names
 
     @classmethod

@@ -1,7 +1,8 @@
 from functools import partial
 from inspect import isawaitable
 from operator import itemgetter
-from typing import Sequence, Union
+from typing import Union
+from collections.abc import Sequence
 
 from sanic import Sanic
 from sanic.constants import HTTPMethod

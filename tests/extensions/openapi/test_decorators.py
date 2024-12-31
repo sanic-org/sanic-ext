@@ -35,8 +35,8 @@ class BigFoo:
     nullable_single: Optional[bool]
     nullable_multi: Optional[Union[str, int]]
     bar: Bar
-    adict: Dict[str, Any]
-    bdict: Dict[str, bool]
+    adict: dict[str, Any]
+    bdict: dict[str, bool]
     anything: Any
     choice: Choice
 

@@ -39,8 +39,8 @@ class Constructor:
         self, func: Callable[..., Any], request_arg: Optional[str] = None
     ):
         self.func = func
-        self.injections: Dict[str, Tuple[Type, Constructor]] = {}
-        self.constants: Dict[str, Any] = {}
+        self.injections: dict[str, tuple[type, Constructor]] = {}
+        self.constants: dict[str, Any] = {}
         self.pass_kwargs: bool = False
         self.request_arg = request_arg
 
@@ -77,7 +77,7 @@ class Constructor:
         app: Sanic,
         injection_registry: InjectionRegistry,
         constant_registry: ConstantRegistry,
-        allowed_types: Set[Type[object]],
+        allowed_types: set[type[object]],
     ) -> None:
         hints = self._get_hints()
         hints.pop("return", None)
@@ -118,14 +118,14 @@ class Constructor:
                 "html#injecting-services for more details."
             )
 
-        checked: Set[Type[object]] = set()
-        current: Set[Type[object]] = set()
+        checked: set[type[object]] = set()
+        current: set[type[object]] = set()
         self.check_circular(checked, current)
 
     def check_circular(
         self,
-        checked: Set[Type[object]],
-        current: Set[Type[object]],
+        checked: set[type[object]],
+        current: set[type[object]],
     ) -> None:
         dependencies = set(self.injections.values())
         for dependency, constructor in dependencies:
@@ -133,10 +133,10 @@ class Constructor:
 
     def _visit(
         self,
-        dependency: Type[object],
+        dependency: type[object],
         constructor: Constructor,
-        checked: Set[Type[object]],
-        current: Set[Type[object]],
+        checked: set[type[object]],
+        current: set[type[object]],
     ):
         if dependency in checked:
             return
@@ -167,7 +167,7 @@ class Constructor:
         raise InitError(f"Cannot get type hints for {self.func}")
 
 
-async def gather_args(injections, request, **kwargs) -> Dict[str, Any]:
+async def gather_args(injections, request, **kwargs) -> dict[str, Any]:
     return {
         name: await do_cast(_type, constructor, request, **kwargs)
         for name, (_type, constructor) in injections.items()

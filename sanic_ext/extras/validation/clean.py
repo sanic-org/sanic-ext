@@ -1,7 +1,7 @@
 from typing import Any, Dict, Type, get_origin, get_type_hints
 
 
-def clean_data(model: Type[object], data: Dict[str, Any]) -> Dict[str, Any]:
+def clean_data(model: type[object], data: dict[str, Any]) -> dict[str, Any]:
     hints = get_type_hints(model)
     return {key: _coerce(hints[key], value) for key, value in data.items()}
 

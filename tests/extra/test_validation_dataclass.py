@@ -24,14 +24,14 @@ def test_schema():
     class Person:
         name: str
         age: int
-        pets: Optional[List[Pet]]
+        pets: Optional[list[Pet]]
 
     schema = make_schema({}, Person)
 
     assert "Person" in schema
     assert schema["Person"]["hints"]["name"] == parse_hint(str)
     assert schema["Person"]["hints"]["age"] == parse_hint(int)
-    assert schema["Person"]["hints"]["pets"] == parse_hint(Optional[List[Pet]])
+    assert schema["Person"]["hints"]["pets"] == parse_hint(Optional[list[Pet]])
 
     assert "Pet" in schema
     assert schema["Pet"]["hints"]["name"] == parse_hint(str)
@@ -46,7 +46,7 @@ def test_should_hydrate():
     class Person:
         name: str
         age: int
-        pets: List[Pet]
+        pets: list[Pet]
 
     data = {"name": "Charlie Brown", "age": 8, "pets": [{"name": "Snoopy"}]}
 
@@ -78,7 +78,7 @@ def test_should_not_hydrate(data):
     class Person:
         name: str
         age: int
-        pets: List[Pet]
+        pets: list[Pet]
 
     schema = make_schema({}, Person)
     with pytest.raises(TypeError):
@@ -295,7 +295,7 @@ def test_validate_json(app):
     @dataclass
     class Pet:
         name: str
-        alter_ego: List[str]
+        alter_ego: list[str]
 
     @app.post("/function")
     @validate(json=Pet)
@@ -333,7 +333,7 @@ def test_validate_form(app):
     @dataclass
     class Pet:
         name: str
-        alter_ego: List[str]
+        alter_ego: list[str]
         description: Optional[str] = None
 
     @app.post("/function")

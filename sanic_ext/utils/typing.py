@@ -62,9 +62,9 @@ def is_msgspec(model):
 
 def flat_values(
     item: typing.Union[
-        typing.Dict[str, typing.Any], typing.Iterable[typing.Any]
+        dict[str, typing.Any], typing.Iterable[typing.Any]
     ],
-) -> typing.Set[typing.Any]:
+) -> set[typing.Any]:
     values = set()
     if isinstance(item, dict):
         item = item.values()
@@ -76,6 +76,6 @@ def flat_values(
     return values
 
 
-def contains_annotations(d: typing.Dict[str, typing.Any]) -> bool:
+def contains_annotations(d: dict[str, typing.Any]) -> bool:
     values = flat_values(d)
     return any(isclass(q) or is_generic(q) for q in values)

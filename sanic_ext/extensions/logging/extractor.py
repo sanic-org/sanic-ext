@@ -25,18 +25,18 @@ class FormatterConfig(TypedDict):
 class LoggingConfig(TypedDict):
     version: int
     disable_existing_loggers: bool
-    formatters: Dict[str, FormatterConfig]
-    handlers: Dict[str, HandlerConfig]
-    loggers: Dict[str, LoggerConfig]
+    formatters: dict[str, FormatterConfig]
+    handlers: dict[str, HandlerConfig]
+    loggers: dict[str, LoggerConfig]
 
 
 class LoggingConfigExtractor:
     def __init__(self):
         self.version = 1
         self.disable_existing_loggers = False
-        self.formatters: Dict[str, FormatterConfig] = {}
-        self.handlers: Dict[str, HandlerConfig] = {}
-        self.loggers: Dict[str, LoggerConfig] = {}
+        self.formatters: dict[str, FormatterConfig] = {}
+        self.handlers: dict[str, HandlerConfig] = {}
+        self.loggers: dict[str, LoggerConfig] = {}
 
     def add_logger(self, logger: logging.Logger):
         self._extract_logger_config(logger)
@@ -97,7 +97,7 @@ class LoggingConfigExtractor:
         }
         self.formatters[formatter_name] = config
 
-    def _clean(self, d: Dict[str, Any]) -> Dict[str, Any]:
+    def _clean(self, d: dict[str, Any]) -> dict[str, Any]:
         return {
             k.replace("class_", "class"): self._clean(v)
             if isinstance(v, dict)

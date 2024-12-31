@@ -24,9 +24,9 @@ def add_injection(
 
     @app.listener("before_server_start", priority=PRIORITY)
     async def finalize_injections(app: Sanic, _):
-        router_converters = set(
+        router_converters = {
             allowed[0] for allowed in app.router.regex_types.values()
-        )
+        }
         router_types = set()
         for converter in router_converters:
             if isclass(converter):
@@ -105,10 +105,10 @@ def _setup_signature_registry(
                 except TypeError:
                     continue
 
-                dependencies: Dict[
-                    str, Tuple[Type, Optional[Callable[..., Any]]]
+                dependencies: dict[
+                    str, tuple[type, Optional[Callable[..., Any]]]
                 ] = {}
-                constants: Dict[str, Any] = {}
+                constants: dict[str, Any] = {}
                 for param, annotation in hints.items():
                     if annotation in injection_registry:
                         dependencies[param] = (
