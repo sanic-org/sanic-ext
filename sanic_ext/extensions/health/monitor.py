@@ -17,8 +17,7 @@ if TYPE_CHECKING:
     from sanic import Sanic
 
 
-class Stale(ValueError):
-    ...
+class Stale(ValueError): ...
 
 
 @dataclass
