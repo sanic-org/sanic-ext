@@ -173,9 +173,9 @@ def blueprint_factory(config: Config):
                 ):
                     operation.autodoc(docstring)
 
-                operation._default[
-                    "operationId"
-                ] = f"{method.lower()}~{route_name}"
+                operation._default["operationId"] = (
+                    f"{method.lower()}~{route_name}"
+                )
                 operation._default["summary"] = clean_route_name(route_name)
 
                 if host:
