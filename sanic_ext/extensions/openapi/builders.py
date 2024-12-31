@@ -1,7 +1,8 @@
 from __future__ import annotations
 
 from collections import defaultdict
-from typing import TYPE_CHECKING, Optional, Sequence, Union, cast
+from typing import TYPE_CHECKING, Optional, Union, cast
+from collections.abc import Sequence
 
 from sanic_ext.extensions.openapi.constants import (
     SecuritySchemeAuthorization,
@@ -438,8 +439,10 @@ class SpecificationBuilder:
 
     def _build_security(self):
         return [
-            {sec.fields["name"]: sec.fields["value"]}
-            if sec.fields["name"] is not None
-            else {}
+            (
+                {sec.fields["name"]: sec.fields["value"]}
+                if sec.fields["name"] is not None
+                else {}
+            )
             for sec in self.security
         ]

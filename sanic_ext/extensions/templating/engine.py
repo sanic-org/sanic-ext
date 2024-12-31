@@ -28,7 +28,7 @@ class Templating:
         self,
         file_name: str,
         status: int = 200,
-        headers: Optional[Union[Header, Dict[str, str]]] = None,
+        headers: Optional[Union[Header, dict[str, str]]] = None,
         content_type: str = "text/html; charset=utf-8",
         **kwargs,
     ):

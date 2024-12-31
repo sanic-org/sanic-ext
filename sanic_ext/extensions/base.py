@@ -18,7 +18,7 @@ class NoDuplicateDict(dict):  # type: ignore
 
 
 class Extension(ABC):
-    _name_registry: Dict[str, Type[Extension]] = NoDuplicateDict()
+    _name_registry: dict[str, type[Extension]] = NoDuplicateDict()
     _started: bool
     name: str
     app: Sanic
@@ -65,7 +65,7 @@ class Extension(ABC):
     @classmethod
     def create(
         cls,
-        extension: Union[Type[Extension], Extension],
+        extension: Union[type[Extension], Extension],
         app: Sanic,
         config: Config,
     ) -> Extension:
