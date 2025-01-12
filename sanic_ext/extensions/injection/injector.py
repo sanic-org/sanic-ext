@@ -74,7 +74,7 @@ def _setup_signature_registry(
 ) -> SignatureRegistry:
     registry = SignatureRegistry()
 
-    @app.listener("before_server_start", priority=PRIORITY)
+    @app.listener("before_server_start", priority=PRIORITY - 1)
     async def setup_signatures(app, _):
         nonlocal registry
 

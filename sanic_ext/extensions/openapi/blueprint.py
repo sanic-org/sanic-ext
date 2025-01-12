@@ -9,6 +9,7 @@ from sanic.config import Config
 from sanic.log import logger
 from sanic.response import file, html, json
 
+from sanic_ext.config import PRIORITY
 from sanic_ext.extensions.openapi.builders import (
     OperationStore,
     SpecificationBuilder,
@@ -119,7 +120,7 @@ def blueprint_factory(config: Config):
         def openapi_config(request: Request):
             return json(request.app.config.SWAGGER_UI_CONFIGURATION)
 
-    @bp.before_server_start
+    @bp.before_server_start(priority=PRIORITY)
     def build_spec(app, loop):
         specification = SpecificationBuilder()
         # --------------------------------------------------------------- #
@@ -176,9 +177,9 @@ def blueprint_factory(config: Config):
                 ):
                     operation.autodoc(docstring)
 
-                operation._default[
-                    "operationId"
-                ] = f"{method.lower()}~{route_name}"
+                operation._default["operationId"] = (
+                    f"{method.lower()}~{route_name}"
+                )
                 operation._default["summary"] = clean_route_name(route_name)
 
                 if host:

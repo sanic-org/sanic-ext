@@ -3,6 +3,7 @@ This module provides decorators which append
 documentation to OperationStore() and components created in the blueprints.
 
 """
+
 from functools import wraps
 from inspect import isawaitable, isclass
 from typing import (
@@ -94,13 +95,11 @@ def _content_or_component(content):
 
 
 @overload
-def exclude(flag: bool = True, *, bp: Blueprint) -> None:
-    ...
+def exclude(flag: bool = True, *, bp: Blueprint) -> None: ...
 
 
 @overload
-def exclude(flag: bool = True) -> Callable:
-    ...
+def exclude(flag: bool = True) -> Callable: ...
 
 
 def exclude(flag: bool = True, *, bp: Optional[Blueprint] = None):
@@ -247,8 +246,7 @@ def parameter(
     *,
     parameter: definitions.Parameter,
     **kwargs,
-) -> Callable[[T], T]:
-    ...
+) -> Callable[[T], T]: ...
 
 
 @overload
@@ -258,8 +256,7 @@ def parameter(
     location: None,
     parameter: definitions.Parameter,
     **kwargs,
-) -> Callable[[T], T]:
-    ...
+) -> Callable[[T], T]: ...
 
 
 @overload
@@ -269,8 +266,7 @@ def parameter(
     location: Optional[str] = None,
     parameter: None = None,
     **kwargs,
-) -> Callable[[T], T]:
-    ...
+) -> Callable[[T], T]: ...
 
 
 def parameter(

@@ -4,6 +4,7 @@ Classes defined from the OpenAPI 3.0 specifications.
 I.e., the objects described https://swagger.io/docs/specification
 
 """
+
 from __future__ import annotations
 
 from inspect import isclass
@@ -20,7 +21,11 @@ from typing import (
 
 from sanic.exceptions import SanicException
 
-from sanic_ext.utils.typing import contains_annotations, is_pydantic
+from sanic_ext.utils.typing import (
+    contains_annotations,
+    is_msgspec,
+    is_pydantic,
+)
 
 from .types import Definition, Schema
 
@@ -409,7 +414,16 @@ def Component(
     if not spec.has_component(field, name):
         prop_info = hints[field]
         type_ = prop_info.__args__[1]
-        if is_pydantic(obj):
+        if is_msgspec(obj):
+            import msgspec
+
+            _, definitions = msgspec.json.schema_components(
+                [obj], ref_template="#/components/schemas/{name}"
+            )
+            if definitions:
+                for key, value in definitions.items():
+                    spec.add_component(field, key, value)
+        elif is_pydantic(obj):
             try:
                 schema = obj.schema
             except AttributeError:
@@ -419,12 +433,12 @@ def Component(
             if definitions:
                 for key, value in definitions.items():
                     spec.add_component(field, key, value)
+            spec.add_component(field, name, component)
         else:
             component = (
                 type_.make(obj) if hasattr(type_, "make") else type_(obj)
             )
-
-        spec.add_component(field, name, component)
+            spec.add_component(field, name, component)
 
     return ref
 
