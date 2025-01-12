@@ -10,7 +10,7 @@ from .constructor import Constructor
 
 class InjectionRegistry:
     def __init__(self):
-        self._registry: Dict[Type, Optional[Callable[..., Any]]] = {}
+        self._registry: dict[type, Optional[Callable[..., Any]]] = {}
 
     def __getitem__(self, key):
         return self._registry[key]
@@ -26,7 +26,7 @@ class InjectionRegistry:
 
     def register(
         self,
-        _type: Type,
+        _type: type,
         constructor: Optional[Callable[..., Any]],
         request_arg: Optional[str] = None,
     ) -> None:
@@ -50,11 +50,11 @@ class InjectionRegistry:
 
 class SignatureRegistry:
     def __init__(self):
-        self._registry: Dict[
+        self._registry: dict[
             str,
-            Tuple[
-                Dict[str, Tuple[Type, Optional[Callable[..., Any]]]],
-                Dict[str, Any],
+            tuple[
+                dict[str, tuple[type, Optional[Callable[..., Any]]]],
+                dict[str, Any],
             ],
         ] = {}
 
@@ -70,8 +70,8 @@ class SignatureRegistry:
     def register(
         self,
         route_name: str,
-        dependencies: Dict[str, Tuple[Type, Optional[Callable[..., Any]]]],
-        constants: Optional[Dict[str, Any]] = None,
+        dependencies: dict[str, tuple[type, Optional[Callable[..., Any]]]],
+        constants: Optional[dict[str, Any]] = None,
     ) -> None:
         self._registry[route_name] = (dependencies, constants or {})
 
@@ -79,7 +79,7 @@ class SignatureRegistry:
 class ConstantRegistry:
     def __init__(self, config: Config):
         self._config = config
-        self._registry: Set[str] = set()
+        self._registry: set[str] = set()
 
     def __str__(self) -> str:
         return str(self._registry)

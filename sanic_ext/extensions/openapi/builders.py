@@ -1,7 +1,8 @@
 from __future__ import annotations
 
 from collections import defaultdict
-from typing import TYPE_CHECKING, Optional, Sequence, Union, cast
+from typing import TYPE_CHECKING, Optional, Union, cast
+from collections.abc import Sequence
 
 from sanic_ext.extensions.openapi.constants import (
     SecuritySchemeAuthorization,

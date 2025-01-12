@@ -15,7 +15,7 @@ from .utils import get_spec
 
 @dataclass
 class AlertDataclass:
-    hit: Dict[str, int]
+    hit: dict[str, int]
     last_updated: datetime
 
 
@@ -26,7 +26,7 @@ class AlertResponseDataclass:
 
 
 class AlertPydanticBaseModel(BaseModel):
-    hit: Dict[str, int]
+    hit: dict[str, int]
     last_updated: datetime
 
 
@@ -36,7 +36,7 @@ class AlertResponsePydanticBaseModel(BaseModel):
 
 
 class AlertMsgspecBaseModel(Struct):
-    hit: Dict[str, int]
+    hit: dict[str, int]
     last_updated: datetime
 
 
@@ -47,7 +47,7 @@ class AlertResponseMsgspecBaseModel(Struct):
 
 @pydataclass
 class AlertPydanticDataclass:
-    hit: Dict[str, int]
+    hit: dict[str, int]
     last_updated: datetime
 
 
@@ -59,7 +59,7 @@ class AlertResponsePydanticDataclass:
 
 @attrs.define
 class AlertAttrs:
-    hit: Dict[str, int]
+    hit: dict[str, int]
     last_updated: datetime
 
 

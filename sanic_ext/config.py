@@ -2,7 +2,8 @@ from __future__ import annotations
 
 import os
 
-from typing import Any, Dict, List, Optional, Sequence, Union
+from typing import Any, Dict, List, Optional, Union
+from collections.abc import Sequence
 
 from sanic import Sanic
 from sanic.config import Config as SanicConfig
@@ -23,7 +24,7 @@ class Config(SanicConfig):
         cors_expose_headers: str = "",
         cors_max_age: int = 5,
         cors_methods: str = "",
-        cors_origins: Union[str, List[str]] = "",
+        cors_origins: Union[str, list[str]] = "",
         cors_send_wildcard: bool = False,
         cors_supports_credentials: bool = False,
         cors_vary_header: bool = True,
@@ -44,7 +45,7 @@ class Config(SanicConfig):
         injection_load_custom_constants: bool = False,
         logging: bool = False,
         logging_queue_max_size: int = 4096,
-        loggers: List[str] = [
+        loggers: list[str] = [
             "sanic.access",
             "sanic.error",
             "sanic.root",
@@ -72,7 +73,7 @@ class Config(SanicConfig):
         oas_uri_to_redoc: str = "/redoc",
         oas_uri_to_swagger: str = "/swagger",
         oas_url_prefix: str = "/docs",
-        swagger_ui_configuration: Optional[Dict[str, Any]] = None,
+        swagger_ui_configuration: Optional[dict[str, Any]] = None,
         templating_path_to_templates: Union[
             str, os.PathLike, Sequence[Union[str, os.PathLike]]
         ] = "templates",

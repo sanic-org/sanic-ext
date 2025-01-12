@@ -13,12 +13,12 @@ from typing import (
     List,
     Literal,
     Optional,
-    Sequence,
     Type,
     TypeVar,
     Union,
     overload,
 )
+from collections.abc import Sequence
 
 from sanic import Blueprint
 from sanic.exceptions import InvalidUsage, SanicException
@@ -262,7 +262,7 @@ def parameter(
 @overload
 def parameter(
     name: str,
-    schema: Optional[Union[Type, Schema]] = None,
+    schema: Optional[Union[type, Schema]] = None,
     location: Optional[str] = None,
     parameter: None = None,
     **kwargs,
@@ -271,7 +271,7 @@ def parameter(
 
 def parameter(
     name: Optional[str] = None,
-    schema: Optional[Union[Type, Schema]] = None,
+    schema: Optional[Union[type, Schema]] = None,
     location: Optional[str] = None,
     parameter: Optional[definitions.Parameter] = None,
     **kwargs,
@@ -373,20 +373,20 @@ def definition(
         ]
     ] = None,
     deprecated: bool = False,
-    body: Optional[Union[Dict[str, Any], definitions.RequestBody, Any]] = None,
+    body: Optional[Union[dict[str, Any], definitions.RequestBody, Any]] = None,
     parameter: Optional[
         Union[
-            Union[Dict[str, Any], definitions.Parameter, str],
-            List[Union[Dict[str, Any], definitions.Parameter, str]],
+            Union[dict[str, Any], definitions.Parameter, str],
+            list[Union[dict[str, Any], definitions.Parameter, str]],
         ]
     ] = None,
     response: Optional[
         Union[
-            Union[Dict[str, Any], definitions.Response, Any],
-            List[Union[Dict[str, Any], definitions.Response]],
+            Union[dict[str, Any], definitions.Response, Any],
+            list[Union[dict[str, Any], definitions.Response]],
         ]
     ] = None,
-    secured: Optional[Dict[str, Any]] = None,
+    secured: Optional[dict[str, Any]] = None,
     validate: bool = False,
     body_argument: str = "body",
 ) -> Callable[[T], T]:

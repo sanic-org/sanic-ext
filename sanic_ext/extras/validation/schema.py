@@ -70,9 +70,9 @@ def make_schema(agg, item):
 
 
 def parse_hints(
-    hints, fields: Dict[str, Union[Field, Attribute]]
-) -> Dict[str, Hint]:
-    output: Dict[str, Hint] = {
+    hints, fields: dict[str, Union[Field, Attribute]]
+) -> dict[str, Hint]:
+    output: dict[str, Hint] = {
         name: parse_hint(hint, fields.get(name))
         for name, hint in hints.items()
     }
@@ -85,7 +85,7 @@ def parse_hint(hint, field: Optional[Union[Field, Attribute]] = None):
     nullable = False
     typed = False
     model = False
-    allowed: Tuple[Any, ...] = tuple()
+    allowed: tuple[Any, ...] = tuple()
     allow_missing = False
 
     if field and (

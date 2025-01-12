@@ -60,27 +60,27 @@ class ModelOptionalUnionIntStr:
 
 @dataclass
 class ModelListStr:
-    foo: List[str]
+    foo: list[str]
 
 
 @dataclass
 class ModelListModel:
-    foo: List[ModelStr]
+    foo: list[ModelStr]
 
 
 @dataclass
 class ModelOptionalList:
-    foo: Optional[List[str]]
+    foo: Optional[list[str]]
 
 
 @dataclass
 class ModelListUnion:
-    foo: List[Union[int, float]]
+    foo: list[Union[int, float]]
 
 
 @dataclass
 class ModelOptionalListUnion:
-    foo: Optional[List[Union[int, float]]]
+    foo: Optional[list[Union[int, float]]]
 
 
 @dataclass
@@ -95,27 +95,27 @@ class ModelOptionalModel:
 
 @dataclass
 class ModelDictStr:
-    foo: Dict[str, str]
+    foo: dict[str, str]
 
 
 @dataclass
 class ModelDictModel:
-    foo: Dict[str, ModelStr]
+    foo: dict[str, ModelStr]
 
 
 @dataclass
 class ModelOptionalDict:
-    foo: Optional[Dict[str, str]]
+    foo: Optional[dict[str, str]]
 
 
 @dataclass
 class ModelDictUnion:
-    foo: Dict[str, Union[int, float]]
+    foo: dict[str, Union[int, float]]
 
 
 @dataclass
 class ModelOptionalDictUnion:
-    foo: Optional[Dict[str, Union[int, float]]]
+    foo: Optional[dict[str, Union[int, float]]]
 
 
 @dataclass
@@ -140,7 +140,7 @@ class ModelOptionalMultipleLiteral:
 
 @dataclass
 class ModelListStrWithDefaultFactory:
-    foo: List[str] = field(default_factory=list)
+    foo: list[str] = field(default_factory=list)
 
 
 if sys.version_info > (3, 10):
