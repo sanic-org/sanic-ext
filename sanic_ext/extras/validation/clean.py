@@ -8,7 +8,7 @@ def clean_data(model: type[object], data: dict[str, Any]) -> dict[str, Any]:
 
 def _coerce(param_type, value: Any) -> Any:
     if (
-        get_origin(param_type) is list
+        get_origin(param_type) is not list
         and isinstance(value, list)
         and len(value) == 1
     ):
