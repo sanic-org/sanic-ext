@@ -1,6 +1,7 @@
 import re
 
 import pytest
+
 from sanic import Sanic
 
 from sanic_ext import Extend, Extension
@@ -11,6 +12,7 @@ from sanic_ext.extensions.openapi.builders import (
     SpecificationBuilder,
 )
 from sanic_ext.extensions.openapi.extension import OpenAPIExtension
+
 
 slugify = re.compile(r"[^a-zA-Z0-9_\-]")
 

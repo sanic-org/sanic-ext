@@ -2,6 +2,7 @@ from sys import version_info
 from typing import Literal, Union
 
 import pytest
+
 from sanic import text
 
 from sanic_ext import validate
