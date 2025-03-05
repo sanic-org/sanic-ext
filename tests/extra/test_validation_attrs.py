@@ -1,10 +1,12 @@
 from typing import List
 
 import attrs
+
 from sanic import json
 from sanic.views import HTTPMethodView
 
 from sanic_ext import validate
+
 
 SNOOPY_DATA = {"name": "Snoopy", "alter_ego": ["Flying Ace", "Joe Cool"]}
 

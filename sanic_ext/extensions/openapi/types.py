@@ -152,50 +152,50 @@ class Schema(Definition):
 
         if isinstance(value, Schema):
             return value
-        if value == bool:
+        if value is bool:
             return Boolean(**kwargs)
-        elif value == int:
+        elif value is int:
             return Integer(**kwargs)
-        elif value == float:
+        elif value is float:
             return Float(**kwargs)
-        elif value == str or value in (nonemptystr, ext, slug, alpha):
+        elif value is str or value in (nonemptystr, ext, slug, alpha):
             return String(**kwargs)
-        elif value == bytes:
+        elif value is bytes:
             return Byte(**kwargs)
-        elif value == bytearray:
+        elif value is bytearray:
             return Binary(**kwargs)
-        elif value == date:
+        elif value is date:
             return Date(**kwargs)
-        elif value == time:
+        elif value is time:
             return Time(**kwargs)
-        elif value == datetime or value is parse_date:
+        elif value is datetime or value is parse_date:
             return DateTime(**kwargs)
-        elif value == uuid.UUID:
+        elif value is uuid.UUID:
             return UUID(**kwargs)
-        elif value == Any:
+        elif value is Any:
             return AnyValue(**kwargs)
 
-        if _type == bool:
+        if _type is bool:
             return Boolean(default=value, **kwargs)
-        elif _type == int:
+        elif _type is int:
             return Integer(default=value, **kwargs)
-        elif _type == float:
+        elif _type is float:
             return Float(default=value, **kwargs)
-        elif _type == str:
+        elif _type is str:
             return String(default=value, **kwargs)
-        elif _type == bytes:
+        elif _type is bytes:
             return Byte(default=value, **kwargs)
-        elif _type == bytearray:
+        elif _type is bytearray:
             return Binary(default=value, **kwargs)
-        elif _type == date:
+        elif _type is date:
             return Date(**kwargs)
-        elif _type == time:
+        elif _type is time:
             return Time(**kwargs)
-        elif _type == datetime:
+        elif _type is datetime:
             return DateTime(**kwargs)
-        elif _type == uuid.UUID:
+        elif _type is uuid.UUID:
             return UUID(**kwargs)
-        elif _type == list:
+        elif _type is list:
             if len(value) == 0:
                 schema = Schema(nullable=True)
             elif len(value) == 1:
@@ -204,16 +204,16 @@ class Schema(Definition):
                 schema = Schema(oneOf=[Schema.make(x) for x in value])
 
             return Array(schema, **kwargs)
-        elif _type == dict:
+        elif _type is dict:
             return Object.make(value, **kwargs)
         elif (
             (is_generic(value) or is_generic(_type))
-            and origin == dict
+            and origin is dict
             and len(args) == 2
         ):
             kwargs["additionalProperties"] = Schema.make(args[1])
             return Object(**kwargs)
-        elif (is_generic(value) or is_generic(_type)) and origin == list:
+        elif (is_generic(value) or is_generic(_type)) and origin is list:
             kwargs.pop("items", None)
             return Array(Schema.make(args[0]), **kwargs)
         elif _type is type(Enum):
@@ -417,7 +417,7 @@ def _properties(value: object) -> Dict:
     extra = value if isinstance(value, dict) else {}
     try:
         annotations = get_type_hints(cls)
-    except NameError:
+    except (NameError, TypeError):
         if hasattr(value, "__annotations__"):
             annotations = value.__annotations__
         else:

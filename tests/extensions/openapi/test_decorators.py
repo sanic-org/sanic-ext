@@ -4,6 +4,7 @@ from typing import Any, Dict, Optional, Union
 from uuid import UUID
 
 import pytest
+
 from sanic.exceptions import SanicException
 from sanic.views import HTTPMethodView
 
@@ -48,7 +49,11 @@ class BigFoo:
         (({"application/json": LittleFoo},), "application/json"),
         ((openapi.definitions.RequestBody(LittleFoo),), "*/*"),
         (
-            (openapi.definitions.RequestBody({"application/json": LittleFoo}),),
+            (
+                openapi.definitions.RequestBody(
+                    {"application/json": LittleFoo}
+                ),
+            ),
             "application/json",
         ),
     ),
@@ -70,10 +75,14 @@ def test_body_decorator(app, args, content_type):
 
     assert schema["type"] == "object"
     assert schema["properties"]["bar"]["type"] == "object"
-    assert schema["properties"]["bar"]["properties"]["name"]["type"] == "string"
+    assert (
+        schema["properties"]["bar"]["properties"]["name"]["type"] == "string"
+    )
 
 
-@pytest.mark.parametrize("decorator", (openapi.deprecated(), openapi.deprecated))
+@pytest.mark.parametrize(
+    "decorator", (openapi.deprecated(), openapi.deprecated)
+)
 def test_deprecated_decorator(app, decorator):
     @app.route("/")
     @decorator
@@ -96,7 +105,11 @@ def test_description_decorator(app):
     "args",
     (
         ("http://example.com/docs",),
-        (openapi.definitions.ExternalDocumentation("http://example.com/docs"),),
+        (
+            openapi.definitions.ExternalDocumentation(
+                "http://example.com/docs"
+            ),
+        ),
     ),
 )
 def test_document_decorator(app, args):
@@ -158,7 +171,9 @@ def test_operation_decorator(app):
         ),
         (
             openapi.parameter(
-                parameter=openapi.definitions.Parameter("foobar", deprecated=True)
+                parameter=openapi.definitions.Parameter(
+                    "foobar", deprecated=True
+                )
             ),
             {
                 "name": "foobar",
@@ -225,7 +240,9 @@ def test_parameter_decorator(app, decorator, expected):
             },
         ),
         (
-            openapi.response(content={"application/json": Bar}, description="..."),
+            openapi.response(
+                content={"application/json": Bar}, description="..."
+            ),
             {
                 "default": {
                     "content": {
@@ -312,7 +329,9 @@ def test_parameter_decorator(app, decorator, expected):
                                     },
                                     "bar": {
                                         "type": "object",
-                                        "properties": {"name": {"type": "string"}},
+                                        "properties": {
+                                            "name": {"type": "string"}
+                                        },
                                     },
                                     "adict": {
                                         "type": "object",
@@ -320,7 +339,9 @@ def test_parameter_decorator(app, decorator, expected):
                                     },
                                     "bdict": {
                                         "type": "object",
-                                        "additionalProperties": {"type": "boolean"},
+                                        "additionalProperties": {
+                                            "type": "boolean"
+                                        },
                                     },
                                     "anything": {},
                                     "choice": {
@@ -521,7 +542,9 @@ def test_definition_decorator_body_dict_multi(app):
 
 def test_definition_decorator_body_request_body(app):
     @app.route("/")
-    @openapi.definition(body=openapi.definitions.RequestBody(str, required=True))
+    @openapi.definition(
+        body=openapi.definitions.RequestBody(str, required=True)
+    )
     async def handler(_): ...
 
     body = get_path(app, "/")["requestBody"]
@@ -719,7 +742,9 @@ def test_definition_decorator_response_dict(app):
 def test_definition_decorator_response_obj(app):
     @app.route("/")
     @openapi.definition(
-        response=openapi.definitions.Response({"application/json": Bar}, status=201)
+        response=openapi.definitions.Response(
+            {"application/json": Bar}, status=201
+        )
     )
     async def handler(_): ...
 
@@ -787,7 +812,9 @@ def test_definition_decorator_response_obj_multi(app):
     @app.route("/")
     @openapi.definition(
         response=[
-            openapi.definitions.Response({"application/json": Bar}, status=201),
+            openapi.definitions.Response(
+                {"application/json": Bar}, status=201
+            ),
             openapi.definitions.Response(
                 {"*/*": str}, status=400, description="Something bad"
             ),

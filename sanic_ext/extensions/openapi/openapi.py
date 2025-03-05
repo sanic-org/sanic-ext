@@ -311,7 +311,11 @@ def response(
     **kwargs,
 ) -> Callable[[T], T]:
     if response:
-        if status != "default" or content != str or description is not None:
+        if (
+            status != "default"
+            or content is not str
+            or description is not None
+        ):
             raise SanicException(
                 "When using a response object, you cannot pass "
                 "other arguments."

@@ -1,6 +1,4 @@
-import pytest
 from sanic import Sanic
-from sanic.response import empty
 
 from sanic_ext.extensions.logging.logger import Logger
 
@@ -17,4 +15,6 @@ def test_custom_background_logger(app: Sanic):
     assert "sanic.root" in Logger.LOGGERS
 
     logger = Logger()
-    assert len(logger.loggers) == len(Logger.LOGGERS) == len(app.config.LOGGERS)
+    assert (
+        len(logger.loggers) == len(Logger.LOGGERS) == len(app.config.LOGGERS)
+    )

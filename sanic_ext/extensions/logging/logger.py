@@ -25,8 +25,7 @@ async def setup_logger(app: Sanic, *_):
     logger = Logger()
     extractor = LoggingConfigExtractor()
     for logger_name in app.config.LOGGERS:
-        l = logging.getLogger(logger_name)
-        extractor.add_logger(l)
+        extractor.add_logger(logging.getLogger(logger_name))
     app.manager.manage(
         "Logger",
         logger,

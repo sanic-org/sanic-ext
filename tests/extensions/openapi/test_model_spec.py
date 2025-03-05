@@ -4,6 +4,7 @@ from typing import Dict
 
 import attrs
 import pytest
+
 from msgspec import Struct
 from pydantic import BaseModel
 from pydantic.dataclasses import dataclass as pydataclass
@@ -81,7 +82,9 @@ class AlertResponseAttrs:
 )
 def test_pydantic_base_model(app, AlertResponse, check_alert):
     @app.get("/")
-    @openapi.definition(body={"application/json": openapi.Component(AlertResponse)})
+    @openapi.definition(
+        body={"application/json": openapi.Component(AlertResponse)}
+    )
     async def handler(_): ...
 
     spec = get_spec(app)
@@ -91,7 +94,9 @@ def test_pydantic_base_model(app, AlertResponse, check_alert):
     assert spec["paths"]["/"]["get"]["requestBody"] == {
         "content": {
             "application/json": {
-                "schema": {"$ref": f"#/components/schemas/{alert_response_name}"}
+                "schema": {
+                    "$ref": f"#/components/schemas/{alert_response_name}"
+                }
             }
         }
     }
@@ -99,6 +104,6 @@ def test_pydantic_base_model(app, AlertResponse, check_alert):
 
     if check_alert:
         assert alert_name in spec["components"]["schemas"]
-        assert spec["components"]["schemas"][alert_response_name]["properties"][
-            "alert"
-        ] == {"$ref": f"#/components/schemas/{alert_name}"}
+        assert spec["components"]["schemas"][alert_response_name][
+            "properties"
+        ]["alert"] == {"$ref": f"#/components/schemas/{alert_name}"}

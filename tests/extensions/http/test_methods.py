@@ -1,4 +1,5 @@
 import pytest
+
 from sanic import Sanic
 from sanic.response import empty, text
 
@@ -57,7 +58,9 @@ def test_auto_trace(bare_app: Sanic):
     async def foo_handler(_):
         return text("...")
 
-    request, response = bare_app.test_client.request("/foo", http_method="trace")
+    request, response = bare_app.test_client.request(
+        "/foo", http_method="trace"
+    )
     assert response.status == 200
     assert response.body.startswith(request.head)
 

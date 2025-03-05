@@ -1,6 +1,7 @@
 from unittest.mock import Mock
 
 import pytest
+
 from sanic.exceptions import SanicException
 from sanic.signals import Event
 

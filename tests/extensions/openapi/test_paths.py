@@ -1,4 +1,5 @@
 import pytest
+
 from sanic import Sanic
 
 from .utils import get_spec

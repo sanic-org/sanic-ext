@@ -1,5 +1,6 @@
 from sanic_ext.extensions.openapi.autodoc import YamlStyleParametersParser
 
+
 tests = []
 
 _ = ""

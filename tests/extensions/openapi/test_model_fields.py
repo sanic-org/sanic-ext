@@ -1,10 +1,12 @@
 import sys
+
 from dataclasses import dataclass, field
 from typing import List
 from uuid import UUID
 
 import attrs
 import pytest
+
 from msgspec import Meta, Struct
 from pydantic import BaseModel, Field
 from pydantic.dataclasses import dataclass as pydataclass
@@ -12,6 +14,7 @@ from pydantic.dataclasses import dataclass as pydataclass
 from sanic_ext import openapi
 
 from .utils import get_spec
+
 
 if sys.version_info >= (3, 9):
     from typing import Annotated
@@ -23,7 +26,9 @@ class FooDataclass:
     priority: int = field(
         metadata={"openapi": {"exclusiveMinimum": 1, "exclusiveMaximum": 10}}
     )
-    ident: str = field(default="XXXX", metadata={"openapi": {"example": "ABC123"}})
+    ident: str = field(
+        default="XXXX", metadata={"openapi": {"example": "ABC123"}}
+    )
 
 
 @attrs.define
@@ -56,9 +61,15 @@ if sys.version_info >= (3, 9):
         links: List[UUID]
         priority: Annotated[
             int,
-            Meta(extra={"openapi": {"exclusiveMinimum": 1, "exclusiveMaximum": 10}}),
+            Meta(
+                extra={
+                    "openapi": {"exclusiveMinimum": 1, "exclusiveMaximum": 10}
+                }
+            ),
         ]
-        ident: Annotated[str, Meta(extra={"openapi": {"example": "ABC123"}})] = "XXXX"
+        ident: Annotated[
+            str, Meta(extra={"openapi": {"example": "ABC123"}})
+        ] = "XXXX"
 
 
 models = [
@@ -79,9 +90,9 @@ def test_models(app, Foo):
     async def handler(_): ...
 
     spec = get_spec(app)
-    foo_props = spec["paths"]["/"]["get"]["requestBody"]["content"]["application/json"][
-        "schema"
-    ]["properties"]
+    foo_props = spec["paths"]["/"]["get"]["requestBody"]["content"][
+        "application/json"
+    ]["schema"]["properties"]
 
     assert foo_props["links"] == {
         "title": "Links",

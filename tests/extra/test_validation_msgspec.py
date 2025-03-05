@@ -1,7 +1,9 @@
 import sys
+
 from typing import List, Optional
 
 import pytest
+
 from msgspec import Struct
 from sanic import json
 from sanic.views import HTTPMethodView
@@ -11,6 +13,7 @@ from sanic_ext.extras.validation.check import check_data
 from sanic_ext.extras.validation.schema import make_schema, parse_hint
 
 from . import __models__ as models
+
 
 SNOOPY_DATA = {"name": "Snoopy", "alter_ego": ["Flying Ace", "Joe Cool"]}
 
@@ -248,7 +251,9 @@ def test_modeling(model, okay, data):
             check_data(model, data, schema)
 
 
-@pytest.mark.skipif(sys.version_info < (3, 10), reason="UnionType added in 3.10")
+@pytest.mark.skipif(
+    sys.version_info < (3, 10), reason="UnionType added in 3.10"
+)
 def test_modeling_union_type_ModelUnionTypeStrNone():
     schema = make_schema({}, models.ModelUnionTypeStrNone)
 
@@ -258,7 +263,9 @@ def test_modeling_union_type_ModelUnionTypeStrNone():
         check_data(models.ModelUnionTypeStrNone, {"foo": 0}, schema)
 
 
-@pytest.mark.skipif(sys.version_info < (3, 10), reason="UnionType added in 3.10")
+@pytest.mark.skipif(
+    sys.version_info < (3, 10), reason="UnionType added in 3.10"
+)
 def test_modeling_union_type_ModelUnionTypeStrIntNone():
     schema = make_schema({}, models.ModelUnionTypeStrIntNone)
 
@@ -271,7 +278,9 @@ def test_modeling_union_type_ModelUnionTypeStrIntNone():
         check_data(models.ModelUnionTypeStrIntNone, {"foo": 1.1}, schema)
 
 
-@pytest.mark.skipif(sys.version_info < (3, 10), reason="UnionType added in 3.10")
+@pytest.mark.skipif(
+    sys.version_info < (3, 10), reason="UnionType added in 3.10"
+)
 def test_modeling_union_type_ModelUnionTypeStrInt():
     schema = make_schema({}, models.ModelUnionTypeStrInt)
 

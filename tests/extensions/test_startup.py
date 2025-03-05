@@ -2,6 +2,7 @@ from typing import Type, Union
 from unittest.mock import Mock
 
 import pytest
+
 from sanic import Sanic
 
 from sanic_ext import Extend, Extension
