@@ -1,4 +1,4 @@
-from typing import Any, Callable, Dict, Tuple, Type
+from typing import Any, Callable
 
 from sanic_ext.exceptions import ValidationError
 
@@ -9,7 +9,7 @@ from .clean import clean_data
 try:
     from pydantic import ValidationError as PydanticValidationError
 
-    VALIDATION_ERROR: Tuple[Type[Exception], ...] = (
+    VALIDATION_ERROR: tuple[type[Exception], ...] = (
         TypeError,
         PydanticValidationError,
     )
@@ -18,9 +18,9 @@ except ImportError:
 
 
 def validate_body(
-    validator: Callable[[Type[Any], Dict[str, Any]], Any],
-    model: Type[Any],
-    body: Dict[str, Any],
+    validator: Callable[[type[Any], dict[str, Any]], Any],
+    model: type[Any],
+    body: dict[str, Any],
 ) -> Any:
     try:
         return validator(model, body)

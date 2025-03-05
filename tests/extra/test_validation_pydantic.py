@@ -1,5 +1,3 @@
-from typing import List
-
 import pydantic
 
 from pydantic.dataclasses import dataclass
@@ -17,7 +15,7 @@ def test_validate_json(app):
     @dataclass
     class Pet:
         name: str
-        alter_ego: List[str]
+        alter_ego: list[str]
 
     @app.post("/function")
     @validate(json=Pet)
@@ -55,7 +53,7 @@ def test_validate_form(app):
     @dataclass
     class Pet:
         name: str
-        alter_ego: List[str]
+        alter_ego: list[str]
 
     @app.post("/function")
     @validate(form=Pet)

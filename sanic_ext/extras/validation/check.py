@@ -1,13 +1,12 @@
 from __future__ import annotations
 
+from collections.abc import Mapping
 from dataclasses import _HAS_DEFAULT_FACTORY  # type: ignore
 from typing import (
     Any,
     Literal,
-    Mapping,
     NamedTuple,
     Optional,
-    Tuple,
     Union,
     get_args,
     get_origin,
@@ -21,7 +20,7 @@ from sanic_ext.utils.typing import (
 )
 
 
-MISSING: Tuple[Any, ...] = (_HAS_DEFAULT_FACTORY,)
+MISSING: tuple[Any, ...] = (_HAS_DEFAULT_FACTORY,)
 
 try:
     import attrs  # noqa
@@ -51,7 +50,7 @@ class Hint(NamedTuple):
     typed: bool
     nullable: bool
     origin: Optional[Any]
-    allowed: Tuple[Hint, ...]  # type: ignore
+    allowed: tuple[Hint, ...]  # type: ignore
     allow_missing: bool
 
     def validate(

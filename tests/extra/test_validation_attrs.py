@@ -1,5 +1,3 @@
-from typing import List
-
 import attrs
 
 from sanic import json
@@ -15,7 +13,7 @@ def test_validate_json(app):
     @attrs.define
     class Pet:
         name: str
-        alter_ego: List[str]
+        alter_ego: list[str]
 
     @app.post("/function")
     @validate(json=Pet)
@@ -53,7 +51,7 @@ def test_validate_form(app):
     @attrs.define
     class Pet:
         name: str
-        alter_ego: List[str]
+        alter_ego: list[str]
 
     @app.post("/function")
     @validate(form=Pet)

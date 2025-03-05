@@ -1,6 +1,6 @@
 from datetime import date, datetime
 from enum import Enum
-from typing import Any, Dict, Optional, Union
+from typing import Any, Optional, Union
 from uuid import UUID
 
 import pytest
@@ -36,8 +36,8 @@ class BigFoo:
     nullable_single: Optional[bool]
     nullable_multi: Optional[Union[str, int]]
     bar: Bar
-    adict: Dict[str, Any]
-    bdict: Dict[str, bool]
+    adict: dict[str, Any]
+    bdict: dict[str, bool]
     anything: Any
     choice: Choice
 

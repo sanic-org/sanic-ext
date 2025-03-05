@@ -7,7 +7,6 @@ from multiprocessing import Manager
 from queue import Empty, Full
 from signal import SIGINT, SIGTERM
 from signal import signal as signal_func
-from typing import List
 
 from sanic import Sanic
 from sanic.log import logger as root_logger
@@ -68,7 +67,7 @@ async def remove_server_logging(app: Sanic):
 
 
 class Logger:
-    LOGGERS: List[str] = []
+    LOGGERS: list[str] = []
 
     def __init__(self):
         self.run = True
@@ -107,7 +106,7 @@ class Logger:
             self.run = False
 
     @classmethod
-    def update_cls_loggers(cls, logger_names: List[str]):
+    def update_cls_loggers(cls, logger_names: list[str]):
         cls.LOGGERS = logger_names
 
     @classmethod

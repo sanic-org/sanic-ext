@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from inspect import isawaitable
-from typing import TYPE_CHECKING, Any, Dict, Optional, Union
+from typing import TYPE_CHECKING, Any, Optional, Union
 
 from sanic import Sanic
 from sanic.compat import Header
@@ -31,9 +31,9 @@ class LazyResponse(TemplateResponse):
 
     def __init__(
         self,
-        context: Dict[str, Any],
+        context: dict[str, Any],
         status: int = 0,
-        headers: Optional[Union[Header, Dict[str, str]]] = None,
+        headers: Optional[Union[Header, dict[str, str]]] = None,
         content_type: Optional[str] = None,
     ):
         super().__init__(
@@ -45,11 +45,11 @@ class LazyResponse(TemplateResponse):
 async def render(
     template_name: str = "",
     status: int = 200,
-    headers: Optional[Dict[str, str]] = None,
+    headers: Optional[dict[str, str]] = None,
     content_type: str = "text/html; charset=utf-8",
     app: Optional[Sanic] = None,
     environment: Optional[Environment] = None,
-    context: Optional[Dict[str, Any]] = None,
+    context: Optional[dict[str, Any]] = None,
     *,
     template_source: str = "",
 ) -> TemplateResponse:

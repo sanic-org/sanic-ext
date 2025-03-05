@@ -7,8 +7,6 @@ from enum import Enum
 from inspect import getmembers, isclass, isfunction, ismethod
 from typing import (
     Any,
-    Dict,
-    List,
     Optional,
     Union,
     get_args,
@@ -63,11 +61,11 @@ except ImportError:
 
 
 class Definition:
-    __nullable__: Optional[List[str]] = []
-    __ignore__: Optional[List[str]] = []
+    __nullable__: Optional[list[str]] = []
+    __ignore__: Optional[list[str]] = []
 
     def __init__(self, **kwargs):
-        self._fields: Dict[str, Any] = self.guard(kwargs)
+        self._fields: dict[str, Any] = self.guard(kwargs)
 
     @property
     def fields(self):
@@ -115,11 +113,11 @@ class Schema(Definition):
     required: bool
     default: None
     example: None
-    oneOf: List[Definition]
-    anyOf: List[Definition]
-    allOf: List[Definition]
+    oneOf: list[Definition]
+    anyOf: list[Definition]
+    allOf: list[Definition]
 
-    additionalProperties: Dict[str, str]
+    additionalProperties: dict[str, str]
     multipleOf: int
     maximum: int
     exclusiveMaximum: bool
@@ -128,7 +126,7 @@ class Schema(Definition):
     maxLength: int
     minLength: int
     pattern: str
-    enum: Union[List[Any], Enum]
+    enum: Union[list[Any], Enum]
 
     @staticmethod
     def make(value, **kwargs):
@@ -310,12 +308,12 @@ class AnyValue(Schema):
 
 
 class Object(Schema):
-    properties: Dict[str, Schema]
+    properties: dict[str, Schema]
     maxProperties: int
     minProperties: int
 
     def __init__(
-        self, properties: Optional[Dict[str, Schema]] = None, **kwargs
+        self, properties: Optional[dict[str, Schema]] = None, **kwargs
     ):
         if properties:
             kwargs["properties"] = properties
@@ -323,7 +321,7 @@ class Object(Schema):
 
     @classmethod
     def make(cls, value: Any, **kwargs):
-        extra: Dict[str, Any] = {}
+        extra: dict[str, Any] = {}
 
         # Extract from field metadata if msgspec, pydantic, attrs, or dataclass
         if isclass(value):
@@ -403,7 +401,7 @@ def _serialize(value) -> Any:
     return value
 
 
-def _properties(value: object) -> Dict:
+def _properties(value: object) -> dict:
     try:
         fields = {
             x: val

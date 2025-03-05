@@ -1,7 +1,5 @@
-import sys
-
 from dataclasses import dataclass, field
-from typing import List
+from typing import Annotated
 from uuid import UUID
 
 import attrs
@@ -16,13 +14,9 @@ from sanic_ext import openapi
 from .utils import get_spec
 
 
-if sys.version_info >= (3, 9):
-    from typing import Annotated
-
-
 @dataclass
 class FooDataclass:
-    links: List[UUID]
+    links: list[UUID]
     priority: int = field(
         metadata={"openapi": {"exclusiveMinimum": 1, "exclusiveMaximum": 10}}
     )
@@ -33,7 +27,7 @@ class FooDataclass:
 
 @attrs.define
 class FooAttrs:
-    links: List[UUID]
+    links: list[UUID]
     priority: int = attrs.field(
         metadata={"openapi": {"exclusiveMinimum": 1, "exclusiveMaximum": 10}}
     )
@@ -43,33 +37,29 @@ class FooAttrs:
 
 
 class FooPydanticBaseModel(BaseModel):
-    links: List[UUID]
+    links: list[UUID]
     priority: int = Field(gt=1, lt=10)
     ident: str = Field("XXXX", example="ABC123")
 
 
 @pydataclass
 class FooPydanticDataclass:
-    links: List[UUID]
+    links: list[UUID]
     priority: int = Field(gt=1, lt=10)
     ident: str = Field("XXXX", example="ABC123")
 
 
-if sys.version_info >= (3, 9):
-
-    class FooStruct(Struct):
-        links: List[UUID]
-        priority: Annotated[
-            int,
-            Meta(
-                extra={
-                    "openapi": {"exclusiveMinimum": 1, "exclusiveMaximum": 10}
-                }
-            ),
-        ]
-        ident: Annotated[
-            str, Meta(extra={"openapi": {"example": "ABC123"}})
-        ] = "XXXX"
+class FooStruct(Struct):
+    links: list[UUID]
+    priority: Annotated[
+        int,
+        Meta(
+            extra={"openapi": {"exclusiveMinimum": 1, "exclusiveMaximum": 10}}
+        ),
+    ]
+    ident: Annotated[str, Meta(extra={"openapi": {"example": "ABC123"}})] = (
+        "XXXX"
+    )
 
 
 models = [
@@ -79,8 +69,7 @@ models = [
     FooPydanticDataclass,
 ]
 
-if sys.version_info >= (3, 9):
-    models.append(FooStruct)
+models.append(FooStruct)
 
 
 @pytest.mark.parametrize("Foo", models)
