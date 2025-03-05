@@ -1,7 +1,10 @@
 from __future__ import annotations
 
+import os
+
+from collections.abc import Mapping
 from types import SimpleNamespace
-from typing import Any, Callable, Dict, List, Mapping, Optional, Type, Union
+from typing import Any, Callable, Optional, Union
 from warnings import warn
 
 from sanic import Sanic, __version__
@@ -40,7 +43,7 @@ MIN_SUPPORT = (21, 3, 2)
 
 
 class Extend:
-    _pre_registry: List[Union[Type[Extension], Extension]] = []
+    _pre_registry: list[Union[type[Extension], Extension]] = []
 
     if TEMPLATING_ENABLED:
         environment: Environment
@@ -50,9 +53,9 @@ class Extend:
         self,
         app: Sanic,
         *,
-        extensions: Optional[List[Union[Type[Extension], Extension]]] = None,
+        extensions: Optional[list[Union[type[Extension], Extension]]] = None,
         built_in_extensions: bool = True,
-        config: Optional[Union[Config, Dict[str, Any]]] = None,
+        config: Optional[Union[Config, dict[str, Any]]] = None,
         **kwargs,
     ) -> None:
         """
@@ -79,7 +82,7 @@ class Extend:
         self._constant_registry: Optional[ConstantRegistry] = None
         self._openapi: Optional[SpecificationBuilder] = None
         self.app = app
-        self.extensions: List[Extension] = []
+        self.extensions: list[Extension] = []
         self.sanic_version = sanic_version
         app._ext = self
         app.ctx._dependencies = SimpleNamespace()
@@ -114,6 +117,8 @@ class Extend:
             started.add(ext)
 
     def _display(self):
+        if "SANIC_WORKER_IDENTIFIER" in os.environ:
+            return
         init_logs = ["Sanic Extensions:"]
         for extension in self.extensions:
             label = extension.render_label()
@@ -124,7 +129,7 @@ class Extend:
 
     def injection(
         self,
-        type: Type,
+        type: type,
         constructor: Optional[Callable[..., Any]] = None,
     ) -> None:
         warn(
@@ -136,7 +141,7 @@ class Extend:
 
     def add_dependency(
         self,
-        type: Type,
+        type: type,
         constructor: Optional[Callable[..., Any]] = None,
         request_arg: Optional[str] = None,
     ) -> None:
@@ -211,7 +216,7 @@ class Extend:
         return self.templating.template(template_name, **kwargs)
 
     @classmethod
-    def register(cls, extension: Union[Type[Extension], Extension]) -> None:
+    def register(cls, extension: Union[type[Extension], Extension]) -> None:
         cls._pre_registry.append(extension)
 
     @classmethod

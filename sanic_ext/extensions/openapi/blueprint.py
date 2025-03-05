@@ -53,7 +53,7 @@ def blueprint_factory(config: Config):
             custom_css = getattr(config, f"OAS_UI_{ui}_CUSTOM_CSS".upper())
             html_path = path if path else f"{dir_path}/{ui}.html"
 
-            with open(html_path, "r") as f:
+            with open(html_path) as f:
                 page = f.read()
 
             def index(
@@ -185,10 +185,8 @@ def blueprint_factory(config: Config):
 
                 for _parameter in route_parameters:
                     if any(
-                        (
-                            param.fields["name"] == _parameter.name
-                            for param in operation.parameters
-                        )
+                        param.fields["name"] == _parameter.name
+                        for param in operation.parameters
                     ):
                         continue
 

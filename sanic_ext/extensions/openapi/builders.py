@@ -1,7 +1,8 @@
 from __future__ import annotations
 
 from collections import defaultdict
-from typing import TYPE_CHECKING, Optional, Sequence, Union, cast
+from collections.abc import Sequence
+from typing import TYPE_CHECKING, Optional, Union, cast
 
 from sanic_ext.extensions.openapi.constants import (
     SecuritySchemeAuthorization,
@@ -15,12 +16,10 @@ from .definitions import (
     Any,
     Components,
     Contact,
-    Dict,
     ExternalDocumentation,
     Flows,
     Info,
     License,
-    List,
     OpenAPI,
     Operation,
     Parameter,
@@ -44,11 +43,11 @@ class OperationBuilder:
     operationId: str
     requestBody: RequestBody
     externalDocs: ExternalDocumentation
-    tags: List[str]
-    security: List[Any]
-    parameters: List[Parameter]
-    responses: Dict[str, Response]
-    callbacks: List[str]  # TODO
+    tags: list[str]
+    security: list[Any]
+    parameters: list[Parameter]
+    responses: dict[str, Response]
+    callbacks: list[str]  # TODO
     deprecated: bool = False
 
     def __init__(self):
@@ -168,18 +167,18 @@ class OperationStore(defaultdict):
 
 
 class SpecificationBuilder:
-    _urls: List[str]
+    _urls: list[str]
     _title: str
     _version: str
     _description: Optional[str]
     _terms: Optional[str]
     _contact: Contact
     _license: License
-    _paths: Dict[str, Dict[str, OperationBuilder]]
-    _tags: Dict[str, Tag]
-    _security: List[SecurityRequirement]
-    _components: Dict[str, Any]
-    _servers: List[Server]
+    _paths: dict[str, dict[str, OperationBuilder]]
+    _tags: dict[str, Tag]
+    _security: list[SecurityRequirement]
+    _components: dict[str, Any]
+    _servers: list[Server]
     # _components: ComponentsBuilder
     # deliberately not included
     _singleton: Optional[SpecificationBuilder] = None
@@ -307,7 +306,7 @@ class SpecificationBuilder:
         *,
         bearer_format: Optional[str] = None,
         description: Optional[str] = None,
-        flows: Optional[Union[Flows, Dict[str, Any]]] = None,
+        flows: Optional[Union[Flows, dict[str, Any]]] = None,
         location: Union[
             str, SecuritySchemeLocation
         ] = SecuritySchemeLocation.HEADER,
@@ -322,7 +321,7 @@ class SpecificationBuilder:
         if isinstance(location, str):
             location = SecuritySchemeLocation(location)
 
-        kwargs: Dict[str, Any] = {"type": type, "description": description}
+        kwargs: dict[str, Any] = {"type": type, "description": description}
 
         if type is SecuritySchemeType.API_KEY:
             kwargs["location"] = location
@@ -422,7 +421,7 @@ class SpecificationBuilder:
     def _build_tags(self):
         return [self._tags[k] for k in self._tags]
 
-    def _build_paths(self, app: Sanic) -> Dict:
+    def _build_paths(self, app: Sanic) -> dict:
         paths = {}
 
         for path, operations in self._paths.items():
@@ -438,8 +437,10 @@ class SpecificationBuilder:
 
     def _build_security(self):
         return [
-            {sec.fields["name"]: sec.fields["value"]}
-            if sec.fields["name"] is not None
-            else {}
+            (
+                {sec.fields["name"]: sec.fields["value"]}
+                if sec.fields["name"] is not None
+                else {}
+            )
             for sec in self.security
         ]
