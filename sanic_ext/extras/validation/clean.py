@@ -3,7 +3,9 @@ from typing import Any, get_origin, get_type_hints
 
 def clean_data(model: type[object], data: dict[str, Any]) -> dict[str, Any]:
     hints = get_type_hints(model)
-    return {key: _coerce(hints[key], value) for key, value in data.items()}
+    return {
+        key: _coerce(hints.get(key, Any), value) for key, value in data.items()
+    }
 
 
 def _coerce(param_type, value: Any) -> Any:
