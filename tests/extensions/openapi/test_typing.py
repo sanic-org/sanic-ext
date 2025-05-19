@@ -1,13 +1,13 @@
 import sys
-from typing import List, Optional
+
+from typing import Optional
 
 import pytest
 
 from sanic_ext.utils.typing import contains_annotations, flat_values
 
 
-class Foo:
-    ...
+class Foo: ...
 
 
 def test_dict_values_nested():
@@ -34,13 +34,12 @@ def test_dict_values_nested():
 
 params = [
     ({"foo": str}, True),
-    ({"foo": List[str]}, True),
+    ({"foo": list[str]}, True),
     ({"foo": Optional[str]}, True),
     ({"foo": Foo}, True),
     ({"foo": "str"}, False),
 ]
-if sys.version_info >= (3, 9):
-    params.append(({"foo": list[str]}, True))
+params.append(({"foo": list[str]}, True))
 if sys.version_info >= (3, 10):
     params.append(({"foo": str | None}, True))
 

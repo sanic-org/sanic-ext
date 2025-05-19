@@ -1,6 +1,6 @@
 from functools import wraps
 from inspect import isawaitable
-from typing import Callable, Optional, Type, TypeVar, Union
+from typing import Callable, Optional, TypeVar, Union
 
 from sanic import Request
 
@@ -14,9 +14,9 @@ T = TypeVar("T")
 
 
 def validate(
-    json: Optional[Union[Callable[[Request], bool], Type[object]]] = None,
-    form: Optional[Union[Callable[[Request], bool], Type[object]]] = None,
-    query: Optional[Union[Callable[[Request], bool], Type[object]]] = None,
+    json: Optional[Union[Callable[[Request], bool], type[object]]] = None,
+    form: Optional[Union[Callable[[Request], bool], type[object]]] = None,
+    query: Optional[Union[Callable[[Request], bool], type[object]]] = None,
     body_argument: str = "body",
     query_argument: str = "query",
 ) -> Callable[[T], T]:

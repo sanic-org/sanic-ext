@@ -1,12 +1,14 @@
 from __future__ import annotations
 
 import asyncio
+
 from dataclasses import dataclass
 from itertools import count
 from typing import Optional
 from uuid import UUID
 
 import pytest
+
 from sanic import Request, json, text
 from sanic.exceptions import SanicException
 from sanic.views import HTTPMethodView
@@ -99,8 +101,7 @@ class E:
         return cls(c, d)
 
 
-class Alpha:
-    ...
+class Alpha: ...
 
 
 class Beta:

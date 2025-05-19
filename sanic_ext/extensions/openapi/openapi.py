@@ -3,17 +3,15 @@ This module provides decorators which append
 documentation to OperationStore() and components created in the blueprints.
 
 """
+
+from collections.abc import Sequence
 from functools import wraps
 from inspect import isawaitable, isclass
 from typing import (
     Any,
     Callable,
-    Dict,
-    List,
     Literal,
     Optional,
-    Sequence,
-    Type,
     TypeVar,
     Union,
     overload,
@@ -94,13 +92,11 @@ def _content_or_component(content):
 
 
 @overload
-def exclude(flag: bool = True, *, bp: Blueprint) -> None:
-    ...
+def exclude(flag: bool = True, *, bp: Blueprint) -> None: ...
 
 
 @overload
-def exclude(flag: bool = True) -> Callable:
-    ...
+def exclude(flag: bool = True) -> Callable: ...
 
 
 def exclude(flag: bool = True, *, bp: Optional[Blueprint] = None):
@@ -247,8 +243,7 @@ def parameter(
     *,
     parameter: definitions.Parameter,
     **kwargs,
-) -> Callable[[T], T]:
-    ...
+) -> Callable[[T], T]: ...
 
 
 @overload
@@ -258,24 +253,22 @@ def parameter(
     location: None,
     parameter: definitions.Parameter,
     **kwargs,
-) -> Callable[[T], T]:
-    ...
+) -> Callable[[T], T]: ...
 
 
 @overload
 def parameter(
     name: str,
-    schema: Optional[Union[Type, Schema]] = None,
+    schema: Optional[Union[type, Schema]] = None,
     location: Optional[str] = None,
     parameter: None = None,
     **kwargs,
-) -> Callable[[T], T]:
-    ...
+) -> Callable[[T], T]: ...
 
 
 def parameter(
     name: Optional[str] = None,
-    schema: Optional[Union[Type, Schema]] = None,
+    schema: Optional[Union[type, Schema]] = None,
     location: Optional[str] = None,
     parameter: Optional[definitions.Parameter] = None,
     **kwargs,
@@ -315,7 +308,11 @@ def response(
     **kwargs,
 ) -> Callable[[T], T]:
     if response:
-        if status != "default" or content != str or description is not None:
+        if (
+            status != "default"
+            or content is not str
+            or description is not None
+        ):
             raise SanicException(
                 "When using a response object, you cannot pass "
                 "other arguments."
@@ -377,20 +374,20 @@ def definition(
         ]
     ] = None,
     deprecated: bool = False,
-    body: Optional[Union[Dict[str, Any], definitions.RequestBody, Any]] = None,
+    body: Optional[Union[dict[str, Any], definitions.RequestBody, Any]] = None,
     parameter: Optional[
         Union[
-            Union[Dict[str, Any], definitions.Parameter, str],
-            List[Union[Dict[str, Any], definitions.Parameter, str]],
+            Union[dict[str, Any], definitions.Parameter, str],
+            list[Union[dict[str, Any], definitions.Parameter, str]],
         ]
     ] = None,
     response: Optional[
         Union[
-            Union[Dict[str, Any], definitions.Response, Any],
-            List[Union[Dict[str, Any], definitions.Response]],
+            Union[dict[str, Any], definitions.Response, Any],
+            list[Union[dict[str, Any], definitions.Response]],
         ]
     ] = None,
-    secured: Optional[Dict[str, Any]] = None,
+    secured: Optional[dict[str, Any]] = None,
     validate: bool = False,
     body_argument: str = "body",
 ) -> Callable[[T], T]:

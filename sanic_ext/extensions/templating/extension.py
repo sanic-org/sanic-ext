@@ -3,8 +3,9 @@ from __future__ import annotations
 import os
 
 from collections import abc
+from collections.abc import Sequence
 from pathlib import Path
-from typing import TYPE_CHECKING, Sequence, Union
+from typing import TYPE_CHECKING, Union
 
 from jinja2 import (
     Environment,

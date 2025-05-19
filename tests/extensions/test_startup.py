@@ -1,7 +1,8 @@
-from typing import Type, Union
+from typing import Union
 from unittest.mock import Mock
 
 import pytest
+
 from sanic import Sanic
 
 from sanic_ext import Extend, Extension
@@ -49,8 +50,8 @@ def test_multiple_extensions_pre_register(bare_app: Sanic, instance: bool):
         def startup(self, _) -> None:
             mock()
 
-    foo: Union[Type[Extension], Extension] = FooExtension
-    bar: Union[Type[Extension], Extension] = BarExtension
+    foo: Union[type[Extension], Extension] = FooExtension
+    bar: Union[type[Extension], Extension] = BarExtension
     if instance:
         foo = foo()  # type: ignore
         bar = bar()  # type: ignore

@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from typing import Any, Dict, Type, Union
+from typing import Any, Union
 
 from sanic.app import Sanic
 from sanic.exceptions import SanicException
@@ -18,7 +18,7 @@ class NoDuplicateDict(dict):  # type: ignore
 
 
 class Extension(ABC):
-    _name_registry: Dict[str, Type[Extension]] = NoDuplicateDict()
+    _name_registry: dict[str, type[Extension]] = NoDuplicateDict()
     _started: bool
     name: str
     app: Sanic
@@ -46,8 +46,7 @@ class Extension(ABC):
         self._started = True
 
     @abstractmethod
-    def startup(self, bootstrap) -> None:
-        ...
+    def startup(self, bootstrap) -> None: ...
 
     def label(self):
         return ""
@@ -66,7 +65,7 @@ class Extension(ABC):
     @classmethod
     def create(
         cls,
-        extension: Union[Type[Extension], Extension],
+        extension: Union[type[Extension], Extension],
         app: Sanic,
         config: Config,
     ) -> Extension:
