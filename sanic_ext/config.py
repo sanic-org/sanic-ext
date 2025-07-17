@@ -59,6 +59,7 @@ class Config(SanicConfig):
         oas_ignore_options: bool = True,
         oas_path_to_redoc_html: Optional[str] = None,
         oas_path_to_swagger_html: Optional[str] = None,
+        oas_path_to_elements_html: Optional[str] = None,
         oas_ui_default: Optional[str] = "redoc",
         oas_ui_redoc: bool = True,
         oas_ui_redoc_html_title: str = "ReDoc",
@@ -68,10 +69,14 @@ class Config(SanicConfig):
         oas_ui_swagger_custom_css: str = "",
         oas_ui_swagger_version: str = "4.10.3",
         oas_ui_swagger_oauth2_redirect: str = "/oauth2-redirect.html",
+        oas_ui_elements:bool = True,
+        oas_ui_elements_html_title: str = "Stoplight Elements",
+        oas_ui_elements_custom_css: str = "",
         oas_uri_to_config: str = "/swagger-config",
         oas_uri_to_json: str = "/openapi.json",
         oas_uri_to_redoc: str = "/redoc",
         oas_uri_to_swagger: str = "/swagger",
+        oas_uri_to_elements: str = "/elements",
         oas_url_prefix: str = "/docs",
         swagger_ui_configuration: Optional[dict[str, Any]] = None,
         templating_path_to_templates: Union[
@@ -117,6 +122,7 @@ class Config(SanicConfig):
         self.OAS_IGNORE_OPTIONS = oas_ignore_options
         self.OAS_PATH_TO_REDOC_HTML = oas_path_to_redoc_html
         self.OAS_PATH_TO_SWAGGER_HTML = oas_path_to_swagger_html
+        self.OAS_PATH_TO_ELEMENTS_HTML = oas_path_to_elements_html
         self.OAS_UI_DEFAULT = oas_ui_default
         self.OAS_UI_REDOC = oas_ui_redoc
         self.OAS_UI_REDOC_HTML_TITLE = oas_ui_redoc_html_title
@@ -126,10 +132,14 @@ class Config(SanicConfig):
         self.OAS_UI_SWAGGER_CUSTOM_CSS = oas_ui_swagger_custom_css
         self.OAS_UI_SWAGGER_VERSION = oas_ui_swagger_version
         self.OAS_UI_SWAGGER_OAUTH2_REDIRECT = oas_ui_swagger_oauth2_redirect
+        self.OAS_UI_ELEMENTS = oas_ui_elements
+        self.OAS_UI_ELEMENTS_HTML_TITLE = oas_ui_elements_html_title
+        self.OAS_UI_ELEMENTS_CUSTOM_CSS = oas_ui_elements_custom_css
         self.OAS_URI_TO_CONFIG = oas_uri_to_config
         self.OAS_URI_TO_JSON = oas_uri_to_json
         self.OAS_URI_TO_REDOC = oas_uri_to_redoc
         self.OAS_URI_TO_SWAGGER = oas_uri_to_swagger
+        self.OAS_URI_TO_ELEMENTS = oas_uri_to_elements
         self.OAS_URL_PREFIX = oas_url_prefix
         self.SWAGGER_UI_CONFIGURATION = swagger_ui_configuration or {
             "apisSorter": "alpha",
