@@ -10,11 +10,8 @@ from __future__ import annotations
 from inspect import isclass
 from typing import (
     Any,
-    Dict,
-    List,
     Literal,
     Optional,
-    Type,
     Union,
     get_type_hints,
 )
@@ -34,7 +31,7 @@ class Reference(Schema):
     def __init__(self, value):
         super().__init__(**{"$ref": value})
 
-    def guard(self, fields: Dict[str, Any]):
+    def guard(self, fields: dict[str, Any]):
         return fields
 
 
@@ -86,7 +83,7 @@ class MediaType(Definition):
     schema: Schema
     example: Any
 
-    def __init__(self, schema: Union[Schema, Dict[str, Any]], **kwargs):
+    def __init__(self, schema: Union[Schema, dict[str, Any]], **kwargs):
         if isinstance(schema, dict) and contains_annotations(schema):
             schema = Schema.make(schema)
         super().__init__(schema=schema, **kwargs)
@@ -117,7 +114,7 @@ class MediaType(Definition):
 
 
 class Response(Definition):
-    content: Union[Any, Dict[str, Union[Any, MediaType]]]
+    content: Union[Any, dict[str, Union[Any, MediaType]]]
     description: Optional[str]
     status: Union[Literal["default"], int]
 
@@ -126,7 +123,7 @@ class Response(Definition):
 
     def __init__(
         self,
-        content: Optional[Union[Any, Dict[str, Union[Any, MediaType]]]] = None,
+        content: Optional[Union[Any, dict[str, Union[Any, MediaType]]]] = None,
         status: Union[Literal["default"], int] = "default",
         description: Optional[str] = None,
         **kwargs,
@@ -151,13 +148,13 @@ class Response(Definition):
 class RequestBody(Definition):
     description: Optional[str]
     required: Optional[bool]
-    content: Union[Any, Dict[str, Union[Any, MediaType]]]
+    content: Union[Any, dict[str, Union[Any, MediaType]]]
 
     __nullable__ = None
 
     def __init__(
         self,
-        content: Union[Any, Dict[str, Union[Any, MediaType]]],
+        content: Union[Any, dict[str, Union[Any, MediaType]]],
         required: Optional[bool] = None,
         description: Optional[str] = None,
         **kwargs,
@@ -209,7 +206,7 @@ class Header(Definition):
 
 class Parameter(Definition):
     name: str
-    schema: Union[Type, Schema]
+    schema: Union[type, Schema]
     location: str
     description: Optional[str]
     required: Optional[bool]
@@ -221,7 +218,7 @@ class Parameter(Definition):
     def __init__(
         self,
         name: str,
-        schema: Union[Type, Schema] = str,
+        schema: Union[type, Schema] = str,
         location: str = "query",
         description: Optional[str] = None,
         required: Optional[bool] = None,
@@ -258,18 +255,18 @@ class Parameter(Definition):
 
 
 class Operation(Definition):
-    tags: List[str]
+    tags: list[str]
     summary: str
     description: str
     operationId: str
     requestBody: RequestBody
     externalDocs: ExternalDocumentation
-    parameters: List[Parameter]
-    responses: Dict[str, Response]
-    security: Dict[str, List[str]]
-    callbacks: List[str]  # TODO
+    parameters: list[Parameter]
+    responses: dict[str, Response]
+    security: dict[str, list[str]]
+    callbacks: list[str]  # TODO
     deprecated: bool
-    servers: List[Dict[str, str]]
+    servers: list[dict[str, str]]
 
 
 class PathItem(Definition):
@@ -289,7 +286,7 @@ class Flow(Definition):
     authorizationUrl: str
     tokenUrl: str
     refreshUrl: str
-    scopes: Dict[str, str]
+    scopes: dict[str, str]
 
 
 class Flows(Definition):
@@ -301,7 +298,7 @@ class Flows(Definition):
 
 class SecurityRequirement(Definition):
     name: str
-    value: List[str]
+    value: list[str]
 
 
 class SecurityScheme(Definition):
@@ -329,15 +326,15 @@ class SecurityScheme(Definition):
         return values
 
     @staticmethod
-    def make(_type: str, cls: Type, **kwargs):
-        params: Dict[str, Any] = getattr(cls, "__dict__", {})
+    def make(_type: str, cls: type, **kwargs):
+        params: dict[str, Any] = getattr(cls, "__dict__", {})
         return SecurityScheme(_type, **params, **kwargs)
 
 
 class ServerVariable(Definition):
     default: str
     description: str
-    enum: List[str]
+    enum: list[str]
 
     def __init__(self, default: str, **kwargs):
         super().__init__(default=default, **kwargs)
@@ -346,7 +343,7 @@ class ServerVariable(Definition):
 class Server(Definition):
     url: str
     description: str
-    variables: Dict[str, ServerVariable]
+    variables: dict[str, ServerVariable]
 
     __nullable__ = None
 
@@ -354,7 +351,7 @@ class Server(Definition):
         self,
         url: str,
         description: Optional[str] = None,
-        variables: Optional[Dict[str, Any]] = None,
+        variables: Optional[dict[str, Any]] = None,
     ):
         super().__init__(
             url=url, description=description, variables=variables or {}
@@ -374,15 +371,15 @@ class Components(Definition):
     # This class is not being used in sanic-openapi right now, but the
     # definition is kept here to keep in close accordance with the openapi
     # spec, in case it is desired to be added later.
-    schemas: Dict[str, Schema]
-    responses: Dict[str, Response]
-    parameters: Dict[str, Parameter]
-    examples: Dict[str, Example]
-    requestBodies: Dict[str, RequestBody]
-    headers: Dict[str, Header]
-    securitySchemes: Dict[str, SecurityScheme]
-    links: Dict[str, Schema]  # TODO
-    callbacks: Dict[str, Schema]  # TODO
+    schemas: dict[str, Schema]
+    responses: dict[str, Response]
+    parameters: dict[str, Parameter]
+    examples: dict[str, Example]
+    requestBodies: dict[str, RequestBody]
+    headers: dict[str, Header]
+    securitySchemes: dict[str, SecurityScheme]
+    links: dict[str, Schema]  # TODO
+    callbacks: dict[str, Schema]  # TODO
 
 
 def Component(
@@ -446,13 +443,13 @@ def Component(
 class OpenAPI(Definition):
     openapi: str
     info: Info
-    servers: List[Server]
-    paths: Dict[str, PathItem]
+    servers: list[Server]
+    paths: dict[str, PathItem]
     components: Components
-    security: Dict[str, SecurityScheme]
-    tags: List[Tag]
+    security: dict[str, SecurityScheme]
+    tags: list[Tag]
     externalDocs: ExternalDocumentation
 
-    def __init__(self, info: Info, paths: Dict[str, PathItem], **kwargs):
+    def __init__(self, info: Info, paths: dict[str, PathItem], **kwargs):
         use = {k: v for k, v in kwargs.items() if v is not None}
         super().__init__(openapi="3.0.3", info=info, paths=paths, **use)

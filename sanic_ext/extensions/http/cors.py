@@ -3,7 +3,7 @@ import re
 from dataclasses import dataclass
 from datetime import timedelta
 from types import SimpleNamespace
-from typing import Any, FrozenSet, List, Optional, Tuple, Union
+from typing import Any, Optional, Union
 
 from sanic import HTTPResponse, Request, Sanic
 from sanic.exceptions import SanicException
@@ -27,12 +27,12 @@ VARY_HEADER = "vary"
 
 @dataclass(frozen=True)
 class CORSSettings:
-    allow_headers: FrozenSet[str]
-    allow_methods: FrozenSet[str]
-    allow_origins: Tuple[re.Pattern, ...]
+    allow_headers: frozenset[str]
+    allow_methods: frozenset[str]
+    allow_origins: tuple[re.Pattern, ...]
     always_send: bool
     automatic_options: bool
-    expose_headers: FrozenSet[str]
+    expose_headers: frozenset[str]
     max_age: str
     send_wildcard: bool
     supports_credentials: bool
@@ -86,9 +86,9 @@ def add_cors(app: Sanic) -> None:
 def cors(
     *,
     origin: Union[str, Default] = _default,
-    expose_headers: Union[List[str], Default] = _default,
-    allow_headers: Union[List[str], Default] = _default,
-    allow_methods: Union[List[str], Default] = _default,
+    expose_headers: Union[list[str], Default] = _default,
+    allow_headers: Union[list[str], Default] = _default,
+    allow_methods: Union[list[str], Default] = _default,
     supports_credentials: Union[bool, Default] = _default,
     max_age: Union[str, int, timedelta, Default] = _default,
 ):
@@ -227,10 +227,10 @@ def _add_credentials_header(request: Request, response: HTTPResponse) -> None:
 
 def _add_allow_header(request: Request, response: HTTPResponse) -> None:
     with_credentials = _is_request_with_credentials(request)
-    request_headers = set(
+    request_headers = {
         h.strip().lower()
         for h in request.headers.get(REQUEST_HEADERS_HEADER, "").split(",")
-    )
+    }
     allow_headers = _get_from_cors_ctx(
         request, "_cors_allow_headers", request.app.ctx.cors.allow_headers
     )
@@ -297,16 +297,16 @@ def _add_vary_header(request: Request, response: HTTPResponse) -> None:
         response.headers[VARY_HEADER] = "origin"
 
 
-def _get_allow_origins(app: Sanic) -> Tuple[re.Pattern, ...]:
+def _get_allow_origins(app: Sanic) -> tuple[re.Pattern, ...]:
     origins = app.config.CORS_ORIGINS
     return _parse_allow_origins(origins)
 
 
 def _parse_allow_origins(
-    value: Union[str, re.Pattern, List[Union[str, re.Pattern]]],
-) -> Tuple[re.Pattern, ...]:
+    value: Union[str, re.Pattern, list[Union[str, re.Pattern]]],
+) -> tuple[re.Pattern, ...]:
     origins: Optional[
-        Union[List[str], List[re.Pattern], List[Union[str, re.Pattern]]]
+        Union[list[str], list[re.Pattern], list[Union[str, re.Pattern]]]
     ] = None
     if value and isinstance(value, str):
         if value == "*":
@@ -326,7 +326,7 @@ def _parse_allow_origins(
     )
 
 
-def _get_expose_headers(app: Sanic) -> FrozenSet[str]:
+def _get_expose_headers(app: Sanic) -> frozenset[str]:
     expose_headers = (
         (
             app.config.CORS_EXPOSE_HEADERS
@@ -341,11 +341,11 @@ def _get_expose_headers(app: Sanic) -> FrozenSet[str]:
     return frozenset(header.lower() for header in expose_headers)
 
 
-def _get_allow_headers(app: Sanic) -> FrozenSet[str]:
+def _get_allow_headers(app: Sanic) -> frozenset[str]:
     return _parse_allow_headers(app.config.CORS_ALLOW_HEADERS)
 
 
-def _parse_allow_headers(value: str) -> FrozenSet[str]:
+def _parse_allow_headers(value: str) -> frozenset[str]:
     allow_headers = (
         (
             value
@@ -372,11 +372,11 @@ def _parse_max_age(value) -> str:
     return str(max_age)
 
 
-def _get_allow_methods(app: Sanic) -> FrozenSet[str]:
+def _get_allow_methods(app: Sanic) -> frozenset[str]:
     return _parse_allow_methods(app.config.CORS_METHODS)
 
 
-def _parse_allow_methods(value) -> FrozenSet[str]:
+def _parse_allow_methods(value) -> frozenset[str]:
     allow_methods = (
         (
             value

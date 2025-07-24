@@ -1,7 +1,5 @@
 import re
 
-from typing import Tuple
-
 
 # Expression from https://github.com/pypa/packaging
 VERSION_PATTERN = r"""
@@ -39,7 +37,7 @@ PATTERN = re.compile(
 )
 
 
-def get_version(version) -> Tuple[int, ...]:
+def get_version(version) -> tuple[int, ...]:
     match = PATTERN.search(version)
     if not match:
         raise ValueError(f"Invalid version: {version}")
