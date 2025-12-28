@@ -7,10 +7,13 @@ from multiprocessing import Manager
 from queue import Empty, Full
 from signal import SIGINT, SIGTERM
 from signal import signal as signal_func
-from typing import List
 
 from sanic import Sanic
-from sanic.log import server_logger
+from sanic.log import logger as root_logger
+from sanic.log import logger as server_logger
+from sanic.logging.setup import setup_logging
+
+from sanic_ext.extensions.logging.extractor import LoggingConfigExtractor
 
 
 async def prepare_logger(app: Sanic, *_):
@@ -19,24 +22,31 @@ async def prepare_logger(app: Sanic, *_):
 
 async def setup_logger(app: Sanic, *_):
     logger = Logger()
+    extractor = LoggingConfigExtractor()
+    for logger_name in app.config.LOGGERS:
+        extractor.add_logger(logging.getLogger(logger_name))
     app.manager.manage(
         "Logger",
         logger,
         {
             "queue": app.shared_ctx.logger_queue,
+            "config": extractor.compile(),
         },
+        transient=True,
     )
 
 
 class SanicQueueHandler(QueueHandler):
     def emit(self, record: LogRecord) -> None:
         try:
-            return super().enqueue(record)
+            return self.enqueue(self.prepare(record))
         except Full:
             server_logger.warning(
                 "Background logger is full. Emitting log in process."
             )
             server_logger.handle(record)
+        except Exception:
+            self.handleError(record)
 
 
 async def setup_server_logging(app: Sanic):
@@ -46,8 +56,7 @@ async def setup_server_logging(app: Sanic):
 
     for logger_name in app.config.LOGGERS:
         logger_instance = logging.getLogger(logger_name)
-        for handler in logger_instance.handlers:
-            logger_instance.removeHandler(handler)
+        logger_instance.handlers.clear()
         logger_instance.addHandler(qhandler)
 
 
@@ -59,7 +68,7 @@ async def remove_server_logging(app: Sanic):
 
 
 class Logger:
-    LOGGERS = []
+    LOGGERS: list[str] = []
 
     def __init__(self):
         self.run = True
@@ -67,9 +76,23 @@ class Logger:
             logger: logging.getLogger(logger) for logger in self.LOGGERS
         }
 
-    def __call__(self, queue) -> None:
+    def __call__(self, queue, config) -> None:
         signal_func(SIGINT, self.stop)
         signal_func(SIGTERM, self.stop)
+
+        logging.config.dictConfig(config)
+
+        setup_loggers = set(config["loggers"].keys())
+        enabled_loggers = set(self.loggers.keys())
+        missing = enabled_loggers - setup_loggers
+        root_logger.info(
+            f"Setup background logging for: {', '.join(setup_loggers)}"
+        )
+        if missing:
+            root_logger.warning(
+                f"Logger config not found for: {', '.join(missing)}"
+            )
+        setup_logging(True, no_color=False, log_extra=True)
 
         while self.run:
             try:
@@ -84,7 +107,7 @@ class Logger:
             self.run = False
 
     @classmethod
-    def update_cls_loggers(cls, logger_names: List[str]):
+    def update_cls_loggers(cls, logger_names: list[str]):
         cls.LOGGERS = logger_names
 
     @classmethod

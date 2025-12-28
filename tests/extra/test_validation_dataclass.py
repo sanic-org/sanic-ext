@@ -1,8 +1,10 @@
 import sys
+
 from dataclasses import dataclass
-from typing import List, Optional
+from typing import Optional
 
 import pytest
+
 from sanic import json
 from sanic.views import HTTPMethodView
 
@@ -11,6 +13,7 @@ from sanic_ext.extras.validation.check import check_data
 from sanic_ext.extras.validation.schema import make_schema, parse_hint
 
 from . import __models__ as models
+
 
 SNOOPY_DATA = {"name": "Snoopy", "alter_ego": ["Flying Ace", "Joe Cool"]}
 
@@ -24,14 +27,14 @@ def test_schema():
     class Person:
         name: str
         age: int
-        pets: Optional[List[Pet]]
+        pets: Optional[list[Pet]]
 
     schema = make_schema({}, Person)
 
     assert "Person" in schema
     assert schema["Person"]["hints"]["name"] == parse_hint(str)
     assert schema["Person"]["hints"]["age"] == parse_hint(int)
-    assert schema["Person"]["hints"]["pets"] == parse_hint(Optional[List[Pet]])
+    assert schema["Person"]["hints"]["pets"] == parse_hint(Optional[list[Pet]])
 
     assert "Pet" in schema
     assert schema["Pet"]["hints"]["name"] == parse_hint(str)
@@ -46,7 +49,7 @@ def test_should_hydrate():
     class Person:
         name: str
         age: int
-        pets: List[Pet]
+        pets: list[Pet]
 
     data = {"name": "Charlie Brown", "age": 8, "pets": [{"name": "Snoopy"}]}
 
@@ -78,7 +81,7 @@ def test_should_not_hydrate(data):
     class Person:
         name: str
         age: int
-        pets: List[Pet]
+        pets: list[Pet]
 
     schema = make_schema({}, Person)
     with pytest.raises(TypeError):
@@ -301,7 +304,7 @@ def test_validate_json(app):
     @dataclass
     class Pet:
         name: str
-        alter_ego: List[str]
+        alter_ego: list[str]
 
     @app.post("/function")
     @validate(json=Pet)
@@ -339,7 +342,8 @@ def test_validate_form(app):
     @dataclass
     class Pet:
         name: str
-        alter_ego: List[str]
+        alter_ego: list[str]
+        description: Optional[str] = None
 
     @app.post("/function")
     @validate(form=Pet)
@@ -348,6 +352,7 @@ def test_validate_form(app):
             {
                 "is_pet": isinstance(body, Pet),
                 "pet": {"name": body.name, "alter_ego": body.alter_ego},
+                "description": body.description if body.description else "",
             }
         )
 
@@ -359,6 +364,9 @@ def test_validate_form(app):
                 {
                     "is_pet": isinstance(body, Pet),
                     "pet": {"name": body.name, "alter_ego": body.alter_ego},
+                    "description": body.description
+                    if body.description
+                    else "",
                 }
             )
 
@@ -366,11 +374,13 @@ def test_validate_form(app):
     assert response.status == 200
     assert response.json["is_pet"]
     assert response.json["pet"] == SNOOPY_DATA
+    assert response.json["description"] == ""
 
     _, response = app.test_client.post("/method", data=SNOOPY_DATA)
     assert response.status == 200
     assert response.json["is_pet"]
     assert response.json["pet"] == SNOOPY_DATA
+    assert response.json["description"] == ""
 
 
 def test_validate_query(app):

@@ -1,13 +1,18 @@
-from typing import List
+from unittest import mock
 
 import pydantic
 
 from pydantic.dataclasses import dataclass
-from sanic import json
+from sanic import json, Request
 from sanic.views import HTTPMethodView
 
 from sanic_ext import validate
 from sanic_ext.exceptions import ValidationError
+import pytest
+from typing import Any
+
+pytestmark = pytest.mark.asyncio
+
 
 
 SNOOPY_DATA = {"name": "Snoopy", "alter_ego": ["Flying Ace", "Joe Cool"]}
@@ -18,7 +23,7 @@ def test_validate_json(app):
     @dataclass
     class Pet:
         name: str
-        alter_ego: List[str]
+        alter_ego: list[str]
 
     @app.post("/function")
     @validate(json=Pet)
@@ -98,7 +103,7 @@ def test_validate_form(app):
     @dataclass
     class Pet:
         name: str
-        alter_ego: List[str]
+        alter_ego: list[str]
 
     @app.post("/function")
     @validate(form=Pet)
@@ -159,6 +164,30 @@ def test_validate_query(app):
     assert response.json["q"] == "Snoopy"
 
 
+async def dummy_handler(request, **kwargs: dict) -> dict[str, Any]:
+    return kwargs
+
+
+async def test_validate_with_extra_fields_in_data():
+    class Model(pydantic.BaseModel):
+        a: str
+
+    request = mock.Mock(spec=Request, args={"a": "a", "b": "b"})
+    kwargs = await validate(query=Model)(dummy_handler)(request)
+
+    assert kwargs["query"] == Model(a="a")
+
+
+async def test_validate_with_aliased_fields():
+    class Model(pydantic.BaseModel):
+        a: str = pydantic.Field(alias="AliasedField")
+
+    request = mock.Mock(spec=Request, args={"AliasedField": "a"})
+    kwargs = await validate(query=Model)(dummy_handler)(request)
+
+    assert kwargs["query"] == Model(AliasedField="a")
+
+
 class User(pydantic.BaseModel):
     name: str
     age: int
@@ -179,8 +208,7 @@ def test_success_validate_form_custom_message(app):
 def test_error_validate_form_custom_message(app):
     async def server_error_validate_form(request, exception: ValidationError):
         error = exception.extra["exception"]
-        assert isinstance(error, pydantic.ValidationError)
-        return json(error.json(), status=400)
+        return json(error, status=400)
 
     @app.post("/user")
     @validate(form=User)

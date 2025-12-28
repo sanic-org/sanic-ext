@@ -1,4 +1,5 @@
 import pytest
+
 from sanic import Sanic
 from sanic.response import empty, text
 

@@ -3,6 +3,7 @@ from __future__ import annotations
 from unittest.mock import AsyncMock, Mock, call
 
 import pytest
+
 from sanic import Request
 from sanic.exceptions import ServerError
 
@@ -47,8 +48,7 @@ class Egg:
         return cls()
 
 
-class InheritedRequest(Request):
-    ...
+class InheritedRequest(Request): ...
 
 
 class Baz:

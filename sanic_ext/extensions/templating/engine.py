@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from functools import wraps
 from inspect import isawaitable
-from typing import TYPE_CHECKING, Dict, Optional, Union
+from typing import TYPE_CHECKING, Optional, Union
 
 from jinja2 import Environment
 from sanic.compat import Header
@@ -28,7 +28,7 @@ class Templating:
         self,
         file_name: str,
         status: int = 200,
-        headers: Optional[Union[Header, Dict[str, str]]] = None,
+        headers: Optional[Union[Header, dict[str, str]]] = None,
         content_type: str = "text/html; charset=utf-8",
         **kwargs,
     ):
