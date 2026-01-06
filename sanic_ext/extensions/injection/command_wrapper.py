@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from functools import wraps
 from inspect import isclass, iscoroutine
 from typing import (
     TYPE_CHECKING,
@@ -25,6 +26,7 @@ if TYPE_CHECKING:
 def create_command_wrapper(func: Callable, app: Sanic) -> Callable:
     original = _unwrap(func)
 
+    @wraps(func)
     async def wrapped(**kwargs):
         ext = getattr(app, "_ext", None)
         registry = getattr(ext, "_injection_registry", None) if ext else None
