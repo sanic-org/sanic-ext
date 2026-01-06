@@ -49,7 +49,7 @@ def _get_hints(func: Callable) -> dict[str, Any]:
     try:
         target = func.__init__ if isclass(func) else func
         hints = get_type_hints(target)
-    except Exception:
+    except (NameError, TypeError, AttributeError):
         return {}
     hints.pop("return", None)
     hints.pop("self", None)
