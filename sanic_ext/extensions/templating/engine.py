@@ -9,7 +9,11 @@ from sanic.compat import Header
 from sanic.request import Request
 from sanic.response import HTTPResponse
 
-from sanic_ext.extensions.templating.render import LazyResponse, TemplateResponse
+from sanic_ext.extensions.templating.render import (
+    LazyResponse,
+    TemplateResponse,
+)
+
 
 if TYPE_CHECKING:
     from sanic_ext import Config
