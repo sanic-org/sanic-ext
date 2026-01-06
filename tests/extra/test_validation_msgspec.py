@@ -519,7 +519,10 @@ def test_validate_query_lax_with_bool(app):
     @validate(query=SearchQuery, query_strict=False)
     async def handler(_, query: SearchQuery):
         return json(
-            {"active": query.active, "active_type": type(query.active).__name__}
+            {
+                "active": query.active,
+                "active_type": type(query.active).__name__,
+            }
         )
 
     # msgspec lax mode accepts "true"/"false" strings for bool
@@ -539,7 +542,9 @@ def test_validate_combined_query_lax_body_strict(app):
         count: int
 
     @app.post("/data")
-    @validate(query=QueryParams, json=BodyData, query_strict=False, body_strict=True)
+    @validate(
+        query=QueryParams, json=BodyData, query_strict=False, body_strict=True
+    )
     async def handler(_, query: QueryParams, body: BodyData):
         return json({"page": query.page, "count": body.count})
 
