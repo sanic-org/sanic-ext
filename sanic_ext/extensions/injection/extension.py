@@ -49,7 +49,7 @@ class _InjectionCommandSet(set):
 
     def add(self, cmd: FutureCommand) -> None:
         original = _unwrap(cmd.func)
-        wrapped = create_command_wrapper(cmd.func, self._app)
+        wrapped = create_command_wrapper(original, self._app)
 
         try:
             hints = get_type_hints(original)
