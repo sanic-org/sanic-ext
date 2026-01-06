@@ -1,11 +1,6 @@
-from sys import version_info
-
-import pytest
-
 from sanic_ext.extensions.openapi.types import Schema, String
 
 
-@pytest.mark.skipif(version_info < (3, 9), reason="Not needed on 3.8")
 def test_schema_list():
     class Foo:
         list1: list[int]

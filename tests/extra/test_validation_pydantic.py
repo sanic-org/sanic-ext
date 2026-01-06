@@ -154,7 +154,7 @@ def test_success_validate_form_custom_message(app):
     @app.post("/user")
     @validate(form=User)
     async def create_user(request, body: User):
-        return json(body.dict())
+        return json(body.model_dump())
 
     user = {"name": "Alison", "age": 25, "email": "alison@almeida.com"}
     _, response = app.test_client.post("/user", data=user)
@@ -169,7 +169,7 @@ def test_error_validate_form_custom_message(app):
     @app.post("/user")
     @validate(form=User)
     async def create_user(request, body: User):
-        return json(body.dict())
+        return json(body.model_dump())
 
     user = {"name": "Alison", "age": 25}
 
