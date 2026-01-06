@@ -71,7 +71,7 @@ async def _inject_dependencies(
         if param in kwargs and kwargs[param] is not None:
             continue
         if annotation in registry:
-            kwargs[param] = await _resolve(annotation, registry)
+            kwargs[param] = await _resolve(annotation, registry, [])
     return kwargs
 
 
@@ -85,20 +85,35 @@ def _inject_constants(kwargs: dict, hints: dict, ext: Any, app: Sanic) -> dict:
     return kwargs
 
 
-async def _resolve(annotation: type, registry: InjectionRegistry) -> Any:
+async def _resolve(
+    annotation: type, registry: InjectionRegistry, resolving: list[type]
+) -> Any:
+    if annotation in resolving:
+        chain = " -> ".join(
+            getattr(t, "__name__", str(t)) for t in resolving
+        )
+        raise RuntimeError(
+            f"Circular dependency detected: {chain} -> "
+            f"{getattr(annotation, '__name__', str(annotation))}"
+        )
+
     constructor = registry.get(annotation)
     if constructor is None:
         return annotation()
     if not isinstance(constructor, Constructor):
         return await _maybe_await(constructor())
 
-    hints = _get_hints(constructor.func)
-    nested_kwargs = await _resolve_nested(annotation, hints, registry)
-    return await _maybe_await(constructor.func(**nested_kwargs))
+    resolving.append(annotation)
+    try:
+        hints = _get_hints(constructor.func)
+        nested_kwargs = await _resolve_nested(annotation, hints, registry, resolving)
+        return await _maybe_await(constructor.func(**nested_kwargs))
+    finally:
+        resolving.pop()
 
 
 async def _resolve_nested(
-    annotation: type, hints: dict, registry: InjectionRegistry
+    annotation: type, hints: dict, registry: InjectionRegistry, resolving: list[type]
 ) -> dict[str, Any]:
     result: dict[str, Any] = {}
     for name, param_type in hints.items():
@@ -111,7 +126,7 @@ async def _resolve_nested(
                 f"the constructor requires a Request object."
             )
         if param_type in registry:
-            result[name] = await _resolve(param_type, registry)
+            result[name] = await _resolve(param_type, registry, resolving)
     return result
 
 
