@@ -89,9 +89,7 @@ async def _resolve(
     annotation: type, registry: InjectionRegistry, resolving: list[type]
 ) -> Any:
     if annotation in resolving:
-        chain = " -> ".join(
-            getattr(t, "__name__", str(t)) for t in resolving
-        )
+        chain = " -> ".join(getattr(t, "__name__", str(t)) for t in resolving)
         raise RuntimeError(
             f"Circular dependency detected: {chain} -> "
             f"{getattr(annotation, '__name__', str(annotation))}"
@@ -106,14 +104,19 @@ async def _resolve(
     resolving.append(annotation)
     try:
         hints = _get_hints(constructor.func)
-        nested_kwargs = await _resolve_nested(annotation, hints, registry, resolving)
+        nested_kwargs = await _resolve_nested(
+            annotation, hints, registry, resolving
+        )
         return await _maybe_await(constructor.func(**nested_kwargs))
     finally:
         resolving.pop()
 
 
 async def _resolve_nested(
-    annotation: type, hints: dict, registry: InjectionRegistry, resolving: list[type]
+    annotation: type,
+    hints: dict,
+    registry: InjectionRegistry,
+    resolving: list[type],
 ) -> dict[str, Any]:
     result: dict[str, Any] = {}
     for name, param_type in hints.items():

@@ -12,8 +12,7 @@ def test_custom_uri_to_json():
     app.extend()
 
     @app.get("/")
-    async def handler(_):
-        ...
+    async def handler(_): ...
 
     _, response = app.test_client.get("/docs/custom-spec.json")
     assert response.status == 200
@@ -27,8 +26,7 @@ def test_custom_uri_to_json_with_leading_slash():
     app.extend()
 
     @app.get("/")
-    async def handler(_):
-        ...
+    async def handler(_): ...
 
     # Verify the spec endpoint works
     _, response = app.test_client.get("/docs/my-api-spec.json")
@@ -47,8 +45,7 @@ def test_custom_uri_to_config():
     app.extend()
 
     @app.get("/")
-    async def handler(_):
-        ...
+    async def handler(_): ...
 
     _, response = app.test_client.get("/docs/my-swagger-config")
     assert response.status == 200
@@ -66,8 +63,7 @@ def test_uri_without_leading_slash():
     app.extend()
 
     @app.get("/")
-    async def handler(_):
-        ...
+    async def handler(_): ...
 
     _, response = app.test_client.get("/docs/spec.json")
     assert response.status == 200
@@ -81,8 +77,7 @@ def test_custom_swagger_cdn_url():
     app.extend()
 
     @app.get("/")
-    async def handler(_):
-        ...
+    async def handler(_): ...
 
     _, response = app.test_client.get("/docs/swagger")
     assert response.status == 200
@@ -98,8 +93,7 @@ def test_custom_redoc_cdn_url():
     app.extend()
 
     @app.get("/")
-    async def handler(_):
-        ...
+    async def handler(_): ...
 
     _, response = app.test_client.get("/docs/redoc")
     assert response.status == 200

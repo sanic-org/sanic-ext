@@ -125,7 +125,9 @@ async def original_name(svc: SimpleService):
 @app.command
 async def optional_request_inject(gamma: Gamma):
     """Command with optional request dependency."""
-    logger.info(f"OPTIONAL_REQUEST has_beta={gamma.beta is not None} request={gamma.request}")
+    logger.info(
+        f"OPTIONAL_REQUEST has_beta={gamma.beta is not None} request={gamma.request}"
+    )
 
 
 @app.command

@@ -95,7 +95,13 @@ def test_command_injection_request_dependency_error(caplog):
 
 def test_command_no_injection(caplog):
     """Test command with no dependencies passes through correctly."""
-    args = ["fake.server.app", "exec", "no_injection", "--name=hello", "--count=5"]
+    args = [
+        "fake.server.app",
+        "exec",
+        "no_injection",
+        "--name=hello",
+        "--count=5",
+    ]
     with patch("sys.argv", ["sanic", *args]):
         lines = capture(args, caplog)
     assert "NO_INJECTION name=hello count=5" in lines

@@ -14,7 +14,6 @@ from typing import Any, List
 pytestmark = pytest.mark.asyncio
 
 
-
 SNOOPY_DATA = {"name": "Snoopy", "alter_ego": ["Flying Ace", "Joe Cool"]}
 PET_LIST = [{"name": "Snoopy"}, {"name": "Brutus"}, {"name": "Pluto"}]
 
