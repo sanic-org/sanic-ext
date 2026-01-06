@@ -104,7 +104,7 @@ async def _resolve_nested(
             continue
         if _is_required_request(param_type):
             raise RuntimeError(
-                f"Cannot inject {annotation.__name__} into command handler: "
+                f"Cannot inject {getattr(annotation, '__name__', str(annotation))} into command handler: "
                 f"the constructor requires a Request object."
             )
         if param_type in registry:
