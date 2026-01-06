@@ -52,6 +52,16 @@ class RequestDependent:
         self.request = request
 
 
+class CircularA:
+    def __init__(self, b: CircularB) -> None:
+        self.b = b
+
+
+class CircularB:
+    def __init__(self, a: CircularA) -> None:
+        self.a = a
+
+
 app = Sanic("FakeServer", log_config=LOGGING_CONFIG)
 app.config.MY_CONSTANT = "constant_value"
 Extend(app)
@@ -72,6 +82,8 @@ app.ext.add_dependency(Alpha)
 app.ext.add_dependency(Beta)
 app.ext.add_dependency(Gamma)
 app.ext.add_dependency(RequestDependent)
+app.ext.add_dependency(CircularA)
+app.ext.add_dependency(CircularB)
 
 
 @app.command
@@ -132,3 +144,9 @@ async def no_injection(name: str, count: int = 1):
 async def constant_inject(my_constant: str):
     """Command that injects a config constant."""
     logger.info(f"CONSTANT_INJECT value={my_constant}")
+
+
+@app.command
+async def circular_inject(a: CircularA):
+    """Command with circular dependency - should raise error."""
+    logger.info(f"CIRCULAR_INJECT {a}")

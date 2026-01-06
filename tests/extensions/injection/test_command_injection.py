@@ -107,3 +107,11 @@ def test_command_constant_injection(caplog):
     with patch("sys.argv", ["sanic", *args]):
         lines = capture(args, caplog)
     assert "CONSTANT_INJECT value=constant_value" in lines
+
+
+def test_command_circular_dependency_error(caplog):
+    """Test that circular dependencies are detected and raise error."""
+    args = ["fake.server.app", "exec", "circular_inject"]
+    with patch("sys.argv", ["sanic", *args]):
+        with pytest.raises(RuntimeError, match="Circular dependency detected"):
+            capture(args, caplog)
