@@ -39,14 +39,14 @@ class FooAttrs:
 class FooPydanticBaseModel(BaseModel):
     links: list[UUID]
     priority: int = Field(gt=1, lt=10)
-    ident: str = Field("XXXX", example="ABC123")
+    ident: str = Field("XXXX", json_schema_extra={"example": "ABC123"})
 
 
 @pydataclass
 class FooPydanticDataclass:
     links: list[UUID]
     priority: int = Field(gt=1, lt=10)
-    ident: str = Field("XXXX", example="ABC123")
+    ident: str = Field("XXXX", json_schema_extra={"example": "ABC123"})
 
 
 class FooStruct(Struct):

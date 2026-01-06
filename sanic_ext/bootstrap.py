@@ -39,7 +39,14 @@ try:
 except (ImportError, ModuleNotFoundError):
     TEMPLATING_ENABLED = False
 
-MIN_SUPPORT = (21, 3, 2)
+try:
+    from sanic_ext.extensions.mcp.extension import MCPExtension
+
+    MCP_ENABLED = True
+except (ImportError, ModuleNotFoundError):
+    MCP_ENABLED = False
+
+MIN_SUPPORT = (25, 12, 0)
 
 
 class Extend:
@@ -105,6 +112,8 @@ class Extend:
 
             if TEMPLATING_ENABLED:
                 extensions.append(TemplatingExtension)
+            if MCP_ENABLED:
+                extensions.append(MCPExtension)
         extensions.extend(Extend._pre_registry)
 
         started = set()

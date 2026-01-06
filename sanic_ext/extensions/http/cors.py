@@ -70,7 +70,7 @@ def add_cors(app: Sanic) -> None:
             _add_methods_header(request, response)
 
     @app.before_server_start(priority=PRIORITY)
-    async def _assign_cors_settings(app, _):
+    async def _assign_cors_settings(app):
         for group in app.router.groups.values():
             _cors = SimpleNamespace()
             for route in group:

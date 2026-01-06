@@ -117,7 +117,7 @@ def blueprint_factory(config: Config):
             return json(request.app.config.SWAGGER_UI_CONFIGURATION)
 
     @bp.before_server_start(priority=PRIORITY)
-    def build_spec(app, loop):
+    def build_spec(app):
         specification = SpecificationBuilder()
         # --------------------------------------------------------------- #
         # Blueprint Tags

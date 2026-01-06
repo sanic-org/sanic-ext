@@ -23,7 +23,7 @@ def add_injection(
     )
 
     @app.listener("before_server_start", priority=PRIORITY)
-    async def finalize_injections(app: Sanic, _):
+    async def finalize_injections(app: Sanic):
         router_converters = {
             allowed[0] for allowed in app.router.regex_types.values()
         }
@@ -75,7 +75,7 @@ def _setup_signature_registry(
     registry = SignatureRegistry()
 
     @app.listener("before_server_start", priority=PRIORITY - 1)
-    async def setup_signatures(app, _):
+    async def setup_signatures(app):
         nonlocal registry
 
         for route in app.router.routes:
