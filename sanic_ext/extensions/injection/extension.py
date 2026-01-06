@@ -3,6 +3,7 @@ from __future__ import annotations
 from inspect import signature
 from typing import TYPE_CHECKING, get_type_hints
 
+from sanic.log import logger
 from sanic.models.futures import FutureCommand
 
 from ..base import Extension
@@ -53,7 +54,18 @@ class _InjectionCommandSet(set):
 
         try:
             hints = get_type_hints(original)
-        except Exception:
+        except (AttributeError, TypeError, NameError) as e:
+            # Expected exceptions when type hints are unavailable or invalid
+            logger.debug(
+                f"Could not get type hints for {original.__name__}: {e}"
+            )
+            hints = getattr(original, "__annotations__", {})
+        except Exception as e:
+            # Log unexpected exceptions that may indicate code problems
+            logger.warning(
+                f"Unexpected error getting type hints for "
+                f"{original.__name__}: {type(e).__name__}: {e}"
+            )
             hints = getattr(original, "__annotations__", {})
 
         orig_sig = signature(original)
