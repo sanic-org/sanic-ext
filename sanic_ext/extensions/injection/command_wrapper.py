@@ -12,6 +12,7 @@ from typing import (
 )
 
 from sanic import Request
+from sanic.log import logger
 
 from .constructor import Constructor
 
@@ -49,7 +50,16 @@ def _get_hints(func: Callable) -> dict[str, Any]:
     try:
         target = func.__init__ if isclass(func) else func
         hints = get_type_hints(target)
-    except Exception:
+    except (AttributeError, TypeError, NameError) as e:
+        # Expected exceptions when type hints are unavailable or invalid
+        logger.debug(f"Could not get type hints for {func}: {e}")
+        return {}
+    except Exception as e:
+        # Log unexpected exceptions that may indicate code problems
+        logger.warning(
+            f"Unexpected error getting type hints for "
+            f"{func}: {type(e).__name__}: {e}"
+        )
         return {}
     hints.pop("return", None)
     hints.pop("self", None)
@@ -103,8 +113,9 @@ async def _resolve_nested(
         if _is_optional_request(param_type):
             continue
         if _is_required_request(param_type):
+            annotation_name = getattr(annotation, "__name__", str(annotation))
             raise RuntimeError(
-                f"Cannot inject {annotation.__name__} into command handler: "
+                f"Cannot inject {annotation_name} into command handler: "
                 f"the constructor requires a Request object."
             )
         if param_type in registry:
