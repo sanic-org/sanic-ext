@@ -31,12 +31,12 @@ def validate_body(
         ) from None
 
 
-def _msgspec_validate_instance(model, body, allow_coerce):
+def _msgspec_validate_instance(model, body, allow_coerce, strict=True):
     import msgspec
 
     try:
         data = clean_data(model, body) if allow_coerce else body
-        return msgspec.convert(data, model)
+        return msgspec.convert(data, model, strict=strict)
     except msgspec.ValidationError as e:
         # Convert msgspec.ValidationError into TypeError for consistent
         # behaviour with _validate_instance

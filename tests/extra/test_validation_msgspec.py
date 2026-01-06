@@ -392,3 +392,167 @@ def test_validate_query(app):
     assert response.status == 200
     assert response.json["is_search"]
     assert response.json["q"] == "Snoopy"
+
+
+def test_validate_query_strict_mode_rejects_string_for_int(app):
+    """Test that strict mode (default) rejects string values for int fields."""
+
+    class SearchQuery(Struct):
+        q: str
+        limit: int
+
+    @app.get("/search")
+    @validate(query=SearchQuery)
+    async def handler(_, query: SearchQuery):
+        return json({"q": query.q, "limit": query.limit})
+
+    # Query params are always strings, so this should fail in strict mode
+    _, response = app.test_client.get(
+        "/search", params={"q": "test", "limit": "100"}
+    )
+    assert response.status == 400
+
+
+def test_validate_query_lax_mode_coerces_string_to_int(app):
+    """Test that lax mode (query_strict=False) coerces string to int."""
+
+    class SearchQuery(Struct):
+        q: str
+        limit: int
+
+    @app.get("/search")
+    @validate(query=SearchQuery, query_strict=False)
+    async def handler(_, query: SearchQuery):
+        return json(
+            {
+                "q": query.q,
+                "limit": query.limit,
+                "limit_type": type(query.limit).__name__,
+            }
+        )
+
+    _, response = app.test_client.get(
+        "/search", params={"q": "test", "limit": "100"}
+    )
+    assert response.status == 200
+    assert response.json["q"] == "test"
+    assert response.json["limit"] == 100
+    assert response.json["limit_type"] == "int"
+
+
+def test_validate_query_lax_mode_with_invalid_value(app):
+    """Test that lax mode still rejects completely invalid values."""
+
+    class SearchQuery(Struct):
+        limit: int
+
+    @app.get("/search")
+    @validate(query=SearchQuery, query_strict=False)
+    async def handler(_, query: SearchQuery):
+        return json({"limit": query.limit})
+
+    # "abc" cannot be coerced to int even in lax mode
+    _, response = app.test_client.get("/search", params={"limit": "abc"})
+    assert response.status == 400
+
+
+def test_validate_json_strict_mode_rejects_string_for_int(app):
+    """Test that strict mode (default) rejects string values for int fields."""
+
+    class Data(Struct):
+        count: int
+
+    @app.post("/data")
+    @validate(json=Data)
+    async def handler(_, body: Data):
+        return json({"count": body.count})
+
+    _, response = app.test_client.post("/data", json={"count": "100"})
+    assert response.status == 400
+
+
+def test_validate_json_lax_mode_coerces_string_to_int(app):
+    """Test that lax mode (body_strict=False) coerces string to int."""
+
+    class Data(Struct):
+        count: int
+
+    @app.post("/data")
+    @validate(json=Data, body_strict=False)
+    async def handler(_, body: Data):
+        return json(
+            {"count": body.count, "count_type": type(body.count).__name__}
+        )
+
+    _, response = app.test_client.post("/data", json={"count": "100"})
+    assert response.status == 200
+    assert response.json["count"] == 100
+    assert response.json["count_type"] == "int"
+
+
+def test_validate_query_lax_with_float(app):
+    """Test that lax mode coerces string to float."""
+
+    class SearchQuery(Struct):
+        price: float
+
+    @app.get("/search")
+    @validate(query=SearchQuery, query_strict=False)
+    async def handler(_, query: SearchQuery):
+        return json(
+            {"price": query.price, "price_type": type(query.price).__name__}
+        )
+
+    _, response = app.test_client.get("/search", params={"price": "19.99"})
+    assert response.status == 200
+    assert response.json["price"] == 19.99
+    assert response.json["price_type"] == "float"
+
+
+def test_validate_query_lax_with_bool(app):
+    """Test that lax mode coerces string to bool."""
+
+    class SearchQuery(Struct):
+        active: bool
+
+    @app.get("/search")
+    @validate(query=SearchQuery, query_strict=False)
+    async def handler(_, query: SearchQuery):
+        return json(
+            {"active": query.active, "active_type": type(query.active).__name__}
+        )
+
+    # msgspec lax mode accepts "true"/"false" strings for bool
+    _, response = app.test_client.get("/search", params={"active": "true"})
+    assert response.status == 200
+    assert response.json["active"] is True
+    assert response.json["active_type"] == "bool"
+
+
+def test_validate_combined_query_lax_body_strict(app):
+    """Test that query_strict and body_strict can be set independently."""
+
+    class QueryParams(Struct):
+        page: int
+
+    class BodyData(Struct):
+        count: int
+
+    @app.post("/data")
+    @validate(query=QueryParams, json=BodyData, query_strict=False, body_strict=True)
+    async def handler(_, query: QueryParams, body: BodyData):
+        return json({"page": query.page, "count": body.count})
+
+    # Query with string that gets coerced, body with proper int
+    _, response = app.test_client.post(
+        "/data", params={"page": "5"}, json={"count": 10}
+    )
+    assert response.status == 200
+    assert response.json["page"] == 5
+    assert response.json["count"] == 10
+
+    # Query with string that gets coerced, but body has string (should fail)
+    _, response = app.test_client.post(
+        "/data", params={"page": "5"}, json={"count": "10"}
+    )
+    assert response.status == 400
