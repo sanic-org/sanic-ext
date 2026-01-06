@@ -1,6 +1,4 @@
-import pytest
 from sanic import Sanic
-from sanic.response import empty
 
 from sanic_ext.extensions.logging.logger import Logger
 

@@ -3,7 +3,7 @@ requires = ["setuptools", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [tool.ruff]
-target-version = "py38"
+target-version = "py310"
 line-length = 79
 
 [tool.ruff.lint]
@@ -26,8 +26,11 @@ indent-style = "space"
 skip-magic-trailing-comma = false
 line-ending = "auto"
 
-[tool.ruff.isort]
+[tool.ruff.lint.isort]
 known-first-party = ["sanic_ext"]
 known-third-party = ["pytest"]
 lines-after-imports = 2
 lines-between-types = 1
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"

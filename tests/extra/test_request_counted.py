@@ -1,6 +1,7 @@
 from unittest.mock import Mock
 
 import pytest
+
 from sanic import Sanic
 from sanic.compat import Header
 from sanic.response import json

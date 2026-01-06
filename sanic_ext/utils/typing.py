@@ -48,7 +48,7 @@ def is_optional(item):
 
 def is_pydantic(model):
     return PYDANTIC and (
-        issubclass(model, BaseModel) or hasattr(model, "__pydantic_model__")
+        issubclass(model, BaseModel) or hasattr(model, "__pydantic_complete__")
     )
 
 
@@ -61,10 +61,8 @@ def is_msgspec(model):
 
 
 def flat_values(
-    item: typing.Union[
-        typing.Dict[str, typing.Any], typing.Iterable[typing.Any]
-    ],
-) -> typing.Set[typing.Any]:
+    item: typing.Union[dict[str, typing.Any], typing.Iterable[typing.Any]],
+) -> set[typing.Any]:
     values = set()
     if isinstance(item, dict):
         item = item.values()
@@ -76,6 +74,6 @@ def flat_values(
     return values
 
 
-def contains_annotations(d: typing.Dict[str, typing.Any]) -> bool:
+def contains_annotations(d: dict[str, typing.Any]) -> bool:
     values = flat_values(d)
     return any(isclass(q) or is_generic(q) for q in values)

@@ -1,7 +1,8 @@
+from collections.abc import Sequence
 from functools import partial
 from inspect import isawaitable
 from operator import itemgetter
-from typing import Sequence, Union
+from typing import Union
 
 from sanic import Sanic
 from sanic.constants import HTTPMethod
@@ -68,7 +69,7 @@ def add_auto_handlers(
         return raw(message, content_type="message/http")
 
     @app.before_server_start(priority=PRIORITY)
-    def _add_handlers(app, _):
+    def _add_handlers(app):
         nonlocal auto_head
         nonlocal auto_options
 

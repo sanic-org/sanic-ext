@@ -1,31 +1,22 @@
-from sys import version_info
-from typing import List
-
-import pytest
-
 from sanic_ext.extensions.openapi.types import Schema, String
 
 
-@pytest.mark.skipif(version_info < (3, 9), reason="Not needed on 3.8")
 def test_schema_list():
     class Foo:
-        list1: List[int]
+        list1: list[int]
         list2: list[int]
 
         @property
         def show(self) -> bool:
             return True
 
-        def no_show_method(self) -> None:
-            ...
+        def no_show_method(self) -> None: ...
 
         @classmethod
-        def no_show_classmethod(self) -> None:
-            ...
+        def no_show_classmethod(self) -> None: ...
 
         @staticmethod
-        def no_show_staticmethod() -> None:
-            ...
+        def no_show_staticmethod() -> None: ...
 
     schema = Schema.make(Foo)
     serialized = schema.serialize()
@@ -56,8 +47,7 @@ def test_schema_fields():
     class Single:
         pet = Pet
 
-        class Ignore:
-            ...
+        class Ignore: ...
 
     class Multiple:
         pets = [Pet]

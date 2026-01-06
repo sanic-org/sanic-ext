@@ -1,7 +1,7 @@
-from sys import version_info
 from typing import Literal, Union
 
 import pytest
+
 from sanic import text
 
 from sanic_ext import validate
@@ -77,7 +77,6 @@ def test_literal(app, annotation, spec_builder):
     assert response.text == "foo"
 
 
-@pytest.mark.skipif(version_info < (3, 10), reason="Not needed on 3.10")
 @pytest.mark.parametrize(
     "spec_builder",
     (

@@ -7,8 +7,6 @@ from enum import Enum
 from inspect import getmembers, isclass, isfunction, ismethod
 from typing import (
     Any,
-    Dict,
-    List,
     Optional,
     Union,
     get_args,
@@ -33,6 +31,11 @@ try:
     NOTHING: Any = attrs.NOTHING
 except ImportError:
     NOTHING = object()
+
+try:
+    from pydantic import TypeAdapter
+except ImportError:
+    TypeAdapter = None  # type: ignore
 
 try:
     import msgspec
@@ -63,11 +66,11 @@ except ImportError:
 
 
 class Definition:
-    __nullable__: Optional[List[str]] = []
-    __ignore__: Optional[List[str]] = []
+    __nullable__: Optional[list[str]] = []
+    __ignore__: Optional[list[str]] = []
 
     def __init__(self, **kwargs):
-        self._fields: Dict[str, Any] = self.guard(kwargs)
+        self._fields: dict[str, Any] = self.guard(kwargs)
 
     @property
     def fields(self):
@@ -115,11 +118,11 @@ class Schema(Definition):
     required: bool
     default: None
     example: None
-    oneOf: List[Definition]
-    anyOf: List[Definition]
-    allOf: List[Definition]
+    oneOf: list[Definition]
+    anyOf: list[Definition]
+    allOf: list[Definition]
 
-    additionalProperties: Dict[str, str]
+    additionalProperties: dict[str, str]
     multipleOf: int
     maximum: int
     exclusiveMaximum: bool
@@ -128,7 +131,7 @@ class Schema(Definition):
     maxLength: int
     minLength: int
     pattern: str
-    enum: Union[List[Any], Enum]
+    enum: Union[list[Any], Enum]
 
     @staticmethod
     def make(value, **kwargs):
@@ -152,50 +155,50 @@ class Schema(Definition):
 
         if isinstance(value, Schema):
             return value
-        if value == bool:
+        if value is bool:
             return Boolean(**kwargs)
-        elif value == int:
+        elif value is int:
             return Integer(**kwargs)
-        elif value == float:
+        elif value is float:
             return Float(**kwargs)
-        elif value == str or value in (nonemptystr, ext, slug, alpha):
+        elif value is str or value in (nonemptystr, ext, slug, alpha):
             return String(**kwargs)
-        elif value == bytes:
+        elif value is bytes:
             return Byte(**kwargs)
-        elif value == bytearray:
+        elif value is bytearray:
             return Binary(**kwargs)
-        elif value == date:
+        elif value is date:
             return Date(**kwargs)
-        elif value == time:
+        elif value is time:
             return Time(**kwargs)
-        elif value == datetime or value is parse_date:
+        elif value is datetime or value is parse_date:
             return DateTime(**kwargs)
-        elif value == uuid.UUID:
+        elif value is uuid.UUID:
             return UUID(**kwargs)
-        elif value == Any:
+        elif value is Any:
             return AnyValue(**kwargs)
 
-        if _type == bool:
+        if _type is bool:
             return Boolean(default=value, **kwargs)
-        elif _type == int:
+        elif _type is int:
             return Integer(default=value, **kwargs)
-        elif _type == float:
+        elif _type is float:
             return Float(default=value, **kwargs)
-        elif _type == str:
+        elif _type is str:
             return String(default=value, **kwargs)
-        elif _type == bytes:
+        elif _type is bytes:
             return Byte(default=value, **kwargs)
-        elif _type == bytearray:
+        elif _type is bytearray:
             return Binary(default=value, **kwargs)
-        elif _type == date:
+        elif _type is date:
             return Date(**kwargs)
-        elif _type == time:
+        elif _type is time:
             return Time(**kwargs)
-        elif _type == datetime:
+        elif _type is datetime:
             return DateTime(**kwargs)
-        elif _type == uuid.UUID:
+        elif _type is uuid.UUID:
             return UUID(**kwargs)
-        elif _type == list:
+        elif _type is list:
             if len(value) == 0:
                 schema = Schema(nullable=True)
             elif len(value) == 1:
@@ -204,16 +207,16 @@ class Schema(Definition):
                 schema = Schema(oneOf=[Schema.make(x) for x in value])
 
             return Array(schema, **kwargs)
-        elif _type == dict:
+        elif _type is dict:
             return Object.make(value, **kwargs)
         elif (
             (is_generic(value) or is_generic(_type))
-            and origin == dict
+            and origin is dict
             and len(args) == 2
         ):
             kwargs["additionalProperties"] = Schema.make(args[1])
             return Object(**kwargs)
-        elif (is_generic(value) or is_generic(_type)) and origin == list:
+        elif (is_generic(value) or is_generic(_type)) and origin is list:
             kwargs.pop("items", None)
             return Array(Schema.make(args[0]), **kwargs)
         elif _type is type(Enum):
@@ -310,12 +313,12 @@ class AnyValue(Schema):
 
 
 class Object(Schema):
-    properties: Dict[str, Schema]
+    properties: dict[str, Schema]
     maxProperties: int
     minProperties: int
 
     def __init__(
-        self, properties: Optional[Dict[str, Schema]] = None, **kwargs
+        self, properties: Optional[dict[str, Schema]] = None, **kwargs
     ):
         if properties:
             kwargs["properties"] = properties
@@ -323,17 +326,18 @@ class Object(Schema):
 
     @classmethod
     def make(cls, value: Any, **kwargs):
-        extra: Dict[str, Any] = {}
+        extra: dict[str, Any] = {}
 
         # Extract from field metadata if msgspec, pydantic, attrs, or dataclass
         if isclass(value):
             fields = ()
             if is_pydantic(value):
-                try:
-                    value = value.__pydantic_model__
-                except AttributeError:
-                    ...
-                extra = value.schema()["properties"]
+                if hasattr(value, "model_json_schema"):
+                    extra = value.model_json_schema().get("properties", {})
+                elif TypeAdapter:
+                    extra = (
+                        TypeAdapter(value).json_schema().get("properties", {})
+                    )
             elif is_attrs(value):
                 fields = value.__attrs_attrs__
             elif is_dataclass(value):
@@ -344,9 +348,11 @@ class Object(Schema):
                 fields = [
                     MsgspecAdapter(
                         name=f.name,
-                        default=MISSING
-                        if f.default in (UNSET, NODEFAULT)
-                        else f.default,
+                        default=(
+                            MISSING
+                            if f.default in (UNSET, NODEFAULT)
+                            else f.default
+                        ),
                         metadata=getattr(f.type, "extra", {}),
                     )
                     for f in msgspec_type_info(value).fields
@@ -401,7 +407,7 @@ def _serialize(value) -> Any:
     return value
 
 
-def _properties(value: object) -> Dict:
+def _properties(value: object) -> dict:
     try:
         fields = {
             x: val
@@ -415,7 +421,7 @@ def _properties(value: object) -> Dict:
     extra = value if isinstance(value, dict) else {}
     try:
         annotations = get_type_hints(cls)
-    except NameError:
+    except (NameError, TypeError):
         if hasattr(value, "__annotations__"):
             annotations = value.__annotations__
         else:

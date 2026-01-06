@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 
 import pytest
+
 from sanic import Sanic, json
 
 
