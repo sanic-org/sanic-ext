@@ -49,7 +49,7 @@ def _get_hints(func: Callable) -> dict[str, Any]:
     try:
         target = func.__init__ if isclass(func) else func
         hints = get_type_hints(target)
-    except Exception:
+    except (NameError, TypeError, AttributeError):
         return {}
     hints.pop("return", None)
     hints.pop("self", None)
@@ -103,11 +103,11 @@ async def _resolve_nested(
         if _is_optional_request(param_type):
             continue
         if _is_required_request(param_type):
-            message = (
-                f"Cannot inject {annotation.__name__} into command handler: "
+            ann_name = getattr(annotation, "__name__", str(annotation))
+            raise RuntimeError(
+                f"Cannot inject {ann_name} into command handler: "
                 f"the constructor requires a Request object."
             )
-            raise RuntimeError(message)
         if param_type in registry:
             result[name] = await _resolve(param_type, registry)
     return result
