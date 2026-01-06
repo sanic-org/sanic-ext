@@ -33,6 +33,11 @@ except ImportError:
     NOTHING = object()
 
 try:
+    from pydantic import TypeAdapter
+except ImportError:
+    TypeAdapter = None  # type: ignore
+
+try:
     import msgspec
 
     from msgspec.inspect import Metadata as MsgspecMetadata
@@ -327,11 +332,12 @@ class Object(Schema):
         if isclass(value):
             fields = ()
             if is_pydantic(value):
-                try:
-                    value = value.__pydantic_model__
-                except AttributeError:
-                    ...
-                extra = value.schema()["properties"]
+                if hasattr(value, "model_json_schema"):
+                    extra = value.model_json_schema().get("properties", {})
+                elif TypeAdapter:
+                    extra = (
+                        TypeAdapter(value).json_schema().get("properties", {})
+                    )
             elif is_attrs(value):
                 fields = value.__attrs_attrs__
             elif is_dataclass(value):
