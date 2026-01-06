@@ -25,13 +25,14 @@ async def do_validation(
     body_argument,
     allow_multiple,
     allow_coerce,
+    strict=True,
 ):
     try:
         logger.debug(f"Validating {request.path} using {model}")
         if model is not None:
             if isclass(model):
                 validator = _get_validator(
-                    model, schema, allow_multiple, allow_coerce
+                    model, schema, allow_multiple, allow_coerce, strict
                 )
                 validation = validate_body(validator, model, data)
                 kwargs[body_argument] = validation
@@ -55,9 +56,13 @@ def generate_schema(param):
     return make_schema({}, param) if isclass(param) else param
 
 
-def _get_validator(model, schema, allow_multiple, allow_coerce):
+def _get_validator(model, schema, allow_multiple, allow_coerce, strict=True):
     if is_msgspec(model):
-        return partial(_msgspec_validate_instance, allow_coerce=allow_coerce)
+        return partial(
+            _msgspec_validate_instance,
+            allow_coerce=allow_coerce,
+            strict=strict,
+        )
     elif is_pydantic(model):
         return partial(_validate_instance, allow_coerce=allow_coerce)
 
