@@ -3,7 +3,7 @@
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
-        <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/__VERSION__/swagger-ui.min.css">
+        <link rel="stylesheet" type="text/css" href="__CDN_URL__/__VERSION__/swagger-ui.min.css">
         <title>__HTML_TITLE__</title>
         <style>
             body {
@@ -15,14 +15,14 @@
     </head>
     <body>
         <div id="openapi"></div>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/__VERSION__/swagger-ui-bundle.min.js"></script>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/__VERSION__/swagger-ui-standalone-preset.min.js"></script>
+        <script src="__CDN_URL__/__VERSION__/swagger-ui-bundle.min.js"></script>
+        <script src="__CDN_URL__/__VERSION__/swagger-ui-standalone-preset.min.js"></script>
         <script>
             window.onload = function () {
                 const ui = SwaggerUIBundle({
-                    url: "__URL_PREFIX____URL_JSON__",
+                    url: "__URL_PREFIX__/__URI_TO_JSON__",
                     dom_id: "#openapi",
-                    configUrl: "__URL_PREFIX____URL_CONFIG__",
+                    configUrl: "__URL_PREFIX__/__URI_TO_CONFIG__",
                     deepLinking: true,
                     presets: [
                         SwaggerUIBundle.presets.apis,

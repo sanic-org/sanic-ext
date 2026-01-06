@@ -42,13 +42,13 @@ class Templating:
         def decorator(f):
             @wraps(f)
             async def decorated_function(*args, **kwargs):
-                context = f(*args, **kwargs)
-                if isawaitable(context):
-                    context = await context
-                if isinstance(context, HTTPResponse) and not isinstance(
-                    context, TemplateResponse
+                response = f(*args, **kwargs)
+                if isawaitable(response):
+                    response = await response
+                if isinstance(response, HTTPResponse) and not isinstance(
+                    response, TemplateResponse
                 ):
-                    return context
+                    return response
 
                 # TODO
                 # - Allow each of these to be a callable that is executed here
@@ -57,13 +57,17 @@ class Templating:
                     "content_type": content_type,
                     "headers": headers,
                 }
+                context = {}
 
-                if isinstance(context, LazyResponse):
-                    for attr in ("status", "headers", "content_type"):
-                        value = getattr(context, attr, None)
-                        if value:
-                            params[attr] = value
-                    context = context.context
+                if isinstance(response, LazyResponse):
+                    context = response.context
+                elif isinstance(response, dict):
+                    context = response
+                    response = HTTPResponse(**params)
+                else:
+                    raise TypeError(
+                        "A templated view must return a dict or HTTPResponse."
+                    )
 
                 context["request"] = Request.get_current()
 
@@ -71,7 +75,11 @@ class Templating:
                 if isawaitable(content):
                     content = await content
 
-                return HTTPResponse(content, **params)
+                if isinstance(content, str):
+                    content = content.encode()
+                response.body = content
+
+                return response
 
             return decorated_function
 

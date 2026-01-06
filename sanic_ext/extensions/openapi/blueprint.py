@@ -51,28 +51,39 @@ def blueprint_factory(config: Config):
             version = getattr(config, f"OAS_UI_{ui}_VERSION".upper(), "")
             html_title = getattr(config, f"OAS_UI_{ui}_HTML_TITLE".upper())
             custom_css = getattr(config, f"OAS_UI_{ui}_CUSTOM_CSS".upper())
+            cdn_url = getattr(config, f"OAS_UI_{ui}_CDN_URL".upper(), "")
             html_path = path if path else f"{dir_path}/{ui}.html"
 
             with open(html_path) as f:
                 page = f.read()
 
             def index(
-                request: Request, page: str, html_title: str, custom_css: str
+                request: Request,
+                page: str,
+                html_title: str,
+                custom_css: str,
+                cdn_url: str,
+                version: str,
             ):
                 prefix = (
                     request.app.url_for("openapi.index", _external=True)
                     if getattr(request.app.config, "SERVER_NAME", None)
-                    else getattr(request.app.config, "OAS_URL_PREFIX")
+                    else getattr(request.app.config, "OAS_URL_PREFIX", "/docs")
                 ).rstrip("/")
-                config_uri = getattr(request.app.config, "OAS_URI_TO_CONFIG")
-                config_json = getattr(request.app.config, "OAS_URI_TO_JSON")
+                uri_to_json = getattr(
+                    request.app.config, "OAS_URI_TO_JSON", "/openapi.json"
+                ).lstrip("/")
+                uri_to_config = getattr(
+                    request.app.config, "OAS_URI_TO_CONFIG", "/swagger-config"
+                ).lstrip("/")
                 return html(
                     page.replace("__VERSION__", version)
                     .replace("__URL_PREFIX__", prefix)
-                    .replace("__URL_CONFIG__", config_uri)
-                    .replace("__URL_JSON__", config_json)
+                    .replace("__URI_TO_JSON__", uri_to_json)
+                    .replace("__URI_TO_CONFIG__", uri_to_config)
                     .replace("__HTML_TITLE__", html_title)
                     .replace("__HTML_CUSTOM_CSS__", custom_css)
+                    .replace("__CDN_URL__", cdn_url)
                 )
 
             bp.add_route(
@@ -81,6 +92,8 @@ def blueprint_factory(config: Config):
                     page=page,
                     html_title=html_title,
                     custom_css=custom_css,
+                    cdn_url=cdn_url,
+                    version=version,
                 ),
                 uri,
                 name=ui,
@@ -92,6 +105,8 @@ def blueprint_factory(config: Config):
                         page=page,
                         html_title=html_title,
                         custom_css=custom_css,
+                        cdn_url=cdn_url,
+                        version=version,
                     ),
                     "",
                     name="index",
@@ -121,7 +136,7 @@ def blueprint_factory(config: Config):
             return json(request.app.config.SWAGGER_UI_CONFIGURATION)
 
     @bp.before_server_start(priority=PRIORITY)
-    def build_spec(app, loop):
+    def build_spec(app):
         specification = SpecificationBuilder()
         # --------------------------------------------------------------- #
         # Blueprint Tags

@@ -27,6 +27,12 @@ from sanic_ext.utils.typing import (
 from .types import Definition, Schema
 
 
+try:
+    from pydantic import TypeAdapter
+except ImportError:
+    TypeAdapter = None  # type: ignore
+
+
 class Reference(Schema):
     def __init__(self, value):
         super().__init__(**{"$ref": value})
@@ -421,12 +427,17 @@ def Component(
                 for key, value in definitions.items():
                     spec.add_component(field, key, value)
         elif is_pydantic(obj):
-            try:
-                schema = obj.schema
-            except AttributeError:
-                schema = obj.__pydantic_model__.schema
-            component = schema(ref_template="#/components/schemas/{model}")
-            definitions = component.pop("definitions", None)
+            if hasattr(obj, "model_json_schema"):
+                component = obj.model_json_schema(
+                    ref_template="#/components/schemas/{model}"
+                )
+            elif TypeAdapter:
+                component = TypeAdapter(obj).json_schema(
+                    ref_template="#/components/schemas/{model}"
+                )
+            else:
+                component = {}
+            definitions = component.pop("$defs", None)
             if definitions:
                 for key, value in definitions.items():
                     spec.add_component(field, key, value)

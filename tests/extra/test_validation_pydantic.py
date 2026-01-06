@@ -1,14 +1,22 @@
+from unittest import mock
+
 import pydantic
 
 from pydantic.dataclasses import dataclass
-from sanic import json
+from sanic import json, Request
 from sanic.views import HTTPMethodView
 
 from sanic_ext import validate
 from sanic_ext.exceptions import ValidationError
+import pytest
+from typing import Any, List
+
+pytestmark = pytest.mark.asyncio
+
 
 
 SNOOPY_DATA = {"name": "Snoopy", "alter_ego": ["Flying Ace", "Joe Cool"]}
+PET_LIST = [{"name": "Snoopy"}, {"name": "Brutus"}, {"name": "Pluto"}]
 
 
 def test_validate_json(app):
@@ -47,6 +55,48 @@ def test_validate_json(app):
     assert response.status == 200
     assert response.json["is_pet"]
     assert response.json["pet"] == SNOOPY_DATA
+
+
+def test_validate_json_list(app):
+    @dataclass
+    class Pet:
+        name: str
+
+    class PetList(pydantic.RootModel[List[Pet]]):
+        root: List[Pet] = pydantic.Field(
+            ...,
+        )
+
+    @app.post("/function")
+    @validate(json=PetList)
+    async def handler(_, body: PetList):
+        return json(
+            {
+                "is_pet": all(isinstance(p, Pet) for p in body.root),
+                "pets": [{"name": p.name} for p in body.root],
+            }
+        )
+
+    class MethodView(HTTPMethodView, attach=app, uri="/method"):
+        decorators = [validate(json=PetList)]
+
+        async def post(self, _, body: PetList):
+            return json(
+                {
+                    "is_pet": all(isinstance(p, Pet) for p in body.root),
+                    "pets": [{"name": p.name} for p in body.root],
+                }
+            )
+
+    _, response = app.test_client.post("/function", json=PET_LIST)
+    assert response.status == 200
+    assert response.json["is_pet"]
+    assert response.json["pets"] == PET_LIST
+
+    _, response = app.test_client.post("/method", json=PET_LIST)
+    assert response.status == 200
+    assert response.json["is_pet"]
+    assert response.json["pets"] == PET_LIST
 
 
 def test_validate_form(app):
@@ -88,7 +138,7 @@ def test_validate_form(app):
 
 
 def test_validate_query(app):
-    @dataclass
+    @dataclass()
     class Search:
         q: str
 
@@ -114,6 +164,90 @@ def test_validate_query(app):
     assert response.json["q"] == "Snoopy"
 
 
+def test_validate_query_basemodel_ignore_extra(app):
+    class Search(pydantic.BaseModel):
+        model_config = pydantic.ConfigDict(extra="ignore")
+        q: str
+
+    @app.get("/function")
+    @validate(query=Search)
+    async def handler(_, query: Search):
+        return json({"q": query.q, "is_search": isinstance(query, Search)})
+
+    class MethodView(HTTPMethodView, attach=app, uri="/method"):
+        decorators = [validate(query=Search)]
+
+        async def get(self, _, query: Search):
+            return json({"q": query.q, "is_search": isinstance(query, Search)})
+
+    _, response = app.test_client.get(
+        "/function", params={"q": "Snoopy", "extra_param": "extra value"}
+    )
+    assert response.status == 200
+    assert response.json["is_search"]
+    assert response.json["q"] == "Snoopy"
+
+    _, response = app.test_client.get(
+        "/method", params={"q": "Snoopy", "extra_param": "extra value"}
+    )
+    assert response.status == 200
+    assert response.json["is_search"]
+    assert response.json["q"] == "Snoopy"
+
+
+def test_validate_query_basemodel_forbid_extra(app):
+    class Search(pydantic.BaseModel):
+        model_config = pydantic.ConfigDict(extra="forbid")
+        q: str
+
+    @app.get("/function")
+    @validate(query=Search)
+    async def handler(_, query: Search):
+        return json({"q": query.q, "is_search": isinstance(query, Search)})
+
+    class MethodView(HTTPMethodView, attach=app, uri="/method"):
+        decorators = [validate(query=Search)]
+
+        async def get(self, _, query: Search):
+            return json({"q": query.q, "is_search": isinstance(query, Search)})
+
+    _, response = app.test_client.get(
+        "/function", params={"q": "Snoopy", "extra_param": "extra value"}
+    )
+    assert response.status == 400
+    assert "Extra inputs are not permitted" in response.json["message"]
+
+    _, response = app.test_client.get(
+        "/method", params={"q": "Snoopy", "extra_param": "extra value"}
+    )
+    assert response.status == 400
+    assert "Extra inputs are not permitted" in response.text
+
+
+async def dummy_handler(request, **kwargs: dict) -> dict[str, Any]:
+    return kwargs
+
+
+async def test_validate_with_extra_fields_in_data():
+    class Model(pydantic.BaseModel):
+        a: str
+
+    request = mock.Mock(spec=Request, args={"a": "a", "b": "b"})
+    kwargs = await validate(query=Model)(dummy_handler)(request)
+
+    assert kwargs["query"] == Model(a="a")
+
+
+async def test_validate_with_aliased_fields():
+    class Model(pydantic.BaseModel):
+        a: str = pydantic.Field(alias="AliasedField")
+
+    request = mock.Mock(spec=Request, args={"AliasedField": "a"})
+    kwargs = await validate(query=Model)(dummy_handler)(request)
+
+    assert kwargs["query"] == Model(AliasedField="a")
+
+
 class User(pydantic.BaseModel):
     name: str
     age: int
@@ -124,7 +258,7 @@ def test_success_validate_form_custom_message(app):
     @app.post("/user")
     @validate(form=User)
     async def create_user(request, body: User):
-        return json(body.dict())
+        return json(body.model_dump())
 
     user = {"name": "Alison", "age": 25, "email": "alison@almeida.com"}
     _, response = app.test_client.post("/user", data=user)
@@ -139,7 +273,7 @@ def test_error_validate_form_custom_message(app):
     @app.post("/user")
     @validate(form=User)
     async def create_user(request, body: User):
-        return json(body.dict())
+        return json(body.model_dump())
 
     user = {"name": "Alison", "age": 25}
 
