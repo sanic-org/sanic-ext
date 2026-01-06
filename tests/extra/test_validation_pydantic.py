@@ -9,12 +9,14 @@ from sanic.views import HTTPMethodView
 from sanic_ext import validate
 from sanic_ext.exceptions import ValidationError
 import pytest
-from typing import Any
+from typing import Any, List
 
 pytestmark = pytest.mark.asyncio
 
 
+
 SNOOPY_DATA = {"name": "Snoopy", "alter_ego": ["Flying Ace", "Joe Cool"]}
+PET_LIST = [{"name": "Snoopy"}, {"name": "Brutus"}, {"name": "Pluto"}]
 
 
 def test_validate_json(app):
@@ -53,6 +55,48 @@ def test_validate_json(app):
     assert response.status == 200
     assert response.json["is_pet"]
     assert response.json["pet"] == SNOOPY_DATA
+
+
+def test_validate_json_list(app):
+    @dataclass
+    class Pet:
+        name: str
+
+    class PetList(pydantic.RootModel[List[Pet]]):
+        root: List[Pet] = pydantic.Field(
+            ...,
+        )
+
+    @app.post("/function")
+    @validate(json=PetList)
+    async def handler(_, body: PetList):
+        return json(
+            {
+                "is_pet": all(isinstance(p, Pet) for p in body.root),
+                "pets": [{"name": p.name} for p in body.root],
+            }
+        )
+
+    class MethodView(HTTPMethodView, attach=app, uri="/method"):
+        decorators = [validate(json=PetList)]
+
+        async def post(self, _, body: PetList):
+            return json(
+                {
+                    "is_pet": all(isinstance(p, Pet) for p in body.root),
+                    "pets": [{"name": p.name} for p in body.root],
+                }
+            )
+
+    _, response = app.test_client.post("/function", json=PET_LIST)
+    assert response.status == 200
+    assert response.json["is_pet"]
+    assert response.json["pets"] == PET_LIST
+
+    _, response = app.test_client.post("/method", json=PET_LIST)
+    assert response.status == 200
+    assert response.json["is_pet"]
+    assert response.json["pets"] == PET_LIST
 
 
 def test_validate_form(app):
