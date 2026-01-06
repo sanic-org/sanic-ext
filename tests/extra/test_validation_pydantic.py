@@ -9,7 +9,7 @@ from sanic.views import HTTPMethodView
 from sanic_ext import validate
 from sanic_ext.exceptions import ValidationError
 import pytest
-from typing import Any
+from typing import Any, List
 
 pytestmark = pytest.mark.asyncio
 

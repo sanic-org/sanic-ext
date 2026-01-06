@@ -45,7 +45,9 @@ def _msgspec_validate_instance(model, body, allow_coerce):
 
 def _validate_instance(model, body, allow_coerce):
     data = clean_data(model, body) if allow_coerce else body
-    return model.model_validate(data)
+    if hasattr(model, "model_validate"):
+        return model.model_validate(data)
+    return model(**data)
 
 
 def _validate_annotations(model, body, schema, allow_multiple, allow_coerce):
