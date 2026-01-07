@@ -20,7 +20,6 @@ def validate(
     body_argument: str = "body",
     query_argument: str = "query",
     body_strict: bool = True,
-    query_strict: bool = True,
 ) -> Callable[[T], T]:
     schemas = {
         key: generate_schema(param)
@@ -61,7 +60,7 @@ def validate(
                     body_argument=body_argument,
                     allow_multiple=True,
                     allow_coerce=True,
-                    strict=body_strict,
+                    strict=False,
                 )
             if schemas["query"]:
                 await do_validation(
@@ -73,7 +72,7 @@ def validate(
                     body_argument=query_argument,
                     allow_multiple=True,
                     allow_coerce=True,
-                    strict=query_strict,
+                    strict=False,
                 )
             retval = f(*args, **kwargs)
             if isawaitable(retval):
