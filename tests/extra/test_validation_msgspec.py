@@ -394,8 +394,8 @@ def test_validate_query(app):
     assert response.json["q"] == "Snoopy"
 
 
-def test_validate_query_mode_coerces_string_to_int(app):
-    """Test that query mode coerces string to int."""
+def test_validate_query_coerces_string_to_int(app):
+    """Test that query coerces string to int."""
 
     class SearchQuery(Struct):
         q: str
@@ -421,7 +421,7 @@ def test_validate_query_mode_coerces_string_to_int(app):
     assert response.json["limit_type"] == "int"
 
 
-def test_validate_query_mode_with_invalid_value(app):
+def test_validate_query_with_invalid_value(app):
     """Test that lax mode still rejects completely invalid values."""
 
     class SearchQuery(Struct):

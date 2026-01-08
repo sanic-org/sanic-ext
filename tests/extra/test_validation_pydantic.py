@@ -1,15 +1,16 @@
+from typing import Any, List
 from unittest import mock
 
 import pydantic
+import pytest
 
 from pydantic.dataclasses import dataclass
-from sanic import json, Request
+from sanic import Request, json
 from sanic.views import HTTPMethodView
 
 from sanic_ext import validate
 from sanic_ext.exceptions import ValidationError
-import pytest
-from typing import Any, List
+
 
 pytestmark = pytest.mark.asyncio
 
@@ -278,4 +279,152 @@ def test_error_validate_form_custom_message(app):
 
     app.error_handler.add(ValidationError, server_error_validate_form)
     _, response = app.test_client.post("/user", data=user)
+    assert response.status == 400
+
+
+def test_validate_query_coerces_string_to_int(app):
+    """Test that query coerces string to int."""
+
+    class SearchQuery(pydantic.BaseModel):
+        q: str
+        limit: int
+
+    @app.get("/search")
+    @validate(query=SearchQuery)
+    async def handler(_, query: SearchQuery):
+        return json(
+            {
+                "q": query.q,
+                "limit": query.limit,
+                "limit_type": type(query.limit).__name__,
+            }
+        )
+
+    _, response = app.test_client.get(
+        "/search", params={"q": "test", "limit": "100"}
+    )
+    assert response.status == 200
+    assert response.json["q"] == "test"
+    assert response.json["limit"] == 100
+    assert response.json["limit_type"] == "int"
+
+
+def test_validate_query_with_invalid_value(app):
+    """Test that lax mode still rejects completely invalid values."""
+
+    class SearchQuery(pydantic.BaseModel):
+        limit: int
+
+    @app.get("/search")
+    @validate(query=SearchQuery)
+    async def handler(_, query: SearchQuery):
+        return json({"limit": query.limit})
+
+    # "abc" cannot be coerced to int even in lax mode
+    _, response = app.test_client.get("/search", params={"limit": "abc"})
+    assert response.status == 400
+
+
+def test_validate_json_strict_mode_rejects_string_for_int(app):
+    """Test that strict mode (default) rejects string values for int fields."""
+
+    class Data(pydantic.BaseModel):
+        count: int
+
+    @app.post("/data")
+    @validate(json=Data, strict=True)
+    async def handler(_, body: Data):
+        return json({"count": body.count})
+
+    _, response = app.test_client.post("/data", json={"count": "100"})
+    assert response.status == 400
+
+
+def test_validate_json_lax_mode_coerces_string_to_int(app):
+    """Test that lax mode (strict=False) coerces string to int."""
+
+    class Data(pydantic.BaseModel):
+        count: int
+
+    @app.post("/data")
+    @validate(json=Data)
+    async def handler(_, body: Data):
+        return json(
+            {"count": body.count, "count_type": type(body.count).__name__}
+        )
+
+    _, response = app.test_client.post("/data", json={"count": "100"})
+    assert response.status == 200
+    assert response.json["count"] == 100
+    assert response.json["count_type"] == "int"
+
+
+def test_validate_query_with_float(app):
+    """Test that query mode coerces string to float."""
+
+    class SearchQuery(pydantic.BaseModel):
+        price: float
+
+    @app.get("/search")
+    @validate(query=SearchQuery)
+    async def handler(_, query: SearchQuery):
+        return json(
+            {"price": query.price, "price_type": type(query.price).__name__}
+        )
+
+    _, response = app.test_client.get("/search", params={"price": "19.99"})
+    assert response.status == 200
+    assert response.json["price"] == 19.99
+    assert response.json["price_type"] == "float"
+
+
+def test_validate_query_with_bool(app):
+    """Test that query mode coerces string to bool."""
+
+    class SearchQuery(pydantic.BaseModel):
+        active: bool
+
+    @app.get("/search")
+    @validate(query=SearchQuery)
+    async def handler(_, query: SearchQuery):
+        return json(
+            {
+                "active": query.active,
+                "active_type": type(query.active).__name__,
+            }
+        )
+
+    # msgspec lax mode accepts "true"/"false" strings for bool
+    _, response = app.test_client.get("/search", params={"active": "true"})
+    assert response.status == 200
+    assert response.json["active"] is True
+    assert response.json["active_type"] == "bool"
+
+
+def test_validate_combined_query_lax_body_strict(app):
+    """Test that query_strict and body_strict can be set independently."""
+
+    class QueryParams(pydantic.BaseModel):
+        page: int
+
+    class BodyData(pydantic.BaseModel):
+        count: int
+
+    @app.post("/data")
+    @validate(query=QueryParams, json=BodyData, strict=True)
+    async def handler(_, query: QueryParams, body: BodyData):
+        return json({"page": query.page, "count": body.count})
+
+    # Query with string that gets coerced, body with proper int
+    _, response = app.test_client.post(
+        "/data", params={"page": "5"}, json={"count": 10}
+    )
+    assert response.status == 200
+    assert response.json["page"] == 5
+    assert response.json["count"] == 10
+
+    # Query with string that gets coerced, but body has string (should fail)
+    _, response = app.test_client.post(
+        "/data", params={"page": "5"}, json={"count": "10"}
+    )
     assert response.status == 400
