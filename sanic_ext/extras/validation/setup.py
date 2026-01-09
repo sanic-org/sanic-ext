@@ -64,7 +64,9 @@ def _get_validator(model, schema, allow_multiple, allow_coerce, strict=True):
             strict=strict,
         )
     elif is_pydantic(model):
-        return partial(_validate_instance, allow_coerce=allow_coerce)
+        return partial(
+            _validate_instance, allow_coerce=allow_coerce, strict=strict
+        )
 
     return partial(
         _validate_annotations,

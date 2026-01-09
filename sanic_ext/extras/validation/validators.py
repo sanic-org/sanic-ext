@@ -31,8 +31,10 @@ def validate_body(
         ) from None
 
 
-def _msgspec_validate_instance(model, body, allow_coerce, strict=True):
+def _msgspec_validate_instance(model, body, allow_coerce, strict=None):
     import msgspec
+
+    strict = True if strict is None else strict
 
     try:
         data = clean_data(model, body) if allow_coerce else body
@@ -43,10 +45,11 @@ def _msgspec_validate_instance(model, body, allow_coerce, strict=True):
         raise TypeError(str(e))
 
 
-def _validate_instance(model, body, allow_coerce):
+def _validate_instance(model, body, allow_coerce, strict=None):
+    strict = False if strict is None else strict
     data = clean_data(model, body) if allow_coerce else body
     if hasattr(model, "model_validate"):
-        return model.model_validate(data)
+        return model.model_validate(data, strict=strict)
     return model(**data)
 
 
