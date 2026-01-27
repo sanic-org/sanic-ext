@@ -11,7 +11,7 @@ def clean_data(
     model: type[object],
     data: dict[str, Any],
 ) -> dict[str, Any]:
-    if isinstance(BaseModel, type) and isinstance(model, pydantic.BaseModel):
+    if isinstance(BaseModel, type) and isinstance(model, BaseModel):
         hints: dict[str, type] = {}
         for key, field in model.__annotations__.items():
             hints[key] = field.annotation
