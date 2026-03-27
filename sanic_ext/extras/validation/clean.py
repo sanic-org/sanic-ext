@@ -1,13 +1,19 @@
 from typing import Any, Optional, Type, get_origin, get_type_hints
 
-import pydantic
+from sanic_ext.utils.typing import is_pydantic
+
+try:
+    # Optional dependency
+    from pydantic import BaseModel
+except ImportError:
+    BaseModel = None
 
 
 def clean_data(
     model: type[object],
     data: dict[str, Any],
 ) -> dict[str, Any]:
-    if isinstance(model, pydantic.BaseModel):
+    if is_pydantic and isinstance(model, BaseModel):
         hints: dict[str, type] = {}
         for key, field in model.__annotations__.items():
             hints[key] = field.annotation
