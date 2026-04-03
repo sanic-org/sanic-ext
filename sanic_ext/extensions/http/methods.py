@@ -52,7 +52,7 @@ def add_auto_handlers(
         resp.headers["allow"] = ",".join([*methods, "OPTIONS"])
         return resp
 
-    async def trace_handler(request):
+    async def trace_handler(request, *args, **kwargs):
         cleaned_head = b""
         for line in request.head.split(b"\r\n"):
             first_word, _ = line.split(b" ", 1)
