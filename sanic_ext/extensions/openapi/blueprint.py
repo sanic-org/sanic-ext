@@ -1,4 +1,5 @@
 import inspect
+from copy import deepcopy
 
 from functools import lru_cache, partial
 from os.path import abspath, dirname, realpath
@@ -191,6 +192,10 @@ def blueprint_factory(config: Config):
                     and operation._allow_autodoc
                 ):
                     operation.autodoc(docstring)
+
+                # Create an operation per method so defaults (like operationId)
+                # do not overwrite each other for multi-method routes.
+                operation = deepcopy(operation)
 
                 operation._default["operationId"] = (
                     f"{method.lower()}~{route_name}"

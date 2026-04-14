@@ -111,7 +111,8 @@ def get_all_routes(app, skip_prefix):
                     continue
 
                 method_handlers = [
-                    (method, route.handler) for method in route.methods
+                    (method, route.handler)
+                    for method in sorted(route.methods)
                 ]
 
                 _, name = route.name.split(".", 1)
