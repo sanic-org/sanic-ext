@@ -131,3 +131,14 @@ def test_config_scheme(app, schemes, expected):
     urls = {s["url"] for s in spec["servers"]}
 
     assert urls == set(expected)
+
+
+
+
+def test_default_redoc_html_loads_script_as_module():
+    """Redoc v3 standalone bundle is an ES module (sanic-org/sanic#3205)."""
+    from importlib.resources import files
+
+    html = (files("sanic_ext") / "extensions/openapi/ui/redoc.html").read_text(encoding="utf-8")
+    assert 'type="module"' in html
+    assert "__CDN_URL__" in html
