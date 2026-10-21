@@ -102,6 +102,21 @@ def test_custom_redoc_cdn_url():
     assert "cdn.redoc.ly" not in response.text
 
 
+def test_redoc_script_loads_as_module():
+    """Test that the ReDoc UI script tag is loaded as an ES module.
+
+    The default ReDoc v3 standalone bundle is distributed as an ES
+    module, so the ``<script>`` tag needs ``type="module"`` for the
+    docs page to render (sanic-org/sanic#3205).
+    """
+    from importlib.resources import files
+
+    html = (files("sanic_ext") / "extensions/openapi/ui/redoc.html").read_text(
+        encoding="utf-8"
+    )
+    assert '<script type="module" src="__CDN_URL__"></script>' in html
+
+
 @pytest.mark.parametrize(
     "schemes,expected",
     (
