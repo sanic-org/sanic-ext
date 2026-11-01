@@ -102,6 +102,20 @@ def test_custom_redoc_cdn_url():
     assert "cdn.redoc.ly" not in response.text
 
 
+def test_redoc_script_is_es_module():
+    """Redoc v3 ships an ES module bundle, so the script tag needs
+    type="module" (see sanic-org/sanic#3205)."""
+    app = Sanic("test_redoc_script_is_es_module")
+    app.extend()
+
+    @app.get("/")
+    async def handler(_): ...
+
+    _, response = app.test_client.get("/docs/redoc")
+    assert response.status == 200
+    assert 'type="module"' in response.text
+
+
 @pytest.mark.parametrize(
     "schemes,expected",
     (
