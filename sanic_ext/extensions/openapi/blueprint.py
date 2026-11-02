@@ -1,3 +1,4 @@
+import copy
 import inspect
 
 from functools import lru_cache, partial
@@ -161,7 +162,12 @@ def blueprint_factory(config: Config):
             # Methods
             # --------------------------------------------------------------- #
 
-            for method, _handler in method_handlers:
+            # pristine per-handler snapshots: one function object may serve
+            # several methods (or even several routes), and each operation
+            # needs its own copy (see #290)
+            pristine_operations: dict = {}
+            # sorted for deterministic output: route.methods is a set
+            for method, _handler in sorted(method_handlers):
                 if (
                     (method == "OPTIONS" and app.config.OAS_IGNORE_OPTIONS)
                     or (method == "HEAD" and app.config.OAS_IGNORE_HEAD)
@@ -179,6 +185,10 @@ def blueprint_factory(config: Config):
                 ):
                     _handler = func
                 operation = store[_handler]
+                key = id(operation)
+                if key not in pristine_operations:
+                    pristine_operations[key] = copy.deepcopy(operation)
+                operation = copy.deepcopy(pristine_operations[key])
 
                 if operation._exclude or "openapi" in operation.tags:
                     continue
